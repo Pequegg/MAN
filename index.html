@@ -22,7 +22,8 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
 .scr.hid{opacity:0;pointer-events:none;transform:scale(1.06)}
 .tit{font-size:clamp(26px,9vw,52px);font-weight:900;color:#fff;text-align:center;letter-spacing:-1px;line-height:1.1;margin-bottom:6px}
 .tit span{display:block;font-size:.45em;font-weight:400;color:#666;letter-spacing:4px;text-transform:uppercase;margin-top:8px}
-.sub{font-size:14px;color:#777;text-align:center;max-width:300px;line-height:1.6;margin-bottom:36px;padding:0 20px}
+.sub{font-size:14px;color:#777;text-align:center;max-width:300px;line-height:1.6;margin-bottom:12px;padding:0 20px}
+.ios-hint{font-size:12px;color:#ffee00;text-align:center;max-width:280px;margin-bottom:24px;padding:0 20px;opacity:0.8}
 .btn{background:transparent;color:#fff;border:2px solid #fff;padding:16px 44px;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;transition:all .3s}
 .btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:#fff;transition:left .3s;z-index:-1}
 .btn:hover::before,.btn:active::before{left:0}
@@ -48,6 +49,7 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
 <div class="scr" id="s0">
   <div class="tit">Op-Art Fan<span>Juego de Reflejos</span></div>
   <div class="sub">Toca las celdas iluminadas en el abanico.<br>No falles. Sé rápido.</div>
+  <div class="ios-hint" id="iosHint" style="display:none">📱 Toca la pantalla una vez para activar el sonido, luego presiona Iniciar.</div>
   <button class="btn" id="b0">Iniciar Juego</button>
 </div>
 
@@ -72,84 +74,110 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   let lt=0,st=0,si=1000,bs=1000,ro=0,op=0,dif=1;
   let cells=[],act=[],parts=[];
 
-  // ===== AUDIO ENGINE =====
-  let aCtx=null, audioReady=false;
+  // Detectar iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS) document.getElementById('iosHint').style.display='block';
+
+  // ===== AUDIO ENGINE - COMPATIBLE iOS =====
+  let aCtx=null;
+  let audioUnlocked=false;
   let ambGain=null, ambOsc=[];
 
-  function initAudio(){
+  function createCtx(){
     if(aCtx) return;
     try{
-      aCtx=new(window.AudioContext||window.webkitAudioContext)();
-    }catch(e){ return; }
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      aCtx = new Ctx();
+    }catch(e){}
   }
 
-  async function unlockAudio(){
-    initAudio();
-    if(!aCtx) return;
-    if(aCtx.state==='suspended'){
-      try{ await aCtx.resume(); }catch(e){}
-    }
-    // Truco obligatorio para iOS: tocar un buffer silencioso
-    try{
-      const buf=aCtx.createBuffer(1,1,aCtx.sampleRate);
-      const src=aCtx.createBufferSource();
-      src.buffer=buf; src.connect(aCtx.destination); src.start(0);
-    }catch(e){}
-    audioReady = (aCtx && aCtx.state==='running');
+  function unlockAudio(){
+    return new Promise(function(resolve){
+      createCtx();
+      if(!aCtx){ resolve(false); return; }
+
+      function tryResume(){
+        if(aCtx.state==='running'){
+          audioUnlocked=true;
+          resolve(true);
+          return;
+        }
+        var p = aCtx.resume();
+        if(p && p.then){
+          p.then(function(){
+            // Truco iOS: reproducir buffer silencioso
+            try{
+              var buf = aCtx.createBuffer(1,1,aCtx.sampleRate);
+              var src = aCtx.createBufferSource();
+              src.buffer = buf;
+              src.connect(aCtx.destination);
+              src.start(0);
+            }catch(e){}
+            audioUnlocked = (aCtx.state==='running');
+            resolve(audioUnlocked);
+          }).catch(function(){
+            resolve(false);
+          });
+        }else{
+          // Navegadores viejos sin Promise
+          audioUnlocked = (aCtx.state==='running');
+          resolve(audioUnlocked);
+        }
+      }
+      tryResume();
+    });
   }
 
   function playTone(freq,type,dur,vol){
-    if(!audioReady || !aCtx) return;
+    if(!audioUnlocked || !aCtx) return;
     try{
-      const o=aCtx.createOscillator(),g=aCtx.createGain();
+      var o=aCtx.createOscillator(),g=aCtx.createGain();
       o.type=type||'sine'; o.frequency.value=freq;
-      g.gain.setValueAtTime(vol||0.25,aCtx.currentTime);
+      g.gain.setValueAtTime(vol||0.3,aCtx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001,aCtx.currentTime+(dur||0.15));
       o.connect(g); g.connect(aCtx.destination);
       o.start(); o.stop(aCtx.currentTime+(dur||0.15));
     }catch(e){}
   }
   function playHit(){
-    if(!audioReady) return;
-    playTone(880+Math.random()*200,'sine',0.12,0.35);
-    setTimeout(()=>playTone(1100+Math.random()*300,'sine',0.08,0.25),35);
+    if(!audioUnlocked) return;
+    playTone(880+Math.random()*200,'sine',0.12,0.4);
+    setTimeout(function(){playTone(1100+Math.random()*300,'sine',0.08,0.3);},35);
   }
   function playMiss(){
-    if(!audioReady) return;
-    playTone(140,'sawtooth',0.3,0.25);
+    if(!audioUnlocked) return;
+    playTone(140,'sawtooth',0.3,0.3);
   }
   function vibrate(p){ if('vibrate' in navigator) navigator.vibrate(p); }
 
-  // ===== AMBIENTE - VOLUMEN SUBIDO =====
+  // ===== AMBIENTE =====
   function startAmbient(){
-    if(!audioReady || !aCtx) return;
+    if(!audioUnlocked || !aCtx) return;
     stopAmbient();
     ambGain=aCtx.createGain();
     ambGain.gain.setValueAtTime(0,aCtx.currentTime);
-    ambGain.gain.linearRampToValueAtTime(0.18,aCtx.currentTime+1.5);
+    ambGain.gain.linearRampToValueAtTime(0.22,aCtx.currentTime+1.5);
     ambGain.connect(aCtx.destination);
 
-    // 3 drones con mas volumen
-    const drones=[
-      {f:55,t:'sine',v:0.9},
-      {f:82.5,t:'triangle',v:0.55},
-      {f:110,t:'sine',v:0.4}
+    var drones=[
+      {f:55,t:'sine',v:1.0},
+      {f:82.5,t:'triangle',v:0.6},
+      {f:110,t:'sine',v:0.45}
     ];
-    drones.forEach(d=>{
-      const o=aCtx.createOscillator();
+    drones.forEach(function(d){
+      var o=aCtx.createOscillator();
       o.type=d.t; o.frequency.value=d.f;
-      const g=aCtx.createGain();
+      var g=aCtx.createGain();
       g.gain.value=d.v;
       o.connect(g); g.connect(ambGain);
       o.start();
       ambOsc.push(o,g);
     });
 
-    // LFO que modula suavemente
-    const lfo=aCtx.createOscillator();
+    var lfo=aCtx.createOscillator();
     lfo.type='sine'; lfo.frequency.value=0.12;
-    const lfoG=aCtx.createGain();
-    lfoG.gain.value=0.06;
+    var lfoG=aCtx.createGain();
+    lfoG.gain.value=0.08;
     lfo.connect(lfoG);
     lfoG.connect(ambGain.gain);
     lfo.start();
@@ -159,32 +187,39 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   function stopAmbient(){
     if(!aCtx || !ambGain) return;
     try{
-      const now=aCtx.currentTime;
+      var now=aCtx.currentTime;
       ambGain.gain.cancelScheduledValues(now);
       ambGain.gain.setValueAtTime(ambGain.gain.value,now);
       ambGain.gain.linearRampToValueAtTime(0,now+1.2);
     }catch(e){}
-    setTimeout(()=>{
-      ambOsc.forEach(n=>{ try{n.stop()}catch(e){} try{n.disconnect()}catch(e){} });
+    setTimeout(function(){
+      ambOsc.forEach(function(n){ try{n.stop()}catch(e){} try{n.disconnect()}catch(e){} });
       ambOsc=[]; ambGain=null;
     },1400);
   }
 
-  // Desbloquear audio con CUALQUIER toque
-  function tryUnlock(){
-    unlockAudio();
-    document.removeEventListener('touchstart',tryUnlock);
-    document.removeEventListener('click',tryUnlock);
+  // Desbloquear audio con CUALQUIER toque en la pantalla (CRITICO para iOS)
+  function handleFirstTouch(){
+    unlockAudio().then(function(ok){
+      if(ok && isIOS){
+        document.getElementById('iosHint').textContent = '✅ Sonido activado. Presiona Iniciar Juego.';
+        document.getElementById('iosHint').style.color = '#00ff88';
+      }
+    });
+    document.removeEventListener('touchstart',handleFirstTouch);
+    document.removeEventListener('touchend',handleFirstTouch);
+    document.removeEventListener('click',handleFirstTouch);
   }
-  document.addEventListener('touchstart',tryUnlock,{passive:true});
-  document.addEventListener('click',tryUnlock);
+  document.addEventListener('touchstart',handleFirstTouch,{passive:true});
+  document.addEventListener('touchend',handleFirstTouch,{passive:true});
+  document.addEventListener('click',handleFirstTouch);
 
   // ===== GRID =====
   function bg(){
     cells=[];
-    for(let r=0;r<RINGS;r++){
-      let sec=BASE+r*2;
-      for(let s=0;s<sec;s++) cells.push({r:r,s:s,ts:sec,a:0,b:0,gc:null});
+    for(var r=0;r<RINGS;r++){
+      var sec=BASE+r*2;
+      for(var s=0;s<sec;s++) cells.push({r:r,s:s,ts:sec,a:0,b:0,gc:null});
     }
   }
   bg();
@@ -193,7 +228,7 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
     W=cv.width=window.innerWidth;
     H=cv.height=window.innerHeight;
     CX=W/2;
-    let md=Math.min(W,H);
+    var md=Math.min(W,H);
     MFR=md*0.38;
     RW=MFR/RINGS;
     IR=RW*0.6;
@@ -204,56 +239,59 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   window.addEventListener('resize',rs);
 
   function ang(c){
-    let ir=IR+c.r*RW, or=IR+(c.r+1)*RW;
-    let st=FA/c.ts;
-    let a1=FS+c.s*st+ro, a2=a1+st;
-    return{ir,or,a1,a2};
+    var ir=IR+c.r*RW, or=IR+(c.r+1)*RW;
+    var st=FA/c.ts;
+    var a1=FS+c.s*st+ro, a2=a1+st;
+    return{ir:ir,or:or,a1:a1,a2:a2};
   }
   function pin(px,py,c){
-    let dx=px-CX, dy=py-CY, dst=Math.sqrt(dx*dx+dy*dy), a=Math.atan2(dy,dx);
-    let g=ang(c), a1=g.a1, a2=g.a2;
+    var dx=px-CX, dy=py-CY, dst=Math.sqrt(dx*dx+dy*dy), a=Math.atan2(dy,dx);
+    var g=ang(c), a1=g.a1, a2=g.a2;
     while(a<a1) a+=Math.PI*2;
     while(a>a1+Math.PI*2) a-=Math.PI*2;
     return dst>=g.ir && dst<=g.or && a>=a1 && a<=a2;
   }
   function getC(px,py){
-    for(let i=cells.length-1;i>=0;i--) if(pin(px,py,cells[i])) return cells[i];
+    for(var i=cells.length-1;i>=0;i--) if(pin(px,py,cells[i])) return cells[i];
     return null;
   }
   function sp(px,py,co,n){
-    for(let i=0;i<n;i++){
-      let a=Math.random()*Math.PI*2, sp=1+Math.random()*3;
-      parts.push({x:px,y:py,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,lf:1,dc:0.02+Math.random()*0.03,sz:2+Math.random()*3,co:co});
+    for(var i=0;i<n;i++){
+      var a=Math.random()*Math.PI*2, spd=1+Math.random()*3;
+      parts.push({x:px,y:py,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,lf:1,dc:0.02+Math.random()*0.03,sz:2+Math.random()*3,co:co});
     }
   }
   function up(){
-    for(let i=parts.length-1;i>=0;i--){
-      let p=parts[i]; p.x+=p.vx; p.y+=p.vy; p.vy-=0.05; p.lf-=p.dc;
+    for(var i=parts.length-1;i>=0;i--){
+      var p=parts[i]; p.x+=p.vx; p.y+=p.vy; p.vy-=0.05; p.lf-=p.dc;
       if(p.lf<=0) parts.splice(i,1);
     }
   }
   function dp(){
-    for(let p of parts){x.globalAlpha=p.lf; x.fillStyle=p.co; x.beginPath(); x.arc(p.x,p.y,p.sz*p.lf,0,Math.PI*2); x.fill();}
+    for(var i=0;i<parts.length;i++){
+      var p=parts[i]; x.globalAlpha=p.lf; x.fillStyle=p.co; x.beginPath(); x.arc(p.x,p.y,p.sz*p.lf,0,Math.PI*2); x.fill();
+    }
     x.globalAlpha=1;
   }
 
   function dr(){
     x.fillStyle='#050505'; x.fillRect(0,0,W,H);
-    let mr=IR+RINGS*RW;
-    let gr=x.createRadialGradient(CX,CY,IR,CX,CY,mr+20);
+    var mr=IR+RINGS*RW;
+    var gr=x.createRadialGradient(CX,CY,IR,CX,CY,mr+20);
     gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(25,25,25,0.45)');
     x.fillStyle=gr;
     x.beginPath(); x.arc(CX,CY,mr+20,FS+ro,FS+FA+ro); x.lineTo(CX,CY); x.fill();
 
-    for(let c of cells){
-      let g=ang(c), ir=g.ir, or=g.or, a1=g.a1, a2=g.a2;
-      let ev=(c.r+c.s)%2===0;
+    for(var i=0;i<cells.length;i++){
+      var c=cells[i];
+      var g=ang(c), ir=g.ir, or=g.or, a1=g.a1, a2=g.a2;
+      var ev=(c.r+c.s)%2===0;
       x.beginPath(); x.arc(CX,CY,or,a1,a2); x.arc(CX,CY,ir,a2,a1,true); x.closePath();
-      let fi=ev?'#f5f5f5':'#0a0a0a', st=ev?'#ddd':'#1a1a1a';
+      var fi=ev?'#f5f5f5':'#0a0a0a', st=ev?'#ddd':'#1a1a1a';
       if(c.a){
-        let ag=Date.now()-c.b, pu=0.7+0.3*Math.sin(ag*0.008);
-        let cols=['#00f0ff','#ff00aa','#ffee00','#00ff88'];
-        let co=c.gc||cols[c.r%cols.length];
+        var ag=Date.now()-c.b, pu=0.7+0.3*Math.sin(ag*0.008);
+        var cols=['#00f0ff','#ff00aa','#ffee00','#00ff88'];
+        var co=c.gc||cols[c.r%cols.length];
         fi=co; st='#fff';
         x.shadowColor=co; x.shadowBlur=22*pu;
       }else x.shadowBlur=0;
@@ -264,8 +302,8 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
         x.save(); x.clip();
         x.strokeStyle=ev?'rgba(0,0,0,0.07)':'rgba(255,255,255,0.05)';
         x.lineWidth=0.5;
-        for(let d=ir+3;d<or;d+=5){x.beginPath();x.arc(CX,CY,d,a1,a2);x.stroke();}
-        for(let rd=1;rd<3;rd++){let a=a1+(a2-a1)*(rd/3);x.beginPath();x.moveTo(CX+Math.cos(a)*ir,CY+Math.sin(a)*ir);x.lineTo(CX+Math.cos(a)*or,CY+Math.sin(a)*or);x.stroke();}
+        for(var d=ir+3;d<or;d+=5){x.beginPath();x.arc(CX,CY,d,a1,a2);x.stroke();}
+        for(var rd=1;rd<3;rd++){var a=a1+(a2-a1)*(rd/3);x.beginPath();x.moveTo(CX+Math.cos(a)*ir,CY+Math.sin(a)*ir);x.lineTo(CX+Math.cos(a)*or,CY+Math.sin(a)*or);x.stroke();}
         x.restore();
       }
     }
@@ -273,15 +311,16 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   }
 
   function scn(){
-    let inact=cells.filter(c=>!c.a);
+    var inact=[];
+    for(var i=0;i<cells.length;i++) if(!cells[i].a) inact.push(cells[i]);
     if(inact.length===0)return;
-    let c=inact[Math.floor(Math.random()*inact.length)];
+    var c=inact[Math.floor(Math.random()*inact.length)];
     c.a=1; c.b=Date.now();
-    let cols=['#00f0ff','#ff00aa','#ffee00','#00ff88'];
+    var cols=['#00f0ff','#ff00aa','#ffee00','#00ff88'];
     c.gc=cols[Math.floor(Math.random()*cols.length)];
     act.push(c);
   }
-  function rc(c){c.a=0; let i=act.indexOf(c); if(i>=0)act.splice(i,1);}
+  function rc(c){c.a=0; var i=act.indexOf(c); if(i>=0)act.splice(i,1);}
   function hHit(c,px,py){
     hit++; cb=Math.min(cb+1,20); mcb=Math.max(mcb,cb);
     sc+=10*cb; sp(px,py,c.gc,14); playHit(); rc(c);
@@ -290,13 +329,13 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   }
   function hMiss(px,py){
     miss++; cb=1; tl=Math.max(0,tl-2); sc=Math.max(0,sc-5);
-    let f=document.getElementById('flash'); f.classList.add('on'); setTimeout(()=>f.classList.remove('on'),140);
+    var f=document.getElementById('flash'); f.classList.add('on'); setTimeout(function(){f.classList.remove('on');},140);
     vibrate([70,30,70]); playMiss(); uh();
   }
   function uh(){
     document.getElementById('hs').textContent=sc;
     document.getElementById('hc').textContent='x'+cb;
-    let t=document.getElementById('ht'); t.textContent=Math.ceil(tl);
+    var t=document.getElementById('ht'); t.textContent=Math.ceil(tl);
     if(tl<=5)t.classList.add('warn'); else t.classList.remove('warn');
   }
 
@@ -307,7 +346,7 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   function onD(e){
     if(state!=='play')return;
     e.preventDefault();
-    let p=gp(e), c=getC(p.x,p.y);
+    var p=gp(e), c=getC(p.x,p.y);
     if(c&&c.a) hHit(c,p.x,p.y); else hMiss(p.x,p.y);
   }
   cv.addEventListener('mousedown',onD);
@@ -318,14 +357,14 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
     tl-=dt/1000;
     if(tl<=0){tl=0; end(); return;}
     st+=dt;
-    if(st>=si){st=0; let ma=Math.min(3,1+Math.floor(dif/2)); if(act.length<ma)scn();}
+    if(st>=si){st=0; var ma=Math.min(3,1+Math.floor(dif/2)); if(act.length<ma)scn();}
     op+=dt*0.001*(0.5+dif*0.35);
     ro=Math.sin(op)*0.07*dif;
     up(); uh();
   }
-  let aid;
+  var aid;
   function lp(ts){
-    let dt=ts-lt; lt=ts;
+    var dt=ts-lt; lt=ts;
     upd(dt); dr();
     aid=requestAnimationFrame(lp);
   }
@@ -334,7 +373,8 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
     await unlockAudio();
     rs(); state='play';
     sc=0; cb=1; mcb=1; hit=0; miss=0; tl=30; dif=1; si=bs; st=0; ro=0; op=0; parts=[];
-    act.forEach(c=>c.a=0); act=[];
+    act.forEach(function(c){c.a=0;});
+    act=[];
     document.getElementById('s0').classList.add('hid');
     document.getElementById('s1').classList.add('hid');
     document.getElementById('hud').classList.add('on');
