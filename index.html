@@ -71,9 +71,123 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   let state='menu',sc=0,cb=1,mcb=1,tl=30,hit=0,miss=0;
   let lt=0,st=0,si=1000,bs=1000,ro=0,op=0,dif=1;
   let cells=[],act=[],parts=[];
-  let aCtx=null;
-  let ambNodes=[];
-  let ambGain=null;
+
+  // ===== AUDIO ENGINE =====
+  let aCtx=null, audioReady=false;
+  let ambGain=null, ambOsc=[];
+
+  function initAudio(){
+    if(aCtx) return;
+    try{
+      aCtx=new(window.AudioContext||window.webkitAudioContext)();
+    }catch(e){ return; }
+  }
+
+  async function unlockAudio(){
+    initAudio();
+    if(!aCtx) return;
+    if(aCtx.state==='suspended'){
+      try{ await aCtx.resume(); }catch(e){}
+    }
+    // Truco obligatorio para iOS: tocar un buffer silencioso
+    try{
+      const buf=aCtx.createBuffer(1,1,aCtx.sampleRate);
+      const src=aCtx.createBufferSource();
+      src.buffer=buf; src.connect(aCtx.destination); src.start(0);
+    }catch(e){}
+    audioReady = (aCtx && aCtx.state==='running');
+  }
+
+  function playTone(freq,type,dur,vol){
+    if(!audioReady || !aCtx) return;
+    try{
+      const o=aCtx.createOscillator(),g=aCtx.createGain();
+      o.type=type||'sine'; o.frequency.value=freq;
+      g.gain.setValueAtTime(vol||0.12,aCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,aCtx.currentTime+(dur||0.12));
+      o.connect(g); g.connect(aCtx.destination);
+      o.start(); o.stop(aCtx.currentTime+(dur||0.12));
+    }catch(e){}
+  }
+  function playHit(){
+    if(!audioReady) return;
+    playTone(880+Math.random()*200,'sine',0.1,0.1);
+    setTimeout(()=>playTone(1100+Math.random()*300,'sine',0.07,0.07),35);
+  }
+  function playMiss(){
+    if(!audioReady) return;
+    playTone(140,'sawtooth',0.28,0.09);
+  }
+  function vibrate(p){ if('vibrate' in navigator) navigator.vibrate(p); }
+
+  // ===== AMBIENTE =====
+  function startAmbient(){
+    if(!audioReady || !aCtx) return;
+    stopAmbient();
+    ambGain=aCtx.createGain();
+    ambGain.gain.setValueAtTime(0,aCtx.currentTime);
+    ambGain.gain.linearRampToValueAtTime(0.035,aCtx.currentTime+2.5);
+    ambGain.connect(aCtx.destination);
+
+    // 3 drones simples y robustos
+    const drones=[
+      {f:55,t:'sine',v:0.45},
+      {f:82.5,t:'triangle',v:0.22},
+      {f:110,t:'sine',v:0.12}
+    ];
+    drones.forEach(d=>{
+      const o=aCtx.createOscillator();
+      o.type=d.t; o.frequency.value=d.f;
+      const g=aCtx.createGain();
+      g.gain.value=d.v;
+      o.connect(g); g.connect(ambGain);
+      o.start();
+      ambOsc.push(o,g);
+    });
+
+    // LFO que modula suavemente el volumen del ambiente
+    const lfo=aCtx.createOscillator();
+    lfo.type='sine'; lfo.frequency.value=0.12;
+    const lfoG=aCtx.createGain();
+    lfoG.gain.value=0.015;
+    lfo.connect(lfoG);
+    lfoG.connect(ambGain.gain);
+    lfo.start();
+    ambOsc.push(lfo,lfoG);
+  }
+
+  function stopAmbient(){
+    if(!aCtx || !ambGain) return;
+    try{
+      const now=aCtx.currentTime;
+      ambGain.gain.cancelScheduledValues(now);
+      ambGain.gain.setValueAtTime(ambGain.gain.value,now);
+      ambGain.gain.linearRampToValueAtTime(0,now+1.2);
+    }catch(e){}
+    setTimeout(()=>{
+      ambOsc.forEach(n=>{ try{n.stop()}catch(e){} try{n.disconnect()}catch(e){} });
+      ambOsc=[]; ambGain=null;
+    },1400);
+  }
+
+  // Desbloquear audio con CUALQUIER toque en la pantalla
+  function tryUnlock(){
+    unlockAudio();
+    document.removeEventListener('touchstart',tryUnlock);
+    document.removeEventListener('click',tryUnlock);
+  }
+  document.addEventListener('touchstart',tryUnlock,{passive:true});
+  document.addEventListener('click',tryUnlock);
+
+  // ===== GRID =====
+  function bg(){
+    cells=[];
+    for(let r=0;r<RINGS;r++){
+      let sec=BASE+r*2;
+      for(let s=0;s<sec;s++) cells.push({r:r,s:s,ts:sec,a:0,b:0,gc:null});
+    }
+  }
+  bg();
 
   function rs(){
     W=cv.width=window.innerWidth;
@@ -88,117 +202,6 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   }
   rs();
   window.addEventListener('resize',rs);
-
-  // ===== AUDIO =====
-  function ia(){
-    if(!aCtx) aCtx=new(window.AudioContext||window.webkitAudioContext)();
-    if(aCtx.state==='suspended') aCtx.resume();
-  }
-  function tone(f,t,d,v){
-    if(!aCtx)return;
-    const o=aCtx.createOscillator(),g=aCtx.createGain();
-    o.type=t||'sine'; o.frequency.value=f;
-    g.gain.setValueAtTime(v||0.12,aCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,aCtx.currentTime+(d||0.12));
-    o.connect(g); g.connect(aCtx.destination);
-    o.start(); o.stop(aCtx.currentTime+(d||0.12));
-  }
-  function ph(){tone(880+Math.random()*200,'sine',0.1,0.1);setTimeout(()=>tone(1100+Math.random()*300,'sine',0.07,0.07),35);}
-  function pm(){tone(140,'sawtooth',0.28,0.09);}
-  function vb(p){if('vibrate' in navigator) navigator.vibrate(p);}
-
-  // ===== AMBIENTE DE FONDO =====
-  function startAmbient(){
-    if(!aCtx) return;
-    stopAmbient();
-    ambGain = aCtx.createGain();
-    ambGain.gain.setValueAtTime(0, aCtx.currentTime);
-    ambGain.gain.linearRampToValueAtTime(0.04, aCtx.currentTime + 2);
-    ambGain.connect(aCtx.destination);
-
-    // Drone base - oscilador senoidal muy grave
-    const drone1 = aCtx.createOscillator();
-    drone1.type = 'sine';
-    drone1.frequency.value = 55;
-    const g1 = aCtx.createGain();
-    g1.gain.value = 0.5;
-    drone1.connect(g1); g1.connect(ambGain);
-    drone1.start();
-    ambNodes.push(drone1, g1);
-
-    // Segundo drone - quinta armonica
-    const drone2 = aCtx.createOscillator();
-    drone2.type = 'triangle';
-    drone2.frequency.value = 82.5;
-    const g2 = aCtx.createGain();
-    g2.gain.value = 0.25;
-    drone2.connect(g2); g2.connect(ambGain);
-    drone2.start();
-    ambNodes.push(drone2, g2);
-
-    // Tercer drone - mas agudo, textura
-    const drone3 = aCtx.createOscillator();
-    drone3.type = 'sine';
-    drone3.frequency.value = 110;
-    const g3 = aCtx.createGain();
-    g3.gain.value = 0.15;
-    const lfo = aCtx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.15;
-    const lfoGain = aCtx.createGain();
-    lfoGain.gain.value = 0.08;
-    lfo.connect(lfoGain);
-    lfoGain.connect(g3.gain);
-    drone3.connect(g3); g3.connect(ambGain);
-    drone3.start(); lfo.start();
-    ambNodes.push(drone3, g3, lfo, lfoGain);
-
-    // Cuarto - ruido rosa muy sutil
-    const bufferSize = aCtx.sampleRate * 2;
-    const buffer = aCtx.createBuffer(1, bufferSize, aCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    let lastOut = 0;
-    for(let i=0;i<bufferSize;i++){
-      let white = Math.random()*2-1;
-      data[i] = (lastOut + (0.02 * white)) / 1.02;
-      lastOut = data[i];
-      data[i] *= 3.5;
-    }
-    const noise = aCtx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-    const noiseFilter = aCtx.createBiquadFilter();
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.value = 300;
-    const noiseGain = aCtx.createGain();
-    noiseGain.gain.value = 0.08;
-    noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ambGain);
-    noise.start();
-    ambNodes.push(noise, noiseFilter, noiseGain);
-  }
-
-  function stopAmbient(){
-    if(!aCtx || !ambGain) return;
-    const now = aCtx.currentTime;
-    ambGain.gain.cancelScheduledValues(now);
-    ambGain.gain.setValueAtTime(ambGain.gain.value, now);
-    ambGain.gain.linearRampToValueAtTime(0, now + 1.5);
-    setTimeout(()=>{
-      ambNodes.forEach(n=>{try{n.stop()}catch(e){} try{n.disconnect()}catch(e){}});
-      ambNodes=[];
-      ambGain=null;
-    }, 1600);
-  }
-
-  // ===== GRID =====
-  function bg(){
-    cells=[];
-    for(let r=0;r<RINGS;r++){
-      let sec=BASE+r*2;
-      for(let s=0;s<sec;s++) cells.push({r:r,s:s,ts:sec,a:0,b:0,gc:null});
-    }
-  }
-  bg();
 
   function ang(c){
     let ir=IR+c.r*RW, or=IR+(c.r+1)*RW;
@@ -281,14 +284,14 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
   function rc(c){c.a=0; let i=act.indexOf(c); if(i>=0)act.splice(i,1);}
   function hHit(c,px,py){
     hit++; cb=Math.min(cb+1,20); mcb=Math.max(mcb,cb);
-    sc+=10*cb; sp(px,py,c.gc,14); ph(); rc(c);
+    sc+=10*cb; sp(px,py,c.gc,14); playHit(); rc(c);
     dif=1+sc/400; si=Math.max(350,bs-sc*1.2);
     uh();
   }
   function hMiss(px,py){
     miss++; cb=1; tl=Math.max(0,tl-2); sc=Math.max(0,sc-5);
     let f=document.getElementById('flash'); f.classList.add('on'); setTimeout(()=>f.classList.remove('on'),140);
-    vb([70,30,70]); pm(); uh();
+    vibrate([70,30,70]); playMiss(); uh();
   }
   function uh(){
     document.getElementById('hs').textContent=sc;
@@ -326,8 +329,10 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
     upd(dt); dr();
     aid=requestAnimationFrame(lp);
   }
-  function start(){
-    ia(); rs(); state='play';
+
+  async function start(){
+    await unlockAudio();
+    rs(); state='play';
     sc=0; cb=1; mcb=1; hit=0; miss=0; tl=30; dif=1; si=bs; st=0; ro=0; op=0; parts=[];
     act.forEach(c=>c.a=0); act=[];
     document.getElementById('s0').classList.add('hid');
