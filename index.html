@@ -303,6 +303,11 @@ html,body{background:#030205;color:#fff}
 #sr #br:active{transform:scale(.985)}
 #sr .login-note{font-size:8px;color:#8f858b;margin-top:8px;text-align:center}
 @media(max-width:370px){#sr .login-title{font-size:28px}#sr .login-fan{width:125px;height:80px;margin-bottom:8px}#sr .avb{height:68px}#sr .avb .fan-face{font-size:25px}#sr .inp{height:45px;margin-bottom:9px}#sr .login-sub{margin-bottom:10px}}
+
+/* MOBILE INPUT/BUTTON FAILSAFE */
+#sr, #sr *{touch-action:manipulation;}
+#sr .inp{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:auto!important;position:relative;z-index:20;}
+#sr .avb,#sr #br{pointer-events:auto!important;touch-action:manipulation!important;position:relative;z-index:20;}
 </style>
 </head>
 <body>
@@ -889,19 +894,22 @@ html,body{background:#030205;color:#fff}
 
   // ===== EVENTS =====
   function setMode(m){S.mode=m;sv();let mm=document.getElementById('g30mode');if(mm){mm.textContent=V2MODES[m]||m;mm.className='g30mode '+(m==='endless'?'endless':m==='hardcore'?'hardcore':'');}let cards={campaign:'homeCampaign',endless:'homeEndless',hardcore:'homeHardcore'};Object.keys(cards).forEach(k=>{let el=document.getElementById(cards[k]);if(el)el.classList.toggle('on',m===k);});let t=document.getElementById('to');if(t){t.textContent='Modo: '+(V2MODES[m]||m);t.classList.add('s');setTimeout(()=>t.classList.remove('s'),900);}}
-  document.getElementById('homeCampaign').onclick=()=>{setMode('campaign');sg(S.ul||1)};document.getElementById('homeEndless').onclick=()=>{setMode('endless');sg(1)};document.getElementById('homeHardcore').onclick=()=>{setMode('hardcore');sg(S.ul||1)};document.getElementById('homePlay').onclick=()=>sg(S.mode==='campaign'?(S.ul||1):1);document.getElementById('qMissions').onclick=smi;document.getElementById('qAchievements').onclick=sac;document.getElementById('qRanking').onclick=srk;document.getElementById('qProfile').onclick=spr;document.getElementById('homeGear').onclick=spr;
-  document.getElementById('br').onclick=function(){let n=document.getElementById('in').value.trim();if(!n)n='Jugador '+Math.floor(Math.random()*9999);S.n=n;S.av=selAv||S.av||'🙂';updateStreak();sv();sl();};
-  document.getElementById('brep').onclick=()=>sg(cl);
-  document.getElementById('bnext').onclick=()=>sg(cl+1);
-  document.getElementById('bcred').onclick=()=>scred();
-  document.getElementById('bcredmen').onclick=sl;
-  document.getElementById('bmen').onclick=sl;
-  document.getElementById('nl').onclick=sl;
-  document.getElementById('nsh').onclick=ssh;
-  document.getElementById('nrk').onclick=srk;
-  document.getElementById('nac').onclick=sac;document.getElementById('npr').onclick=spr;document.getElementById('nmi').onclick=smi;document.getElementById('prback').onclick=sl;document.getElementById('miback').onclick=sl;
-  document.getElementById('bsb').onclick=sl;
-  document.getElementById('brk').onclick=sl;
+  // Bindings seguros: un elemento ausente nunca puede romper todo el juego.
+  function on(id,ev,fn){const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);}
+  function click(id,fn){on(id,'click',function(e){e.preventDefault();fn(e);});}
+  click('homeCampaign',()=>{setMode('campaign');sg(S.ul||1)});click('homeEndless',()=>{setMode('endless');sg(1)});click('homeHardcore',()=>{setMode('hardcore');sg(S.ul||1)});click('homePlay',()=>sg(S.mode==='campaign'?(S.ul||1):1));click('qMissions',smi);click('qAchievements',sac);click('qRanking',srk);click('qProfile',spr);click('homeGear',spr);
+  click('br',function(){let input=document.getElementById('in');let n=input?input.value.trim():'';if(!n)n='Jugador '+Math.floor(Math.random()*9999);S.n=n;S.av=selAv||S.av||'🙂';updateStreak();sv();sl();});
+  click('brep',()=>sg(cl));
+  click('bnext',()=>sg(cl+1));
+  click('bcred',scred);
+  click('bcredmen',sl);
+  click('bmen',sl);
+  click('nl',sl);
+  click('nsh',ssh);
+  click('nrk',srk);
+  click('nac',sac);click('npr',spr);click('nmi',smi);click('prback',sl);click('miback',sl);
+  click('bsb',sl);
+  click('brk',sl);
   document.getElementById('nb').addEventListener('click',function(e){let b=e.target.closest('button');if(!b)return;let fn={nl:sl,nsh:ssh,nrk:srk,nac:sac,npr:spr,nmi:smi}[b.id];if(typeof fn==='function'){e.preventDefault();e.stopPropagation();fn();}});
   document.getElementById('pt').onclick=function(){
     let p=document.getElementById('avr2');
@@ -911,7 +919,8 @@ html,body{background:#030205;color:#fff}
       p.style.display='flex';
     }else{p.style.display='none';}
   };
-  document.querySelector('#sl .ti').addEventListener('click',()=>{
+  const secretTitle=document.querySelector('#sl .ti');
+  if(secretTitle)secretTitle.addEventListener('click',()=>{
     let now=Date.now();eggTapTimes=eggTapTimes.filter(t=>now-t<2500);eggTapTimes.push(now);
     if(eggTapTimes.length>=7){
       eggTapTimes=[];
