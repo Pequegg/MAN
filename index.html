@@ -281,6 +281,38 @@ html,body{background:#030205;color:#fff}
 /* prevent decorative background from ever reducing text contrast */
 #worldbg:after{background:radial-gradient(circle at 50% 38%,rgba(255,36,70,.10),transparent 34%),linear-gradient(90deg,rgba(0,0,0,.40),rgba(0,0,0,.08) 35%,rgba(0,0,0,.08) 65%,rgba(0,0,0,.42)),linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,.30));}
 
+
+/* ===== LOGIN / AVATARES 3.0 ===== */
+#sr{background:linear-gradient(180deg,rgba(3,1,3,.82),rgba(3,1,3,.94))!important;overflow:hidden!important}
+#sr .login-wrap{width:min(92vw,360px);display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
+#sr .login-kicker{font-size:9px;letter-spacing:4px;color:#e6b85c;text-transform:uppercase;font-weight:900;margin-bottom:5px}
+#sr .login-title{font-size:32px;font-weight:1000;letter-spacing:-1px;color:#fff;text-shadow:0 3px 20px #000,0 0 22px rgba(255,30,65,.25);text-align:center}
+#sr .login-sub{font-size:9px;color:#c8bec3;letter-spacing:2px;text-transform:uppercase;margin:4px 0 16px;text-align:center}
+#sr .login-fan{width:142px;height:92px;margin-bottom:13px;filter:drop-shadow(0 8px 20px rgba(255,30,65,.18))}
+#sr .login-label{font-size:10px;color:#e9e1e5;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:1px 0 7px}
+#sr .inp{width:100%;max-width:290px;height:48px;background:rgba(0,0,0,.46);border:1px solid rgba(255,255,255,.22);border-radius:13px;color:#fff;font-size:15px;box-shadow:inset 0 0 20px rgba(0,0,0,.25);margin-bottom:13px}
+#sr .inp::placeholder{color:#81777d}
+#sr .inp:focus{border-color:#e83a55;box-shadow:0 0 0 3px rgba(232,58,85,.10)}
+#sr .avrow{width:100%;max-width:310px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
+#sr .avb{width:100%;height:76px;padding:7px 4px;border:1px solid rgba(255,255,255,.13);background:rgba(10,7,10,.70);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;box-shadow:0 7px 20px rgba(0,0,0,.16)}
+#sr .avb .fan-face{font-size:29px;line-height:1}
+#sr .avb .fan-name{font-size:7px;color:#bfb5ba;letter-spacing:.6px;text-transform:uppercase;font-weight:800}
+#sr .avb.sel{border-color:#e83a55;background:linear-gradient(180deg,rgba(232,58,85,.20),rgba(10,7,10,.82));box-shadow:0 0 20px rgba(232,58,85,.16),inset 0 0 0 1px rgba(255,255,255,.05)}
+#sr .avb.sel .fan-name{color:#ffe0a0}
+#sr #br{width:100%;max-width:290px;min-height:50px;border-color:#d9a83e;color:#fff;background:linear-gradient(180deg,rgba(208,44,64,.28),rgba(208,44,64,.10));border-radius:13px;box-shadow:0 0 24px rgba(208,44,64,.12);margin-top:2px}
+#sr #br:active{transform:scale(.985)}
+#sr .login-note{font-size:8px;color:#8f858b;margin-top:8px;text-align:center}
+@media(max-width:370px){#sr .login-title{font-size:28px}#sr .login-fan{width:125px;height:80px;margin-bottom:8px}#sr .avb{height:68px}#sr .avb .fan-face{font-size:25px}#sr .inp{height:45px;margin-bottom:9px}#sr .login-sub{margin-bottom:10px}}
+</style>
+
+<style id="mobile-button-safety">
+button, .qbtn, .gmode, .gplay, .bt, .sib, .sie, .avb { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { user-select:none; }
+.g30 { isolation:isolate; }
+.g30card { position:relative; z-index:2; }
+#nb { z-index:80 !important; }
+#pt { z-index:82 !important; }
+#cd { z-index:81 !important; }
 </style>
 </head>
 <body>
@@ -292,8 +324,8 @@ html,body{background:#030205;color:#fff}
 <div class="avrow" id="avr2" style="display:none;position:fixed;top:40px;left:10px;z-index:31;background:rgba(0,0,0,.9);padding:8px;border-radius:12px;max-width:220px"></div>
 
 
-<div class="g30 h" id="g30tutorial"><div class="g30card"><div class="g30ey">OP-ART FAN 3.0</div><div class="g30title">🎯 ENCUENTRA EL BRILLO</div><div class="g30txt">Las celdas que brillan son tu objetivo. Tócalas antes de que desaparezcan.<br><br>Encadena aciertos para subir el <b>COMBO</b> y conseguir más puntos.</div><button class="g30btn" id="g30start">ENTENDIDO · JUGAR</button><span class="g30tap">Tutorial solo aparece una vez</span></div></div>
-<div class="g30 h" id="g30result"><div class="g30card"><div class="g30ey" id="g30resultEy">RESULTADO</div><div class="g30title" id="g30resultTitle">¡NIVEL COMPLETADO!</div><div class="g30row"><div class="g30mini"><b id="g30rs">0</b><small>Puntos</small></div><div class="g30mini"><b id="g30rc">x1</b><small>Combo</small></div><div class="g30mini"><b id="g30rx">+0</b><small>XP</small></div></div><div class="g30near" id="g30near"></div><div class="g30streak" id="g30streak">🔥 Racha 0 días</div><div class="g30txt" id="g30resultTxt"></div><button class="g30btn" id="g30quick">REINTENTAR</button><span class="g30tap">o usa el menú inferior</span></div></div>
+<div class="g30 h" id="g30tutorial"><div class="g30card"><div class="g30ey">OP-ART FAN 3.0</div><div class="g30title">🎯 ENCUENTRA EL BRILLO</div><div class="g30txt">Las celdas que brillan son tu objetivo. Tócalas antes de que desaparezcan.<br><br>Encadena aciertos para subir el <b>COMBO</b> y conseguir más puntos.</div><button class="g30btn" id="g30start" type="button">ENTENDIDO · JUGAR</button><span class="g30tap">Tutorial solo aparece una vez</span></div></div>
+<div class="g30 h" id="g30result"><div class="g30card"><div class="g30ey" id="g30resultEy">RESULTADO</div><div class="g30title" id="g30resultTitle">¡NIVEL COMPLETADO!</div><div class="g30row"><div class="g30mini"><b id="g30rs">0</b><small>Puntos</small></div><div class="g30mini"><b id="g30rc">x1</b><small>Combo</small></div><div class="g30mini"><b id="g30rx">+0</b><small>XP</small></div></div><div class="g30near" id="g30near"></div><div class="g30streak" id="g30streak">🔥 Racha 0 días</div><div class="g30txt" id="g30resultTxt"></div><button class="g30btn" id="g30quick" type="button">REINTENTAR</button><span class="g30tap">o usa el menú inferior</span></div></div>
 <div class="g30mode" id="g30mode">Campaña</div>
 <div id="hd">
   <div class="hb"><div class="hl">Tiempo</div><div class="hv" id="ht">30</div></div>
@@ -305,26 +337,25 @@ html,body{background:#030205;color:#fff}
 
 <!-- REGISTER -->
 <div class="sc" id="sr">
-  <svg class="ef" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-    <path d="M100 110 L14 78 A96 96 0 0 1 186 78 Z" fill="#111" stroke="#fff" stroke-width="2.5"/>
-    <path d="M100 110 L34 84" stroke="#fff" stroke-width="1" opacity=".35"/>
-    <path d="M100 110 L54 66" stroke="#fff" stroke-width="1" opacity=".35"/>
-    <path d="M100 110 L100 22" stroke="#fff" stroke-width="1" opacity=".35"/>
-    <path d="M100 110 L146 66" stroke="#fff" stroke-width="1" opacity=".35"/>
-    <path d="M100 110 L166 84" stroke="#fff" stroke-width="1" opacity=".35"/>
-    <path d="M58 66 Q70 50 84 62" stroke="#ff2244" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-    <path d="M142 66 Q130 50 116 62" stroke="#ff2244" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-    <path d="M68 74 L78 84 M78 74 L68 84" stroke="#ff2244" stroke-width="4" stroke-linecap="round"/>
-    <path d="M122 74 L132 84 M132 74 L122 84" stroke="#ff2244" stroke-width="4" stroke-linecap="round"/>
-    <path d="M76 96 Q100 82 124 96 Q100 104 76 96 Z" fill="#ff2244"/>
-    <path d="M82 93 L86 98 M90 92 L93 99 M100 91 L100 100 M110 92 L107 99 M118 93 L114 98" stroke="#111" stroke-width="2" stroke-linecap="round"/>
-  </svg>
-  <div class="ti">Op-Art Fan<span>Ingresa tu nombre</span></div>
-  <div class="su">Tu nombre aparecerá en el ranking de puntos acumulados.</div>
-  <input type="text" class="inp" id="in" placeholder="Tu nombre / apodo" maxlength="16" autocomplete="off">
-  <div class="su" style="margin-bottom:6px">Elige un avatar</div>
-  <div class="avrow" id="avr"></div>
-  <button class="bt" id="br">Entrar al Juego</button>
+  <div class="login-wrap">
+    <div class="login-kicker">🏮 Bienvenido</div>
+    <svg class="login-fan" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs><linearGradient id="fanGold" x1="0" x2="1"><stop stop-color="#8e171f"/><stop offset=".5" stop-color="#d9a83e"/><stop offset="1" stop-color="#8e171f"/></linearGradient></defs>
+      <path d="M100 110 L14 78 A96 96 0 0 1 186 78 Z" fill="#090608" stroke="url(#fanGold)" stroke-width="3"/>
+      <path d="M100 110 L28 80 M100 110 L51 66 M100 110 L76 58 M100 110 L100 22 M100 110 L124 58 M100 110 L149 66 M100 110 L172 80" stroke="#cfa94d" stroke-width="1.5" opacity=".55"/>
+      <path d="M58 66 Q100 42 142 66" stroke="#cfa94d" stroke-width="2" fill="none" opacity=".75"/>
+      <circle cx="100" cy="110" r="8" fill="#cfa94d"/><circle cx="100" cy="110" r="3" fill="#26060b"/>
+      <path d="M66 74 Q100 53 134 74" stroke="#e83a55" stroke-width="3" fill="none" opacity=".8"/>
+    </svg>
+    <div class="login-title">OP-ART FAN</div>
+    <div class="login-sub">El arte del abanico</div>
+    <div class="login-label">Tu nombre</div>
+    <input type="text" class="inp" id="in" placeholder="Tu nombre / apodo" maxlength="16" autocomplete="off">
+    <div class="login-label">Elige tu abanico</div>
+    <div class="avrow" id="avr"></div>
+    <button class="bt" id="br" type="button">ENTRAR AL JUEGO</button>
+    <div class="login-note">Tu perfil se guardará en este dispositivo.</div>
+  </div>
 </div>
 
 <!-- LEVELS / GAMER HOME -->
@@ -334,21 +365,21 @@ html,body{background:#030205;color:#fff}
       <div class="gprofile"><div class="gavatar" id="homeAv">🙂</div><div style="min-width:0;flex:1"><div class="gname" id="homeName">Jugador</div><div class="glvl" id="homeLvl">Lv. 1</div><div class="gxpline"><i id="homeXp"></i></div></div></div>
       <div class="grank"><b id="homeRank">D</b><small>Rango</small></div>
       <div class="currency"><span>🪙</span><b id="homeCoins">0</b></div>
-      <button class="ggear" id="homeGear" aria-label="Perfil">⚙️</button>
+      <button type="button" class="ggear" id="homeGear" aria-label="Perfil">⚙️</button>
     </div>
     <div class="gquick">
-      <button class="qbtn" id="qMissions"><i>📅</i>Misiones</button>
-      <button class="qbtn" id="qAchievements"><i>🏆</i>Logros</button>
-      <button class="qbtn" id="qRanking"><i>♛</i>Ranking</button>
-      <button class="qbtn" id="qProfile"><i>👤</i>Perfil</button>
+      <button type="button" class="qbtn" id="qMissions"><i>📅</i>Misiones</button>
+      <button type="button" class="qbtn" id="qAchievements"><i>🏆</i>Logros</button>
+      <button type="button" class="qbtn" id="qRanking"><i>♛</i>Ranking</button>
+      <button type="button" class="qbtn" id="qProfile"><i>👤</i>Perfil</button>
     </div>
     <div class="ghero"><div class="gbrand">OP-ART FAN<span>EL ARTE DEL ABANICO</span></div><div class="gquote">静かに見て、速く toca · Mira con calma, toca rápido</div></div>
     <div class="gmodes">
-      <button class="gmode c" id="homeCampaign"><div class="gmico">扇</div><div class="gmname">CAMPAÑA</div><div class="gmsub">17 niveles</div><div class="gmbest" id="homeCampaignBest">★ 0/17</div></button>
-      <button class="gmode e" id="homeEndless"><div class="gmico">∞</div><div class="gmname">ENDLESS</div><div class="gmsub">Sin fin</div><div class="gmbest" id="homeEndlessBest">♛ 0</div></button>
-      <button class="gmode hc" id="homeHardcore"><div class="gmico">☠</div><div class="gmname">HARDCORE</div><div class="gmsub">x1.5 puntos</div><div class="gmbest" id="homeHardcoreBest">🔥 PRO</div></button>
+      <button type="button" class="gmode c" id="homeCampaign"><div class="gmico">扇</div><div class="gmname">CAMPAÑA</div><div class="gmsub">17 niveles</div><div class="gmbest" id="homeCampaignBest">★ 0/17</div></button>
+      <button type="button" class="gmode e" id="homeEndless"><div class="gmico">∞</div><div class="gmname">ENDLESS</div><div class="gmsub">Sin fin</div><div class="gmbest" id="homeEndlessBest">♛ 0</div></button>
+      <button type="button" class="gmode hc" id="homeHardcore"><div class="gmico">☠</div><div class="gmname">HARDCORE</div><div class="gmsub">x1.5 puntos</div><div class="gmbest" id="homeHardcoreBest">🔥 PRO</div></button>
     </div>
-    <button class="gplay" id="homePlay">▶ JUGAR</button>
+    <button class="gplay" id="homePlay" type="button">▶ JUGAR</button>
     <div class="gstats"><div class="gstat"><b id="homeStreak">🔥 0</b><small>Racha</small></div><div class="gstat"><b id="homeAccuracy">—</b><small>Precisión</small></div><div class="gstat"><b id="homeBest">0</b><small>Mejor score</small></div></div>
     <div id="lg"></div><div id="pf"></div><div id="eqr" aria-hidden="true" style="display:none"></div>
   </div>
@@ -366,10 +397,10 @@ html,body{background:#030205;color:#fff}
   </div>
   <div class="gp" id="gp" style="display:none">💎 ¡RUN PERFECTO! Sin fallos ni trampas.</div>
   <div class="su" id="gm" style="color:#ffee00;margin-bottom:12px"></div>
-  <button class="bt" id="brep">Reintentar</button>
-  <button class="bt" id="bnext" style="display:none;border-color:#00ff88;color:#00ff88">Siguiente Nivel →</button>
-  <button class="bt" id="bcred" style="display:none;border-color:#ffd700;color:#ffd700">Ver Créditos →</button>
-  <button class="bt" id="bmen">Menú Principal</button>
+  <button class="bt" id="brep" type="button">Reintentar</button>
+  <button class="bt" id="bnext" type="button" style="display:none;border-color:#00ff88;color:#00ff88">Siguiente Nivel →</button>
+  <button class="bt" id="bcred" type="button" style="display:none;border-color:#ffd700;color:#ffd700">Ver Créditos →</button>
+  <button class="bt" id="bmen" type="button">Menú Principal</button>
 </div>
 
 <!-- SHOP -->
@@ -380,7 +411,7 @@ html,body{background:#030205;color:#fff}
   <div class="ti" style="font-size:15px;margin-top:4px;margin-bottom:2px">Skins del Abanico</div>
   <div class="su" style="margin-bottom:6px">Cambia la textura visual de las celdas (permanente).</div>
   <div class="sg" id="skg"></div>
-  <button class="bt" id="bsb">← Volver</button>
+  <button type="button" class="bt" id="bsb">← Volver</button>
 </div>
 
 <!-- RANK -->
@@ -391,7 +422,7 @@ html,body{background:#030205;color:#fff}
     <thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Niveles</th></tr></thead>
     <tbody id="rtb"></tbody>
   </table>
-  <button class="bt" id="brk">← Volver</button>
+  <button type="button" class="bt" id="brk">← Volver</button>
 </div>
 
 <!-- ACHIEVEMENTS -->
@@ -411,7 +442,7 @@ html,body{background:#030205;color:#fff}
     <div id="prlvl" class="rbadge">Nivel 1</div>
     <div class="xpbar"><i id="prxp"></i></div><div class="su" id="prxpt">0 / 100 XP</div>
     <div class="v2stats"><div class="v2box"><b id="prstreak">🔥 0 días</b><small>Racha</small></div><div class="v2box"><b id="pracc">—</b><small>Precisión</small></div><div class="v2box"><b id="prrankMini">D</b><small>Rango</small></div></div><div class="v2stats"><div class="v2box"><b id="prs">0</b><small>Mejor score</small></div><div class="v2box"><b id="prcb">x1</b><small>Mejor combo</small></div><div class="v2box"><b id="prlvls">0</b><small>Niveles</small></div></div>
-    <button class="bt" id="prback">← Volver</button>
+    <button type="button" class="bt" id="prback">← Volver</button>
   </div>
 </div>
 
@@ -419,7 +450,7 @@ html,body{background:#030205;color:#fff}
 <div class="sc h" id="smi">
   <div class="ti">Misiones<span>Objetivos diarios</span></div>
   <div class="v2panel" id="mig"></div>
-  <button class="bt" id="miback">← Volver</button>
+  <button type="button" class="bt" id="miback">← Volver</button>
 </div>
 
 <!-- CREDITS -->
@@ -432,15 +463,15 @@ html,body{background:#030205;color:#fff}
     Proyecto universitario — 2026
   </div>
   <div class="su" style="margin-top:8px;color:#ffd700">🎉 Completaste todos los niveles. ¡Gracias por jugar hasta el final!</div>
-  <button class="bt" id="bcredmen" style="margin-top:10px">Menú Principal</button>
+  <button class="bt" id="bcredmen" type="button" style="margin-top:10px">Menú Principal</button>
 </div>
 
 <!-- NAV -->
 <div class="nb" id="nb" style="display:none">
-  <button class="bt ac" id="nl">Niveles</button>
-  <button class="bt" id="nsh">Tienda</button>
-  <button class="bt" id="nrk">Ranking</button>
-  <button class="bt" id="nac">Logros</button><button class="bt" id="npr">Perfil</button><button class="bt" id="nmi">Misiones</button>
+  <button type="button" class="bt ac" id="nl">Niveles</button>
+  <button type="button" class="bt" id="nsh">Tienda</button>
+  <button type="button" class="bt" id="nrk">Ranking</button>
+  <button type="button" class="bt" id="nac">Logros</button><button type="button" class="bt" id="npr">Perfil</button><button type="button" class="bt" id="nmi">Misiones</button>
 </div>
 
 <div class="to" id="to"></div><div class="combo-pop" id="cpop">COMBO!</div>
@@ -470,7 +501,7 @@ html,body{background:#030205;color:#fff}
     {id:17,n:'Campo Minado',p:['#ff2244','#ffee00'],b:'#0a0000',t:900,time:40,sp:900,avoid:true},
   ];
   const GL=['#00f0ff','#ff00aa','#ffee00','#00ff88'];
-  const AVATARS=['🙂','🦊','🐱','🤖','👾','🔥','🐉','🎨','😎','🧙'];
+  const AVATARS=[{v:'🌸🪭',n:'Flor'},{v:'🐉🪭',n:'Dragón'},{v:'🦚🪭',n:'Pavo Real'},{v:'🌙🪭',n:'Luna'}];
   const SKINS=[
     {id:'classic',n:'Clásico',d:'El patrón original de líneas.',p:0},
     {id:'dots',n:'Puntos',d:'Textura de puntitos en cada celda.',p:120},
@@ -549,7 +580,7 @@ html,body{background:#030205;color:#fff}
   let cl=1,gs='menu',sc=0,cb=1,mcb=1,tl=25,ht=0,ms=0,lt=0,st=0,si=1300,bs=1300,ro=0,op=0,df=1;
   let ce=[],ac=[],pa=[];
   let mode='campaign';let trapsHit=0,perfectRun=true,revUsed=false,pv=null,pvSet=false,cbFx15=false,cbFx20=false;
-  let selAv=S.av||AVATARS[0],eggTapTimes=[];
+  let selAv=S.av||avatarVal(AVATARS[0]),eggTapTimes=[];
 
   function rankFor(v){let r='D';for(const q of RANKS)if(v>=q[1])r=q[0];return r;}
   function xpNeed(){return 100+(S.plvl-1)*75;}
@@ -564,7 +595,7 @@ html,body{background:#030205;color:#fff}
 
   function unlockAch(id){if(S.ach.includes(id))return;S.ach.push(id);sv();let a=ACH.find(z=>z.id===id);if(a){let t=document.getElementById('to');t.innerHTML='🏆 Logro: '+a.n;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2400);}}
 
-  function rAv(containerId,onSelect){let e=document.getElementById(containerId);if(!e)return;e.innerHTML='';for(let a of AVATARS){let b=document.createElement('div');b.className='avb'+(a===selAv?' sel':'');b.textContent=a;b.onclick=()=>{selAv=a;if(onSelect){onSelect(a);}else{rAv(containerId,onSelect);}};e.appendChild(b);}}
+  function avatarVal(a){return typeof a==='object'?a.v:a;} function avatarName(a){return typeof a==='object'?a.n:'Avatar';} function rAv(containerId,onSelect){let e=document.getElementById(containerId);if(!e)return;e.innerHTML='';for(let a of AVATARS){let val=avatarVal(a);let b=document.createElement('button');b.type='button';b.className='avb'+(val===selAv?' sel':'');b.innerHTML='<span class="fan-face">'+val+'</span><span class="fan-name">'+avatarName(a)+'</span>';b.onclick=()=>{selAv=val;if(onSelect){onSelect(val);}else{rAv(containerId,onSelect);}};e.appendChild(b);}}
 
   // ===== CANVAS =====
   const c=document.getElementById('cv'),x=c.getContext('2d');
@@ -816,7 +847,7 @@ html,body{background:#030205;color:#fff}
   function setNav(active){['nl','nsh','nrk','nac','npr','nmi'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.toggle('ac',id===active);});}
   function spr(){showScreen('spr');setNav('npr');document.getElementById('nb').style.display='flex';renderProfile();}
   function smi(){showScreen('smi');setNav('nmi');document.getElementById('nb').style.display='flex';renderMissions();}
-  function sr(){showScreen('sr');document.getElementById('nb').style.display='none';selAv=S.av||AVATARS[0];rAv('avr');}
+  function sr(){showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';selAv=S.av||avatarVal(AVATARS[0]);rAv('avr');}
   function sl(){showScreen('sl');setNav('nl');document.getElementById('nb').style.display='flex';document.getElementById('pt').style.display='flex';document.getElementById('ptn').textContent=S.n||'Anónimo';document.getElementById('ptav').textContent=S.av||'🙂';document.getElementById('avr2').style.display='none';let need=xpNeed(),acc=((S.stats.hits||0)+(S.stats.misses||0))?Math.round((S.stats.hits||0)/((S.stats.hits||0)+(S.stats.misses||0))*100)+'%':'—';document.getElementById('homeAv').textContent=S.av||'🙂';document.getElementById('homeName').textContent=S.n||'Jugador';document.getElementById('homeLvl').textContent='Lv. '+S.plvl;document.getElementById('homeXp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('homeRank').textContent=rankFor(S.ts);document.getElementById('homeCoins').textContent=(S.c||0).toLocaleString();document.getElementById('homeStreak').textContent='🔥 '+(S.streak||0);document.getElementById('homeAccuracy').textContent=acc;document.getElementById('homeBest').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('homeCampaignBest').textContent='★ '+S.comp.length+'/17';document.getElementById('homeEndlessBest').textContent='♛ '+((S.hs&&S.hs.endless)||0).toLocaleString();document.getElementById('homeHardcoreBest').textContent=(S.mode==='hardcore'?'🔥 ACTIVO':'🔥 PRO');rl();rEq();}
   function ssh(){showScreen('ssh');setNav('nsh');document.getElementById('cd').style.display='flex';document.getElementById('cvv').textContent=S.c;rs();rSkins();}
   function srk(){showScreen('srk');setNav('nrk');rr();}
@@ -824,7 +855,7 @@ html,body{background:#030205;color:#fff}
   function scred(){showScreen('scred');document.getElementById('nb').style.display='none';document.getElementById('cd').style.display='none';}
 
   function rl(){let g=document.getElementById('lg');g.innerHTML='';let tp=0,mp=0;for(let lv of LVLS){mp+=lv.t;let hs=S.hs[lv.id]||0;tp+=Math.min(hs,lv.t);let ul=lv.id<=S.ul,cp=S.comp.includes(lv.id);let card=document.createElement('div');card.className='lc'+(ul?'':' lk')+(lv.id===cl?' ac':'')+(lv.boss?' bs':'');if(ul)card.onclick=()=>sg(lv.id);else card.onclick=()=>toast('🔒 Completa el nivel anterior para desbloquear este.');let dots=lv.p.map(c=>`<span class="ldo" style="background:${c}"></span>`).join('');let sub=lv.boss?'👤 ¡Atrápalo antes de que escape!':(lv.avoid?'💣 Toca lo seguro, evitá las trampas':'Meta: '+lv.t+' pts | '+lv.time+'s');card.innerHTML=`<div class="ln">${lv.id}</div><div class="lna">${lv.n}</div><div class="lme">${sub}</div>${cp?'<div class="lst">✅ Completado</div>':(ul?'<div class="lst">Mejor: '+(hs||0)+' pts</div>':'<div class="lst">🔒 Bloqueado</div>')}<div class="ld">${dots}</div>`;g.appendChild(card);}document.getElementById('pf').style.width=Math.round((tp/mp)*100)+'%';}
-  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
+  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button type="button" class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button type="button" class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
   function by(it){if(S.c<it.p)return;S.c-=it.p;S.inv[it.id]=(S.inv[it.id]||0)+1;if(!S.boughtSet.includes(it.id)){S.boughtSet.push(it.id);}if(S.boughtSet.length>=5)unlockAch('coleccionista');sv();rs();let t=document.getElementById('to');t.textContent='¡Comprado: '+it.n+'!';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2000);}
   function rSkins(){
     let g=document.getElementById('skg');if(!g)return;g.innerHTML='';
@@ -832,7 +863,7 @@ html,body{background:#030205;color:#fff}
       let owned=S.skins.includes(sk.id)||sk.p===0;
       let active=S.skin===sk.id;
       let div=document.createElement('div');div.className='si';
-      let btnHtml=owned?`<button class="sie${active?' on':''}">${active?'✓ Activo':'Usar'}</button>`:`<button class="sib ${S.c<sk.p?'nc':''}">${sk.p}🪙</button>`;
+      let btnHtml=owned?`<button type="button" class="sie${active?' on':''}">${active?'✓ Activo':'Usar'}</button>`:`<button type="button" class="sib ${S.c<sk.p?'nc':''}">${sk.p}🪙</button>`;
       div.innerHTML=`<div class="sif"><div class="sin">${sk.n}</div><div class="sid">${sk.d}</div></div><div class="sir">${btnHtml}</div>`;
       let b=div.querySelector('button');
       if(owned){b.onclick=()=>{S.skin=sk.id;sv();rSkins();};}
@@ -885,7 +916,7 @@ html,body{background:#030205;color:#fff}
   document.getElementById('pt').onclick=function(){
     let p=document.getElementById('avr2');
     if(p.style.display==='none'||!p.style.display){
-      selAv=S.av||AVATARS[0];
+      selAv=S.av||avatarVal(AVATARS[0]);
       rAv('avr2',(a)=>{S.av=a;sv();document.getElementById('ptav').textContent=a;p.style.display='none';});
       p.style.display='flex';
     }else{p.style.display='none';}
@@ -905,10 +936,58 @@ html,body{background:#030205;color:#fff}
     }
   });
 
-  document.getElementById('g30start').onclick=function(){S.tutorialSeen=true;sv();document.getElementById('g30tutorial').classList.add('h');gs='play';ia();vb(20);};
-  document.getElementById('g30tutorial').addEventListener('click',function(e){if(e.target===this){S.tutorialSeen=true;sv();this.classList.add('h');gs='play';}});
-  document.getElementById('g30quick').onclick=function(){document.getElementById('g30result').classList.add('h');document.getElementById('nb').style.display='none';if(mode==='campaign'&&sc>=LVLS[cl-1].t&&cl<LVLS.length){sg(cl+1);}else{sg(cl);}};
-  // Reintento desde el resultado clásico también abre el juego directamente.
+  // ===== 3.0 GAMER: CONTROLES ROBUSTOS =====
+  // Un solo disparo por interacción: evita el doble evento pointerup + click
+  // que en algunos móviles hacía que "Reintentar" pareciera no responder.
+  const tapLock = new WeakMap();
+  function bindTap(el, fn){
+    if(!el) return;
+    el.type='button';
+    const fire=(e)=>{
+      if(e){e.preventDefault();e.stopPropagation();}
+      const now=Date.now(), last=tapLock.get(el)||0;
+      if(now-last<450) return;
+      tapLock.set(el,now);
+      fn();
+    };
+    el.onclick=fire;
+  }
+  function closeTutorialAndPlay(){
+    const tut=document.getElementById('g30tutorial');
+    if(tut) tut.classList.add('h');
+    gs='play';
+    try{ia();}catch(_){ }
+    try{vb(20);}catch(_){ }
+    try{st=performance.now();}catch(_){ }
+  }
+  function quickResultAction(){
+    const result=document.getElementById('g30result');
+    if(result) result.classList.add('h');
+    const current=LVLS[cl-1];
+    const nextCampaign=(mode==='campaign' && current && sc>=current.t && cl<LVLS.length);
+    try{sg(nextCampaign?cl+1:cl);}catch(err){console.warn('Acción rápida:',err);}
+  }
+  bindTap(document.getElementById('g30start'),closeTutorialAndPlay);
+  bindTap(document.getElementById('g30quick'),quickResultAction);
+  // También permite tocar fuera de la tarjeta del tutorial para continuar.
+  const tutorial=document.getElementById('g30tutorial');
+  if(tutorial){
+    tutorial.addEventListener('click',function(e){
+      if(e.target===this){closeTutorialAndPlay();}
+    });
+  }
+  // Red de seguridad para móviles: si el navegador entrega el click al documento
+  // después de una capa visual, estos IDs siguen teniendo una ruta directa.
+  document.addEventListener('click',function(e){
+    const el=e.target && e.target.closest ? e.target.closest('#g30start,#g30quick') : null;
+    if(!el) return;
+    e.preventDefault();e.stopPropagation();
+    const now=Date.now(), last=tapLock.get(el)||0;
+    if(now-last<450) return;
+    tapLock.set(el,now);
+    if(el.id==='g30start') closeTutorialAndPlay();
+    else quickResultAction();
+  },true);
   // INIT
   try{if(S.n){sl();setMode(S.mode||'campaign');}else{sr();}}catch(err){console.warn('Inicio recuperado:',err);try{showScreen(S.n?'sl':'sr');document.getElementById('nb').style.display=S.n?'flex':'none';}catch(_){}}
   dr();
