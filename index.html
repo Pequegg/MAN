@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#000000">
-<title>Op-Art Fan</title>
+<title>Op-Art Fan 3.0 Gamer</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -168,6 +168,10 @@ body{min-width:0;overscroll-behavior:none}
 @media(max-height:700px){#sr{justify-content:flex-start;padding-top:calc(10px + var(--safe-top));overflow-y:auto}.ef{width:110px}.avb{padding:3px 6px}}
 button,input{touch-action:manipulation}
 .inp{-webkit-appearance:none}
+
+/* ===== OP-ART FAN 3.0 GAMER ===== */
+.g30{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);padding:20px;opacity:1;transition:opacity .25s}.g30.h{opacity:0;pointer-events:none}.g30card{width:min(92vw,350px);background:rgba(8,8,8,.96);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:22px 18px;text-align:center;box-shadow:0 0 50px rgba(0,240,255,.12)}.g30ey{font-size:11px;color:#00f0ff;font-weight:900;letter-spacing:2px;text-transform:uppercase}.g30title{font-size:30px;color:#fff;font-weight:1000;margin:6px 0}.g30txt{font-size:12px;color:#aaa;line-height:1.55;margin-bottom:14px}.g30tap{display:block;font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1.5px;margin-top:9px}.g30btn{width:100%;border:1px solid #00f0ff;background:rgba(0,240,255,.1);color:#fff;border-radius:11px;padding:12px;font-weight:900;letter-spacing:1px}.g30meter{height:6px;background:#222;border-radius:6px;overflow:hidden;margin:9px 0}.g30meter i{display:block;height:100%;background:#00f0ff;width:0}.g30row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.g30mini{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:7px}.g30mini b{display:block;color:#fff;font-size:14px}.g30mini small{color:#666;font-size:7px;text-transform:uppercase}.g30streak{color:#ff6a00;font-weight:1000;font-size:13px;margin:5px 0 12px}.g30near{color:#ffee00;font-weight:900;font-size:11px;margin:-2px 0 10px}.g30mode{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:18;color:#fff;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 10px;font-size:8px;font-weight:900;letter-spacing:1px;text-transform:uppercase;opacity:.75}.g30mode.endless{color:#00f0ff}.g30mode.hardcore{color:#ff6688}.g30flash{animation:g30flash .28s ease}.g30pulse{animation:g30pulse .45s ease}@keyframes g30flash{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}@keyframes g30pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
+@media(max-height:620px){.g30card{padding:16px}.g30title{font-size:25px}.g30txt{margin-bottom:9px}}
 </style>
 </head>
 <body>
@@ -177,6 +181,10 @@ button,input{touch-action:manipulation}
 <div class="pt" id="pt" style="display:none"><span id="ptav">🙂</span> Jugador: <span id="ptn">---</span></div>
 <div class="avrow" id="avr2" style="display:none;position:fixed;top:40px;left:10px;z-index:31;background:rgba(0,0,0,.9);padding:8px;border-radius:12px;max-width:220px"></div>
 
+
+<div class="g30 h" id="g30tutorial"><div class="g30card"><div class="g30ey">OP-ART FAN 3.0</div><div class="g30title">🎯 ENCUENTRA EL BRILLO</div><div class="g30txt">Las celdas que brillan son tu objetivo. Tócalas antes de que desaparezcan.<br><br>Encadena aciertos para subir el <b>COMBO</b> y conseguir más puntos.</div><button class="g30btn" id="g30start">ENTENDIDO · JUGAR</button><span class="g30tap">Tutorial solo aparece una vez</span></div></div>
+<div class="g30 h" id="g30result"><div class="g30card"><div class="g30ey" id="g30resultEy">RESULTADO</div><div class="g30title" id="g30resultTitle">¡NIVEL COMPLETADO!</div><div class="g30row"><div class="g30mini"><b id="g30rs">0</b><small>Puntos</small></div><div class="g30mini"><b id="g30rc">x1</b><small>Combo</small></div><div class="g30mini"><b id="g30rx">+0</b><small>XP</small></div></div><div class="g30near" id="g30near"></div><div class="g30streak" id="g30streak">🔥 Racha 0 días</div><div class="g30txt" id="g30resultTxt"></div><button class="g30btn" id="g30quick">REINTENTAR</button><span class="g30tap">o usa el menú inferior</span></div></div>
+<div class="g30mode" id="g30mode">Campaña</div>
 <div id="hd">
   <div class="hb"><div class="hl">Tiempo</div><div class="hv" id="ht">30</div></div>
   <div class="hb"><div class="hl">Puntaje</div><div class="hv" id="hs">0</div></div>
@@ -275,7 +283,7 @@ button,input{touch-action:manipulation}
     <div id="prrank" class="v2rank">D</div>
     <div id="prlvl" class="rbadge">Nivel 1</div>
     <div class="xpbar"><i id="prxp"></i></div><div class="su" id="prxpt">0 / 100 XP</div>
-    <div class="v2stats"><div class="v2box"><b id="prs">0</b><small>Mejor score</small></div><div class="v2box"><b id="prcb">x1</b><small>Mejor combo</small></div><div class="v2box"><b id="prlvls">0</b><small>Niveles</small></div></div>
+    <div class="v2stats"><div class="v2box"><b id="prstreak">🔥 0 días</b><small>Racha</small></div><div class="v2box"><b id="pracc">—</b><small>Precisión</small></div><div class="v2box"><b id="prrankMini">D</b><small>Rango</small></div></div><div class="v2stats"><div class="v2box"><b id="prs">0</b><small>Mejor score</small></div><div class="v2box"><b id="prcb">x1</b><small>Mejor combo</small></div><div class="v2box"><b id="prlvls">0</b><small>Niveles</small></div></div>
     <button class="bt" id="prback">← Volver</button>
   </div>
 </div>
@@ -383,6 +391,7 @@ button,input{touch-action:manipulation}
   S=Object.assign({n:'',c:0,ul:1,comp:[],inv:{},eq:[],hs:{},ts:0,rk:[],ach:[],av:'🙂',skins:['classic'],skin:'classic',boughtSet:[],xp:0,plvl:1,mode:'campaign',daily:{},stats:{games:0,hits:0,misses:0,bestCombo:1}},S||{});
   S.comp=Array.isArray(S.comp)?S.comp:[];S.eq=Array.isArray(S.eq)?S.eq:[];S.ach=Array.isArray(S.ach)?S.ach:[];S.skins=Array.isArray(S.skins)&&S.skins.length?S.skins:['classic'];S.inv=S.inv&&typeof S.inv==='object'?S.inv:{};S.hs=S.hs&&typeof S.hs==='object'?S.hs:{};S.rk=Array.isArray(S.rk)?S.rk:[];
   S.xp=Number(S.xp||0);S.plvl=Math.max(1,Number(S.plvl||1));S.mode=S.mode||'campaign';S.daily=S.daily||{};S.stats=Object.assign({games:0,hits:0,misses:0,bestCombo:1},S.stats||{});
+  S.streak=Number(S.streak||0);S.streakDay=S.streakDay||'';S.tutorialSeen=!!S.tutorialSeen;S.lastXP=0;
   if(!S.pid){S.pid='p_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);sv();}
 
   // ===== FIREBASE (ranking compartido) =====
@@ -420,8 +429,9 @@ button,input{touch-action:manipulation}
   function addXP(n){S.xp+=Math.max(0,Math.floor(n));while(S.xp>=xpNeed()){S.xp-=xpNeed();S.plvl++;let t=document.getElementById('to');t.textContent='⭐ ¡Subiste a nivel '+S.plvl+'!';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1800);}sv();}
   function comboPop(){if(cb<5)return;let e=document.getElementById('cpop');e.textContent=cb>=20?'FRENZY!':cb>=15?'ULTRA COMBO!':'COMBO x'+cb;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),420);}
   function dailyDate(){return new Date().toISOString().slice(0,10)}
+  function updateStreak(){let d=dailyDate();if(S.streakDay===d)return;let prev=new Date(Date.now()-86400000).toISOString().slice(0,10);S.streak=S.streakDay===prev?(S.streak||0)+1:1;S.streakDay=d;sv();}
   function dailyProgress(id,val){let d=S.daily;let day=dailyDate();if(d.day!==day){d.day=day;d.done={};d.val={};}d.val=d.val||{};d.done=d.done||{};d.val[id]=Math.max(d.val[id]||0,val);let q=DAILY.find(x=>x.id===id);if(q&&d.val[id]>=q.goal&&!d.done[id]){d.done[id]=1;S.c+=q.reward;addXP(40);let t=document.getElementById('to');t.textContent='🎯 Misión: '+q.n+' +'+q.reward+'🪙';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1800);}sv();}
-  function renderProfile(){document.getElementById('prav').textContent=S.av||'🙂';document.getElementById('prname').textContent=S.n||'Anónimo';document.getElementById('prrank').textContent=rankFor(S.ts);document.getElementById('prlvl').textContent='Nivel '+S.plvl;let need=xpNeed();document.getElementById('prxp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('prxpt').textContent=S.xp+' / '+need+' XP';document.getElementById('prs').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('prcb').textContent='x'+(S.stats.bestCombo||1);document.getElementById('prlvls').textContent=S.comp.length;}
+  function renderProfile(){document.getElementById('prav').textContent=S.av||'🙂';document.getElementById('prname').textContent=S.n||'Anónimo';document.getElementById('prrank').textContent=rankFor(S.ts);let prm=document.getElementById('prrankMini');if(prm)prm.textContent=rankFor(S.ts);document.getElementById('prlvl').textContent='Nivel '+S.plvl;let need=xpNeed();document.getElementById('prxp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('prxpt').textContent=S.xp+' / '+need+' XP';document.getElementById('prs').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('prcb').textContent='x'+(S.stats.bestCombo||1);document.getElementById('prlvls').textContent=S.comp.length;let ps=document.getElementById('prstreak');if(ps)ps.textContent='🔥 '+(S.streak||0)+' días';let pa=document.getElementById('pracc');if(pa){let total=(S.stats.hits||0)+(S.stats.misses||0);pa.textContent=total?Math.round((S.stats.hits||0)/total*100)+'%':'—';}}
   function renderMissions(){let g=document.getElementById('mig');g.innerHTML='';let d=S.daily||{};for(const q of DAILY){let v=Math.min(q.goal,(d.val||{})[q.id]||0),done=(d.done||{})[q.id];let el=document.createElement('div');el.className='mission';el.innerHTML='<b>'+q.n+(done?' ✅':'')+'</b><small>'+q.d+' · Recompensa '+q.reward+'🪙</small><div class="bar"><i style="width:'+v/q.goal*100+'%"></i></div><small>'+v+' / '+q.goal+'</small>';g.appendChild(el);}}
 
   function unlockAch(id){if(S.ach.includes(id))return;S.ach.push(id);sv();let a=ACH.find(z=>z.id===id);if(a){let t=document.getElementById('to');t.innerHTML='🏆 Logro: '+a.n;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2400);}}
@@ -628,14 +638,14 @@ button,input{touch-action:manipulation}
   function eg(){
     gs='over';if(aid)cancelAnimationFrame(aid);
     document.getElementById('hd').classList.remove('on');document.getElementById('cd').style.display='none';document.getElementById('ae').innerHTML='';
-    let lv=LVLS[cl-1],ps=mode==='endless'?(ht>=10):(sc>=lv.t);
+    let lv=LVLS[cl-1],ps=mode==='endless'?true:(sc>=lv.t);
     let cn=Math.floor(sc/10);
     if(mAct.includes('c2'))cn*=2;
     if(mcb>=10)cn+=20;
     let wasPerfect=ps&&perfectRun&&ht>0;
     if(wasPerfect)cn+=30;
     if(ps&&!S.comp.includes(cl)){S.comp.push(cl);cn+=50;if(cl+1>S.ul)S.ul=cl+1;}
-    S.c+=cn;S.ts+=sc;S.stats.games=(S.stats.games||0)+1;addXP(Math.floor(sc/25)+(ps?50:10));if(ps&&perfectRun)dailyProgress('d3',1);
+    S.c+=cn;S.ts+=sc;S.stats.games=(S.stats.games||0)+1;updateStreak();let xpGain=Math.floor(sc/25)+(ps?50:10);S.lastXP=xpGain;addXP(xpGain);if(ps&&perfectRun)dailyProgress('d3',1);
     if(!S.hs[cl]||sc>S.hs[cl])S.hs[cl]=sc;
     urk(S.n||'Anónimo',S.ts,S.comp.length);
     sv();syncRanking();
@@ -668,8 +678,10 @@ button,input{touch-action:manipulation}
       nb.style.display='none';
     }
     document.getElementById('sg').classList.remove('h');document.getElementById('nb').style.display='flex';
+    let r30=document.getElementById('g30result');document.getElementById('g30rs').textContent=sc;document.getElementById('g30rc').textContent='x'+mcb;document.getElementById('g30rx').textContent='+'+(S.lastXP||0);document.getElementById('g30streak').textContent='🔥 Racha '+(S.streak||0)+' días';let near='';if(!ps&&mode==='campaign'){let diff=Math.max(0,lv.t-sc);if(diff<=150)near='⚡ ¡Casi! Te faltaron solo '+diff+' puntos';else if(diff<=350)near='💥 Estuviste muy cerca: '+diff+' puntos';}document.getElementById('g30near').textContent=near;document.getElementById('g30resultEy').textContent=ps?'VICTORIA':'FIN DE PARTIDA';document.getElementById('g30resultTitle').textContent=ps?(mode==='endless'?'♾️ RUN TERMINADA':'🏆 ¡NIVEL SUPERADO!'):'💀 GAME OVER';document.getElementById('g30resultTxt').textContent=ps?(mode==='endless'?'Nuevo intento listo. ¡Supera tu récord!':'¡Buen trabajo! Mantén el combo para multiplicar tu puntuación.'):(near||'No pasa nada. El siguiente intento puede ser el bueno.');document.getElementById('g30quick').textContent=ps&&mode==='campaign'&&cl<LVLS.length?'SIGUIENTE NIVEL':'REINTENTAR';r30.classList.remove('h');
   }
-  function urk(n,tot,lvls){let r=S.rk||[],f=false,av=S.av||'🙂';for(let i=0;i<r.length;i++){if(r[i].n===n){r[i].s=Math.max(r[i].s,tot);r[i].l=Math.max(r[i].l,lvls);r[i].av=av;f=true;break;}}if(!f)r.push({n:n,s:tot,l:lvls,av:av,d:Date.now()});r.sort((a,b)=>b.s-a.s);if(r.length>20)r=r.slice(0,20);S.rk=r;}
+  const sgOriginal=sg;sg=function(lvl){document.getElementById('g30result').classList.add('h');sgOriginal(lvl);let mm=document.getElementById('g30mode');mm.textContent=V2MODES[mode]||mode;mm.className='g30mode '+(mode==='endless'?'endless':mode==='hardcore'?'hardcore':'');if(!S.tutorialSeen&&cl===1&&mode==='campaign'){gs='tutorial';document.getElementById('g30tutorial').classList.remove('h');}};
+    function urk(n,tot,lvls){let r=S.rk||[],f=false,av=S.av||'🙂';for(let i=0;i<r.length;i++){if(r[i].n===n){r[i].s=Math.max(r[i].s,tot);r[i].l=Math.max(r[i].l,lvls);r[i].av=av;f=true;break;}}if(!f)r.push({n:n,s:tot,l:lvls,av:av,d:Date.now()});r.sort((a,b)=>b.s-a.s);if(r.length>20)r=r.slice(0,20);S.rk=r;}
 
   // ===== SCREENS =====
   function showScreen(id){['sr','sl','sg','ssh','srk','sac','scred','spr','smi'].forEach(i=>{document.getElementById(i).classList.toggle('h',i!==id);});}
@@ -727,9 +739,9 @@ button,input{touch-action:manipulation}
   }
 
   // ===== EVENTS =====
-  function setMode(m){S.mode=m;sv();['Campaign','Endless','Hardcore'].forEach(q=>document.getElementById('mode'+q).classList.toggle('on',m===q.toLowerCase()));let t=document.getElementById('to');t.textContent='Modo: '+V2MODES[m];t.classList.add('s');setTimeout(()=>t.classList.remove('s'),900);}
+  function setMode(m){S.mode=m;sv();let mm=document.getElementById('g30mode');if(mm){mm.textContent=V2MODES[m]||m;mm.className='g30mode '+(m==='endless'?'endless':m==='hardcore'?'hardcore':'');}['Campaign','Endless','Hardcore'].forEach(q=>document.getElementById('mode'+q).classList.toggle('on',m===q.toLowerCase()));let t=document.getElementById('to');t.textContent='Modo: '+V2MODES[m];t.classList.add('s');setTimeout(()=>t.classList.remove('s'),900);}
   document.getElementById('modeCampaign').onclick=()=>setMode('campaign');document.getElementById('modeEndless').onclick=()=>setMode('endless');document.getElementById('modeHardcore').onclick=()=>setMode('hardcore');
-  document.getElementById('br').onclick=function(){let n=document.getElementById('in').value.trim();if(!n)n='Jugador '+Math.floor(Math.random()*9999);S.n=n;S.av=selAv||S.av||'🙂';sv();sl();};
+  document.getElementById('br').onclick=function(){let n=document.getElementById('in').value.trim();if(!n)n='Jugador '+Math.floor(Math.random()*9999);S.n=n;S.av=selAv||S.av||'🙂';updateStreak();sv();sl();};
   document.getElementById('brep').onclick=()=>sg(cl);
   document.getElementById('bnext').onclick=()=>sg(cl+1);
   document.getElementById('bcred').onclick=()=>scred();
@@ -764,6 +776,10 @@ button,input{touch-action:manipulation}
     }
   });
 
+  document.getElementById('g30start').onclick=function(){S.tutorialSeen=true;sv();document.getElementById('g30tutorial').classList.add('h');gs='play';ia();vb(20);};
+  document.getElementById('g30tutorial').addEventListener('click',function(e){if(e.target===this){S.tutorialSeen=true;sv();this.classList.add('h');gs='play';}});
+  document.getElementById('g30quick').onclick=function(){document.getElementById('g30result').classList.add('h');if(mode==='campaign'&&sc>=LVLS[cl-1].t&&cl<LVLS.length){sg(cl+1);}else{sg(cl);}};
+  // Reintento desde el resultado clásico también abre el juego directamente.
   // INIT
   if(S.n){sl();setMode(S.mode||'campaign');}else{sr();}
   dr();
