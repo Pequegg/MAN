@@ -243,6 +243,7 @@ html,body{background:#030205;color:#fff}
 /* FIX 3.0: el resultado no debe bloquear el menú inferior; solo la tarjeta captura toques */
 #g30result{pointer-events:none!important}
 #g30result .g30card{pointer-events:auto}
+#g30result.h,#g30result.h .g30card{pointer-events:none!important}
 #nb{z-index:100!important}
 #nb button,.g30btn,.bt,.gmode,.gplay,.qbtn,.ggear,.sib,.sie{touch-action:manipulation;-webkit-user-select:none;user-select:none}
 
@@ -308,6 +309,12 @@ html,body{background:#030205;color:#fff}
 #sr, #sr *{touch-action:manipulation;}
 #sr .inp{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:auto!important;position:relative;z-index:20;}
 #sr .avb,#sr #br{pointer-events:auto!important;touch-action:manipulation!important;position:relative;z-index:20;}
+
+/* FIX FINAL: la barra inferior (#nb) mide ~105px real (2 filas de botones).
+   Antes varias pantallas (Tienda/Ranking/Perfil/Misiones) solo reservaban
+   70-88px, así que el botón "Volver" quedaba tapado y no se podía tocar
+   ni haciendo scroll. Se fuerza un espacio seguro en TODAS las pantallas. */
+.sc{padding-bottom:calc(130px + var(--safe-bottom))!important}
 </style>
 </head>
 <body>
@@ -832,7 +839,7 @@ html,body{background:#030205;color:#fff}
       nb.style.display='none';
     }
     document.getElementById('sg').classList.add('h');document.getElementById('nb').style.display='flex';
-    let r30=document.getElementById('g30result');document.getElementById('g30rs').textContent=sc;document.getElementById('g30rc').textContent='x'+mcb;document.getElementById('g30rx').textContent='+'+(S.lastXP||0);document.getElementById('g30streak').textContent='🔥 Racha '+(S.streak||0)+' días';let near='';if(!ps&&mode==='campaign'){let diff=Math.max(0,lv.t-sc);if(diff<=150)near='⚡ ¡Casi! Te faltaron solo '+diff+' puntos';else if(diff<=350)near='💥 Estuviste muy cerca: '+diff+' puntos';}document.getElementById('g30near').textContent=near;document.getElementById('g30resultEy').textContent=ps?'VICTORIA':'FIN DE PARTIDA';document.getElementById('g30resultTitle').textContent=ps?(mode==='endless'?'♾️ RUN TERMINADA':'🏆 ¡NIVEL SUPERADO!'):'💀 GAME OVER';document.getElementById('g30resultTxt').textContent=ps?(mode==='endless'?'Nuevo intento listo. ¡Supera tu récord!':'¡Buen trabajo! Mantén el combo para multiplicar tu puntuación.'):(near||'No pasa nada. El siguiente intento puede ser el bueno.');document.getElementById('g30quick').textContent=ps&&mode==='campaign'&&cl<LVLS.length?'SIGUIENTE NIVEL':'REINTENTAR';r30.classList.remove('h');
+    let r30=document.getElementById('g30result');document.getElementById('g30rs').textContent=sc;document.getElementById('g30rc').textContent='x'+mcb;document.getElementById('g30rx').textContent='+'+(S.lastXP||0);document.getElementById('g30streak').textContent='🔥 Racha '+(S.streak||0)+' días';let near='';if(!ps&&mode==='campaign'){let diff=Math.max(0,lv.t-sc);if(diff<=150)near='⚡ ¡Casi! Te faltaron solo '+diff+' puntos';else if(diff<=350)near='💥 Estuviste muy cerca: '+diff+' puntos';}document.getElementById('g30near').textContent=near;let finished=ps&&mode==='campaign'&&cl>=LVLS.length;document.getElementById('g30resultEy').textContent=ps?'VICTORIA':'FIN DE PARTIDA';document.getElementById('g30resultTitle').textContent=finished?'🏆 ¡JUEGO COMPLETADO!':(ps?(mode==='endless'?'♾️ RUN TERMINADA':'🏆 ¡NIVEL SUPERADO!'):'💀 GAME OVER');document.getElementById('g30resultTxt').textContent=finished?'¡Completaste los 17 niveles! Toca el botón para ver los créditos.':(ps?(mode==='endless'?'Nuevo intento listo. ¡Supera tu récord!':'¡Buen trabajo! Mantén el combo para multiplicar tu puntuación.'):(near||'No pasa nada. El siguiente intento puede ser el bueno.'));document.getElementById('g30quick').textContent=finished?'VER CRÉDITOS':(ps&&mode==='campaign'&&cl<LVLS.length?'SIGUIENTE NIVEL':'REINTENTAR');r30.classList.remove('h');
   }
   const sgOriginal=sg;sg=function(lvl){document.getElementById('g30result').classList.add('h');sgOriginal(lvl);let mm=document.getElementById('g30mode');mm.textContent=V2MODES[mode]||mode;mm.className='g30mode '+(mode==='endless'?'endless':mode==='hardcore'?'hardcore':'');if(!S.tutorialSeen&&cl===1&&mode==='campaign'){gs='tutorial';document.getElementById('g30tutorial').classList.remove('h');}};
     function urk(n,tot,lvls){let r=S.rk||[],f=false,av=S.av||'🙂';for(let i=0;i<r.length;i++){if(r[i].n===n){r[i].s=Math.max(r[i].s,tot);r[i].l=Math.max(r[i].l,lvls);r[i].av=av;f=true;break;}}if(!f)r.push({n:n,s:tot,l:lvls,av:av,d:Date.now()});r.sort((a,b)=>b.s-a.s);if(r.length>20)r=r.slice(0,20);S.rk=r;}
@@ -919,7 +926,7 @@ html,body{background:#030205;color:#fff}
       p.style.display='flex';
     }else{p.style.display='none';}
   };
-  const secretTitle=document.querySelector('#sl .ti');
+  const secretTitle=document.querySelector('#sl .gbrand');
   if(secretTitle)secretTitle.addEventListener('click',()=>{
     let now=Date.now();eggTapTimes=eggTapTimes.filter(t=>now-t<2500);eggTapTimes.push(now);
     if(eggTapTimes.length>=7){
@@ -928,7 +935,7 @@ html,body{background:#030205;color:#fff}
       if(!S.ach.includes('easter')){
         S.c+=250;if(!S.skins.includes('grid'))S.skins.push('grid');unlockAch('easter');sv();
         t.innerHTML='🥚 ¡Secreto encontrado! +250 monedas y skin "Cuadrícula" gratis';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),3000);
-        rl();
+        rl();let hc=document.getElementById('homeCoins');if(hc)hc.textContent=(S.c||0).toLocaleString();
       }else{
         t.textContent='🥚 Ya encontraste este secreto.';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1600);
       }
