@@ -152,6 +152,22 @@ html,body{min-height:100dvh;height:100dvh;overscroll-behavior:none}
 .mission{width:100%;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px}.mission b{color:#fff;font-size:10px}.mission small{display:block;color:#888;margin:3px 0}.mission .bar{height:4px;background:#222;border-radius:4px;overflow:hidden}.mission .bar i{display:block;height:100%;background:#ffee00}
 .rbadge{display:inline-block;border:1px solid rgba(0,240,255,.35);border-radius:20px;padding:4px 10px;color:#00f0ff;font-size:9px;font-weight:900}
 .combo-pop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);opacity:0;z-index:50;pointer-events:none;font-weight:1000;font-size:clamp(32px,12vw,68px);font-style:italic;color:#fff;text-shadow:0 0 24px #00f0ff,0 0 50px #ff00aa;transition:transform .25s,opacity .25s}.combo-pop.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+
+/* ===== FINAL MOBILE QA ===== */
+body{min-width:0;overscroll-behavior:none}
+.sc{overflow-x:hidden;-webkit-overflow-scrolling:touch}
+#sr{justify-content:flex-start;padding-top:calc(24px + var(--safe-top));padding-bottom:calc(24px + var(--safe-bottom))}
+#sr .ef{width:min(150px,42vw);margin-bottom:4px}
+#sr .ti{margin-top:0}
+#avr{width:min(100%,300px);max-width:300px;gap:7px;margin-bottom:12px}
+#avr .avb{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:23px;padding:0}
+#br{margin-top:2px}
+.nb{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;justify-content:stretch}
+.nb button{width:100%;min-width:0;min-height:42px;padding:7px 3px;font-size:8px;letter-spacing:.2px;margin:0}
+@media(max-width:360px){.nb{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.nb button{font-size:7px;padding:6px 2px}.v2stats{gap:5px}.v2box{padding:7px 4px}}
+@media(max-height:700px){#sr{justify-content:flex-start;padding-top:calc(10px + var(--safe-top));overflow-y:auto}.ef{width:110px}.avb{padding:3px 6px}}
+button,input{touch-action:manipulation}
+.inp{-webkit-appearance:none}
 </style>
 </head>
 <body>
@@ -197,7 +213,7 @@ html,body{min-height:100dvh;height:100dvh;overscroll-behavior:none}
 <div class="sc h" id="sl">
   <div class="ti">Op-Art Fan<span>Elige tu nivel</span></div>
   <div class="su">Completa la meta para desbloquear el siguiente.<br>Gana monedas y escala en el ranking.</div>
-  <div class="modegrid"><button class="modebtn on" id="modeCampaign">Campaña</button><button class="modebtn" id="modeEndless">Endless</button><button class="modebtn" id="modeHardcore">Hardcore</button></div><div class="eqr" id="eqr"></div>
+  <div class="modegrid"><button class="modebtn on" id="modeCampaign">Campaña</button><button class="modebtn" id="modeEndless">Endless</button><button class="modebtn" id="modeHardcore">Hardcore</button></div><div class="su" style="margin:4px 0 8px;font-size:9px">Campaña: niveles · Endless: récord · Hardcore: más difícil</div><div class="eqr" id="eqr"></div>
   <div class="lg" id="lg"></div>
   <div class="pb"><div class="pf" id="pf" style="width:0%"></div></div>
   <div class="su" style="margin-top:6px;margin-bottom:0;font-size:10px">Progreso total</div>
@@ -364,7 +380,9 @@ html,body{min-height:100dvh;height:100dvh;overscroll-behavior:none}
   }
   function sv(){try{localStorage.setItem('opartfan_v4',JSON.stringify(S));}catch(e){}}
   let S=ld();
-  S.xp=Number(S.xp||0);S.plvl=Number(S.plvl||1);S.mode=S.mode||'campaign';S.daily=S.daily||{};S.stats=S.stats||{games:0,hits:0,misses:0,bestCombo:1};
+  S=Object.assign({n:'',c:0,ul:1,comp:[],inv:{},eq:[],hs:{},ts:0,rk:[],ach:[],av:'🙂',skins:['classic'],skin:'classic',boughtSet:[],xp:0,plvl:1,mode:'campaign',daily:{},stats:{games:0,hits:0,misses:0,bestCombo:1}},S||{});
+  S.comp=Array.isArray(S.comp)?S.comp:[];S.eq=Array.isArray(S.eq)?S.eq:[];S.ach=Array.isArray(S.ach)?S.ach:[];S.skins=Array.isArray(S.skins)&&S.skins.length?S.skins:['classic'];S.inv=S.inv&&typeof S.inv==='object'?S.inv:{};S.hs=S.hs&&typeof S.hs==='object'?S.hs:{};S.rk=Array.isArray(S.rk)?S.rk:[];
+  S.xp=Number(S.xp||0);S.plvl=Math.max(1,Number(S.plvl||1));S.mode=S.mode||'campaign';S.daily=S.daily||{};S.stats=Object.assign({games:0,hits:0,misses:0,bestCombo:1},S.stats||{});
   if(!S.pid){S.pid='p_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);sv();}
 
   // ===== FIREBASE (ranking compartido) =====
@@ -599,7 +617,7 @@ html,body{min-height:100dvh;height:100dvh;overscroll-behavior:none}
   }
   let aid;function lp(ts){let dt=ts-lt;lt=ts;ud(dt);dr();aid=requestAnimationFrame(lp);}
 
-  function sg(lvl){ia();mode=S.mode||'campaign';cl=lvl;let lv=LVLS[lvl-1];gs='play';sc=0;cb=1;mcb=1;ht=0;ms=0;tl=lv.time;bs=lv.sp;si=lv.sp;df=1;st=0;ro=0;op=0;mvt=0;fg0=false;windT=0;pa=[];ac.forEach(c=>c.a=0);ac=[];
+  function sg(lvl){ia();mode=S.mode||'campaign';cl=Math.max(1,Math.min(LVLS.length,Number(lvl)||1));let lv=LVLS[cl-1];gs='play';sc=0;cb=1;mcb=1;ht=0;ms=0;tl=lv.time;bs=lv.sp;si=lv.sp;df=1;st=0;ro=0;op=0;mvt=0;fg0=false;windT=0;pa=[];ac.forEach(c=>c.a=0);ac=[];
     trapsHit=0;perfectRun=true;revUsed=false;pv=null;pvSet=false;cbFx15=false;cbFx20=false;
     mAct=[];for(let id of S.eq.slice()){if((S.inv[id]||0)>0){S.inv[id]--;mAct.push(id);if(S.inv[id]<=0){S.inv[id]=0;let i=S.eq.indexOf(id);if(i>=0)S.eq.splice(i,1);}}}sv();
     if(mAct.includes('t5'))tl+=5;if(mAct.includes('t10'))tl+=10;
@@ -655,7 +673,7 @@ html,body{min-height:100dvh;height:100dvh;overscroll-behavior:none}
 
   // ===== SCREENS =====
   function showScreen(id){['sr','sl','sg','ssh','srk','sac','scred','spr','smi'].forEach(i=>{document.getElementById(i).classList.toggle('h',i!==id);});}
-  function setNav(active){['nl','nsh','nrk','nac'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.toggle('ac',id===active);});}
+  function setNav(active){['nl','nsh','nrk','nac','npr','nmi'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.toggle('ac',id===active);});}
   function spr(){showScreen('spr');setNav('npr');document.getElementById('nb').style.display='flex';renderProfile();}
   function smi(){showScreen('smi');setNav('nmi');document.getElementById('nb').style.display='flex';renderMissions();}
   function sr(){showScreen('sr');document.getElementById('nb').style.display='none';selAv=S.av||AVATARS[0];rAv('avr');}
