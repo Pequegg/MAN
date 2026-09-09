@@ -304,16 +304,6 @@ html,body{background:#030205;color:#fff}
 #sr .login-note{font-size:8px;color:#8f858b;margin-top:8px;text-align:center}
 @media(max-width:370px){#sr .login-title{font-size:28px}#sr .login-fan{width:125px;height:80px;margin-bottom:8px}#sr .avb{height:68px}#sr .avb .fan-face{font-size:25px}#sr .inp{height:45px;margin-bottom:9px}#sr .login-sub{margin-bottom:10px}}
 </style>
-
-<style id="mobile-button-safety">
-button, .qbtn, .gmode, .gplay, .bt, .sib, .sie, .avb { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-button { user-select:none; }
-.g30 { isolation:isolate; }
-.g30card { position:relative; z-index:2; }
-#nb { z-index:80 !important; }
-#pt { z-index:82 !important; }
-#cd { z-index:81 !important; }
-</style>
 </head>
 <body>
 <div id="worldbg"></div>
@@ -365,19 +355,19 @@ button { user-select:none; }
       <div class="gprofile"><div class="gavatar" id="homeAv">🙂</div><div style="min-width:0;flex:1"><div class="gname" id="homeName">Jugador</div><div class="glvl" id="homeLvl">Lv. 1</div><div class="gxpline"><i id="homeXp"></i></div></div></div>
       <div class="grank"><b id="homeRank">D</b><small>Rango</small></div>
       <div class="currency"><span>🪙</span><b id="homeCoins">0</b></div>
-      <button type="button" class="ggear" id="homeGear" aria-label="Perfil">⚙️</button>
+      <button class="ggear" id="homeGear" aria-label="Perfil">⚙️</button>
     </div>
     <div class="gquick">
-      <button type="button" class="qbtn" id="qMissions"><i>📅</i>Misiones</button>
-      <button type="button" class="qbtn" id="qAchievements"><i>🏆</i>Logros</button>
-      <button type="button" class="qbtn" id="qRanking"><i>♛</i>Ranking</button>
-      <button type="button" class="qbtn" id="qProfile"><i>👤</i>Perfil</button>
+      <button class="qbtn" id="qMissions"><i>📅</i>Misiones</button>
+      <button class="qbtn" id="qAchievements"><i>🏆</i>Logros</button>
+      <button class="qbtn" id="qRanking"><i>♛</i>Ranking</button>
+      <button class="qbtn" id="qProfile"><i>👤</i>Perfil</button>
     </div>
     <div class="ghero"><div class="gbrand">OP-ART FAN<span>EL ARTE DEL ABANICO</span></div><div class="gquote">静かに見て、速く toca · Mira con calma, toca rápido</div></div>
     <div class="gmodes">
-      <button type="button" class="gmode c" id="homeCampaign"><div class="gmico">扇</div><div class="gmname">CAMPAÑA</div><div class="gmsub">17 niveles</div><div class="gmbest" id="homeCampaignBest">★ 0/17</div></button>
-      <button type="button" class="gmode e" id="homeEndless"><div class="gmico">∞</div><div class="gmname">ENDLESS</div><div class="gmsub">Sin fin</div><div class="gmbest" id="homeEndlessBest">♛ 0</div></button>
-      <button type="button" class="gmode hc" id="homeHardcore"><div class="gmico">☠</div><div class="gmname">HARDCORE</div><div class="gmsub">x1.5 puntos</div><div class="gmbest" id="homeHardcoreBest">🔥 PRO</div></button>
+      <button class="gmode c" id="homeCampaign"><div class="gmico">扇</div><div class="gmname">CAMPAÑA</div><div class="gmsub">17 niveles</div><div class="gmbest" id="homeCampaignBest">★ 0/17</div></button>
+      <button class="gmode e" id="homeEndless"><div class="gmico">∞</div><div class="gmname">ENDLESS</div><div class="gmsub">Sin fin</div><div class="gmbest" id="homeEndlessBest">♛ 0</div></button>
+      <button class="gmode hc" id="homeHardcore"><div class="gmico">☠</div><div class="gmname">HARDCORE</div><div class="gmsub">x1.5 puntos</div><div class="gmbest" id="homeHardcoreBest">🔥 PRO</div></button>
     </div>
     <button class="gplay" id="homePlay" type="button">▶ JUGAR</button>
     <div class="gstats"><div class="gstat"><b id="homeStreak">🔥 0</b><small>Racha</small></div><div class="gstat"><b id="homeAccuracy">—</b><small>Precisión</small></div><div class="gstat"><b id="homeBest">0</b><small>Mejor score</small></div></div>
@@ -411,7 +401,7 @@ button { user-select:none; }
   <div class="ti" style="font-size:15px;margin-top:4px;margin-bottom:2px">Skins del Abanico</div>
   <div class="su" style="margin-bottom:6px">Cambia la textura visual de las celdas (permanente).</div>
   <div class="sg" id="skg"></div>
-  <button type="button" class="bt" id="bsb">← Volver</button>
+  <button class="bt" id="bsb">← Volver</button>
 </div>
 
 <!-- RANK -->
@@ -422,7 +412,7 @@ button { user-select:none; }
     <thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Niveles</th></tr></thead>
     <tbody id="rtb"></tbody>
   </table>
-  <button type="button" class="bt" id="brk">← Volver</button>
+  <button class="bt" id="brk">← Volver</button>
 </div>
 
 <!-- ACHIEVEMENTS -->
@@ -442,7 +432,7 @@ button { user-select:none; }
     <div id="prlvl" class="rbadge">Nivel 1</div>
     <div class="xpbar"><i id="prxp"></i></div><div class="su" id="prxpt">0 / 100 XP</div>
     <div class="v2stats"><div class="v2box"><b id="prstreak">🔥 0 días</b><small>Racha</small></div><div class="v2box"><b id="pracc">—</b><small>Precisión</small></div><div class="v2box"><b id="prrankMini">D</b><small>Rango</small></div></div><div class="v2stats"><div class="v2box"><b id="prs">0</b><small>Mejor score</small></div><div class="v2box"><b id="prcb">x1</b><small>Mejor combo</small></div><div class="v2box"><b id="prlvls">0</b><small>Niveles</small></div></div>
-    <button type="button" class="bt" id="prback">← Volver</button>
+    <button class="bt" id="prback">← Volver</button>
   </div>
 </div>
 
@@ -450,7 +440,7 @@ button { user-select:none; }
 <div class="sc h" id="smi">
   <div class="ti">Misiones<span>Objetivos diarios</span></div>
   <div class="v2panel" id="mig"></div>
-  <button type="button" class="bt" id="miback">← Volver</button>
+  <button class="bt" id="miback">← Volver</button>
 </div>
 
 <!-- CREDITS -->
@@ -468,10 +458,10 @@ button { user-select:none; }
 
 <!-- NAV -->
 <div class="nb" id="nb" style="display:none">
-  <button type="button" class="bt ac" id="nl">Niveles</button>
-  <button type="button" class="bt" id="nsh">Tienda</button>
-  <button type="button" class="bt" id="nrk">Ranking</button>
-  <button type="button" class="bt" id="nac">Logros</button><button type="button" class="bt" id="npr">Perfil</button><button type="button" class="bt" id="nmi">Misiones</button>
+  <button class="bt ac" id="nl">Niveles</button>
+  <button class="bt" id="nsh">Tienda</button>
+  <button class="bt" id="nrk">Ranking</button>
+  <button class="bt" id="nac">Logros</button><button class="bt" id="npr">Perfil</button><button class="bt" id="nmi">Misiones</button>
 </div>
 
 <div class="to" id="to"></div><div class="combo-pop" id="cpop">COMBO!</div>
@@ -847,7 +837,7 @@ button { user-select:none; }
   function setNav(active){['nl','nsh','nrk','nac','npr','nmi'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.toggle('ac',id===active);});}
   function spr(){showScreen('spr');setNav('npr');document.getElementById('nb').style.display='flex';renderProfile();}
   function smi(){showScreen('smi');setNav('nmi');document.getElementById('nb').style.display='flex';renderMissions();}
-  function sr(){showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';selAv=S.av||avatarVal(AVATARS[0]);rAv('avr');}
+  function sr(){showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';selAv=S.av||avatarVal(AVATARS[0]);rAv('avr');const ni=document.getElementById('in');if(ni)ni.value=S.n||'';}
   function sl(){showScreen('sl');setNav('nl');document.getElementById('nb').style.display='flex';document.getElementById('pt').style.display='flex';document.getElementById('ptn').textContent=S.n||'Anónimo';document.getElementById('ptav').textContent=S.av||'🙂';document.getElementById('avr2').style.display='none';let need=xpNeed(),acc=((S.stats.hits||0)+(S.stats.misses||0))?Math.round((S.stats.hits||0)/((S.stats.hits||0)+(S.stats.misses||0))*100)+'%':'—';document.getElementById('homeAv').textContent=S.av||'🙂';document.getElementById('homeName').textContent=S.n||'Jugador';document.getElementById('homeLvl').textContent='Lv. '+S.plvl;document.getElementById('homeXp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('homeRank').textContent=rankFor(S.ts);document.getElementById('homeCoins').textContent=(S.c||0).toLocaleString();document.getElementById('homeStreak').textContent='🔥 '+(S.streak||0);document.getElementById('homeAccuracy').textContent=acc;document.getElementById('homeBest').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('homeCampaignBest').textContent='★ '+S.comp.length+'/17';document.getElementById('homeEndlessBest').textContent='♛ '+((S.hs&&S.hs.endless)||0).toLocaleString();document.getElementById('homeHardcoreBest').textContent=(S.mode==='hardcore'?'🔥 ACTIVO':'🔥 PRO');rl();rEq();}
   function ssh(){showScreen('ssh');setNav('nsh');document.getElementById('cd').style.display='flex';document.getElementById('cvv').textContent=S.c;rs();rSkins();}
   function srk(){showScreen('srk');setNav('nrk');rr();}
@@ -855,7 +845,7 @@ button { user-select:none; }
   function scred(){showScreen('scred');document.getElementById('nb').style.display='none';document.getElementById('cd').style.display='none';}
 
   function rl(){let g=document.getElementById('lg');g.innerHTML='';let tp=0,mp=0;for(let lv of LVLS){mp+=lv.t;let hs=S.hs[lv.id]||0;tp+=Math.min(hs,lv.t);let ul=lv.id<=S.ul,cp=S.comp.includes(lv.id);let card=document.createElement('div');card.className='lc'+(ul?'':' lk')+(lv.id===cl?' ac':'')+(lv.boss?' bs':'');if(ul)card.onclick=()=>sg(lv.id);else card.onclick=()=>toast('🔒 Completa el nivel anterior para desbloquear este.');let dots=lv.p.map(c=>`<span class="ldo" style="background:${c}"></span>`).join('');let sub=lv.boss?'👤 ¡Atrápalo antes de que escape!':(lv.avoid?'💣 Toca lo seguro, evitá las trampas':'Meta: '+lv.t+' pts | '+lv.time+'s');card.innerHTML=`<div class="ln">${lv.id}</div><div class="lna">${lv.n}</div><div class="lme">${sub}</div>${cp?'<div class="lst">✅ Completado</div>':(ul?'<div class="lst">Mejor: '+(hs||0)+' pts</div>':'<div class="lst">🔒 Bloqueado</div>')}<div class="ld">${dots}</div>`;g.appendChild(card);}document.getElementById('pf').style.width=Math.round((tp/mp)*100)+'%';}
-  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button type="button" class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button type="button" class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
+  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
   function by(it){if(S.c<it.p)return;S.c-=it.p;S.inv[it.id]=(S.inv[it.id]||0)+1;if(!S.boughtSet.includes(it.id)){S.boughtSet.push(it.id);}if(S.boughtSet.length>=5)unlockAch('coleccionista');sv();rs();let t=document.getElementById('to');t.textContent='¡Comprado: '+it.n+'!';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2000);}
   function rSkins(){
     let g=document.getElementById('skg');if(!g)return;g.innerHTML='';
@@ -863,7 +853,7 @@ button { user-select:none; }
       let owned=S.skins.includes(sk.id)||sk.p===0;
       let active=S.skin===sk.id;
       let div=document.createElement('div');div.className='si';
-      let btnHtml=owned?`<button type="button" class="sie${active?' on':''}">${active?'✓ Activo':'Usar'}</button>`:`<button type="button" class="sib ${S.c<sk.p?'nc':''}">${sk.p}🪙</button>`;
+      let btnHtml=owned?`<button class="sie${active?' on':''}">${active?'✓ Activo':'Usar'}</button>`:`<button class="sib ${S.c<sk.p?'nc':''}">${sk.p}🪙</button>`;
       div.innerHTML=`<div class="sif"><div class="sin">${sk.n}</div><div class="sid">${sk.d}</div></div><div class="sir">${btnHtml}</div>`;
       let b=div.querySelector('button');
       if(owned){b.onclick=()=>{S.skin=sk.id;sv();rSkins();};}
@@ -937,21 +927,6 @@ button { user-select:none; }
   });
 
   // ===== 3.0 GAMER: CONTROLES ROBUSTOS =====
-  // Un solo disparo por interacción: evita el doble evento pointerup + click
-  // que en algunos móviles hacía que "Reintentar" pareciera no responder.
-  const tapLock = new WeakMap();
-  function bindTap(el, fn){
-    if(!el) return;
-    el.type='button';
-    const fire=(e)=>{
-      if(e){e.preventDefault();e.stopPropagation();}
-      const now=Date.now(), last=tapLock.get(el)||0;
-      if(now-last<450) return;
-      tapLock.set(el,now);
-      fn();
-    };
-    el.onclick=fire;
-  }
   function closeTutorialAndPlay(){
     const tut=document.getElementById('g30tutorial');
     if(tut) tut.classList.add('h');
@@ -963,33 +938,33 @@ button { user-select:none; }
   function quickResultAction(){
     const result=document.getElementById('g30result');
     if(result) result.classList.add('h');
-    const current=LVLS[cl-1];
-    const nextCampaign=(mode==='campaign' && current && sc>=current.t && cl<LVLS.length);
-    try{sg(nextCampaign?cl+1:cl);}catch(err){console.warn('Acción rápida:',err);}
+    const nextCampaign=(mode==='campaign' && LVLS[cl-1] && sc>=LVLS[cl-1].t && cl<LVLS.length);
+    // Always restart through the real game initializer.
+    try{sg(nextCampaign?cl+1:cl);}catch(err){console.warn('Reintentar:',err);}
   }
-  bindTap(document.getElementById('g30start'),closeTutorialAndPlay);
-  bindTap(document.getElementById('g30quick'),quickResultAction);
-  // También permite tocar fuera de la tarjeta del tutorial para continuar.
+  const g30start=document.getElementById('g30start');
+  if(g30start){
+    g30start.type='button';
+    g30start.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();closeTutorialAndPlay();},{passive:false});
+    g30start.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();closeTutorialAndPlay();});
+  }
   const tutorial=document.getElementById('g30tutorial');
-  if(tutorial){
-    tutorial.addEventListener('click',function(e){
-      if(e.target===this){closeTutorialAndPlay();}
-    });
+  if(tutorial) tutorial.addEventListener('click',function(e){if(e.target===this)closeTutorialAndPlay();});
+  const g30quick=document.getElementById('g30quick');
+  if(g30quick){
+    g30quick.type='button';
+    g30quick.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation();quickResultAction();},{passive:false});
+    g30quick.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();quickResultAction();});
   }
-  // Red de seguridad para móviles: si el navegador entrega el click al documento
-  // después de una capa visual, estos IDs siguen teniendo una ruta directa.
-  document.addEventListener('click',function(e){
-    const el=e.target && e.target.closest ? e.target.closest('#g30start,#g30quick') : null;
-    if(!el) return;
-    e.preventDefault();e.stopPropagation();
-    const now=Date.now(), last=tapLock.get(el)||0;
-    if(now-last<450) return;
-    tapLock.set(el,now);
-    if(el.id==='g30start') closeTutorialAndPlay();
-    else quickResultAction();
+  // Fallback by delegation: protects mobile browsers where a transparent overlay steals the first tap.
+  document.addEventListener('pointerup',function(e){
+    const id=e.target && e.target.id;
+    if(id==='g30start'){e.preventDefault();e.stopPropagation();closeTutorialAndPlay();}
+    else if(id==='g30quick'){e.preventDefault();e.stopPropagation();quickResultAction();}
   },true);
+  // Reintento desde el resultado clásico también abre el juego directamente.
   // INIT
-  try{if(S.n){sl();setMode(S.mode||'campaign');}else{sr();}}catch(err){console.warn('Inicio recuperado:',err);try{showScreen(S.n?'sl':'sr');document.getElementById('nb').style.display=S.n?'flex':'none';}catch(_){}}
+  try{sr();}catch(err){console.warn('Inicio recuperado:',err);try{showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';}catch(_) {}}
   dr();
 })();
 </script>
