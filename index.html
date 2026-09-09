@@ -163,6 +163,7 @@ body{min-width:0;overscroll-behavior:none}
 #avr .avb{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:23px;padding:0}
 #br{margin-top:2px}
 .nb{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;justify-content:stretch}
+.nb.hide{display:none!important}
 .nb button{width:100%;min-width:0;min-height:42px;padding:7px 3px;font-size:8px;letter-spacing:.2px;margin:0}
 @media(max-width:360px){.nb{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.nb button{font-size:7px;padding:6px 2px}.v2stats{gap:5px}.v2box{padding:7px 4px}}
 @media(max-height:700px){#sr{justify-content:flex-start;padding-top:calc(10px + var(--safe-top));overflow-y:auto}.ef{width:110px}.avb{padding:3px 6px}}
@@ -792,7 +793,7 @@ html,body{background:#030205;color:#fff}
     trapsHit=0;perfectRun=true;revUsed=false;pv=null;pvSet=false;cbFx15=false;cbFx20=false;
     mAct=[];for(let id of S.eq.slice()){if((S.inv[id]||0)>0){S.inv[id]--;mAct.push(id);if(S.inv[id]<=0){S.inv[id]=0;let i=S.eq.indexOf(id);if(i>=0)S.eq.splice(i,1);}}}sv();
     if(mAct.includes('t5'))tl+=5;if(mAct.includes('t10'))tl+=10;
-    document.getElementById('sr').classList.add('h');document.getElementById('sl').classList.add('h');document.getElementById('sg').classList.add('h');document.getElementById('ssh').classList.add('h');document.getElementById('srk').classList.add('h');document.getElementById('sac').classList.add('h');document.getElementById('scred').classList.add('h');document.getElementById('hd').classList.add('on');document.getElementById('nb').style.display='none';document.getElementById('cd').style.display='flex';document.getElementById('cvv').textContent=S.c;
+    document.getElementById('sr').classList.add('h');document.getElementById('sl').classList.add('h');document.getElementById('sg').classList.add('h');document.getElementById('ssh').classList.add('h');document.getElementById('srk').classList.add('h');document.getElementById('sac').classList.add('h');document.getElementById('scred').classList.add('h');document.getElementById('hd').classList.add('on');document.getElementById('nb').classList.add('hide');document.getElementById('cd').style.display='flex';document.getElementById('cvv').textContent=S.c;
     rAe();
     lt=performance.now();if(aid)cancelAnimationFrame(aid);aid=requestAnimationFrame(lp);
   }
@@ -838,7 +839,7 @@ html,body{background:#030205;color:#fff}
       msg.textContent=lv.boss?'Se escapó... Faltaron '+(lv.t-sc)+' pts.':(lv.avoid?'Pisaste demasiadas trampas. Faltaron '+(lv.t-sc)+' pts.':'Meta: '+lv.t+' | Faltaron '+(lv.t-sc)+' pts.');
       nb.style.display='none';
     }
-    document.getElementById('sg').classList.add('h');document.getElementById('nb').style.display='flex';
+    document.getElementById('sg').classList.add('h');document.getElementById('nb').classList.remove('hide');
     let r30=document.getElementById('g30result');document.getElementById('g30rs').textContent=sc;document.getElementById('g30rc').textContent='x'+mcb;document.getElementById('g30rx').textContent='+'+(S.lastXP||0);document.getElementById('g30streak').textContent='🔥 Racha '+(S.streak||0)+' días';let near='';if(!ps&&mode==='campaign'){let diff=Math.max(0,lv.t-sc);if(diff<=150)near='⚡ ¡Casi! Te faltaron solo '+diff+' puntos';else if(diff<=350)near='💥 Estuviste muy cerca: '+diff+' puntos';}document.getElementById('g30near').textContent=near;let finished=ps&&mode==='campaign'&&cl>=LVLS.length;document.getElementById('g30resultEy').textContent=ps?'VICTORIA':'FIN DE PARTIDA';document.getElementById('g30resultTitle').textContent=finished?'🏆 ¡JUEGO COMPLETADO!':(ps?(mode==='endless'?'♾️ RUN TERMINADA':'🏆 ¡NIVEL SUPERADO!'):'💀 GAME OVER');document.getElementById('g30resultTxt').textContent=finished?'¡Completaste los 17 niveles! Toca el botón para ver los créditos.':(ps?(mode==='endless'?'Nuevo intento listo. ¡Supera tu récord!':'¡Buen trabajo! Mantén el combo para multiplicar tu puntuación.'):(near||'No pasa nada. El siguiente intento puede ser el bueno.'));document.getElementById('g30quick').textContent=finished?'VER CRÉDITOS':(ps&&mode==='campaign'&&cl<LVLS.length?'SIGUIENTE NIVEL':'REINTENTAR');r30.classList.remove('h');
   }
   const sgOriginal=sg;sg=function(lvl){document.getElementById('g30result').classList.add('h');sgOriginal(lvl);let mm=document.getElementById('g30mode');mm.textContent=V2MODES[mode]||mode;mm.className='g30mode '+(mode==='endless'?'endless':mode==='hardcore'?'hardcore':'');if(!S.tutorialSeen&&cl===1&&mode==='campaign'){gs='tutorial';document.getElementById('g30tutorial').classList.remove('h');}};
@@ -847,14 +848,14 @@ html,body{background:#030205;color:#fff}
   // ===== SCREENS =====
   function showScreen(id){['sr','sl','sg','ssh','srk','sac','scred','spr','smi'].forEach(i=>{document.getElementById(i).classList.toggle('h',i!==id);});}
   function setNav(active){['nl','nsh','nrk','nac','npr','nmi'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.toggle('ac',id===active);});}
-  function spr(){showScreen('spr');setNav('npr');document.getElementById('nb').style.display='flex';renderProfile();}
-  function smi(){showScreen('smi');setNav('nmi');document.getElementById('nb').style.display='flex';renderMissions();}
-  function sr(){showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';selAv=S.av||avatarVal(AVATARS[0]);rAv('avr');const ni=document.getElementById('in');if(ni)ni.value=S.n||'';}
-  function sl(){showScreen('sl');setNav('nl');document.getElementById('nb').style.display='flex';document.getElementById('pt').style.display='flex';document.getElementById('ptn').textContent=S.n||'Anónimo';document.getElementById('ptav').textContent=S.av||'🙂';document.getElementById('avr2').style.display='none';let need=xpNeed(),acc=((S.stats.hits||0)+(S.stats.misses||0))?Math.round((S.stats.hits||0)/((S.stats.hits||0)+(S.stats.misses||0))*100)+'%':'—';document.getElementById('homeAv').textContent=S.av||'🙂';document.getElementById('homeName').textContent=S.n||'Jugador';document.getElementById('homeLvl').textContent='Lv. '+S.plvl;document.getElementById('homeXp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('homeRank').textContent=rankFor(S.ts);document.getElementById('homeCoins').textContent=(S.c||0).toLocaleString();document.getElementById('homeStreak').textContent='🔥 '+(S.streak||0);document.getElementById('homeAccuracy').textContent=acc;document.getElementById('homeBest').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('homeCampaignBest').textContent='★ '+S.comp.length+'/17';document.getElementById('homeEndlessBest').textContent='♛ '+((S.hs&&S.hs.endless)||0).toLocaleString();document.getElementById('homeHardcoreBest').textContent=(S.mode==='hardcore'?'🔥 ACTIVO':'🔥 PRO');rl();rEq();}
+  function spr(){showScreen('spr');setNav('npr');document.getElementById('nb').classList.remove('hide');renderProfile();}
+  function smi(){showScreen('smi');setNav('nmi');document.getElementById('nb').classList.remove('hide');renderMissions();}
+  function sr(){showScreen('sr');document.getElementById('nb').classList.add('hide');document.getElementById('pt').style.display='none';selAv=S.av||avatarVal(AVATARS[0]);rAv('avr');const ni=document.getElementById('in');if(ni)ni.value=S.n||'';}
+  function sl(){showScreen('sl');setNav('nl');document.getElementById('nb').classList.remove('hide');document.getElementById('pt').style.display='flex';document.getElementById('ptn').textContent=S.n||'Anónimo';document.getElementById('ptav').textContent=S.av||'🙂';document.getElementById('avr2').style.display='none';let need=xpNeed(),acc=((S.stats.hits||0)+(S.stats.misses||0))?Math.round((S.stats.hits||0)/((S.stats.hits||0)+(S.stats.misses||0))*100)+'%':'—';document.getElementById('homeAv').textContent=S.av||'🙂';document.getElementById('homeName').textContent=S.n||'Jugador';document.getElementById('homeLvl').textContent='Lv. '+S.plvl;document.getElementById('homeXp').style.width=Math.min(100,S.xp/need*100)+'%';document.getElementById('homeRank').textContent=rankFor(S.ts);document.getElementById('homeCoins').textContent=(S.c||0).toLocaleString();document.getElementById('homeStreak').textContent='🔥 '+(S.streak||0);document.getElementById('homeAccuracy').textContent=acc;document.getElementById('homeBest').textContent=Math.max(0,...Object.values(S.hs||{}));document.getElementById('homeCampaignBest').textContent='★ '+S.comp.length+'/17';document.getElementById('homeEndlessBest').textContent='♛ '+((S.hs&&S.hs.endless)||0).toLocaleString();document.getElementById('homeHardcoreBest').textContent=(S.mode==='hardcore'?'🔥 ACTIVO':'🔥 PRO');rl();rEq();}
   function ssh(){showScreen('ssh');setNav('nsh');document.getElementById('cd').style.display='flex';document.getElementById('cvv').textContent=S.c;rs();rSkins();}
   function srk(){showScreen('srk');setNav('nrk');rr();}
   function sac(){showScreen('sac');setNav('nac');rAch();}
-  function scred(){showScreen('scred');document.getElementById('nb').style.display='none';document.getElementById('cd').style.display='none';}
+  function scred(){showScreen('scred');document.getElementById('nb').classList.add('hide');document.getElementById('cd').style.display='none';}
 
   function rl(){let g=document.getElementById('lg');g.innerHTML='';let tp=0,mp=0;for(let lv of LVLS){mp+=lv.t;let hs=S.hs[lv.id]||0;tp+=Math.min(hs,lv.t);let ul=lv.id<=S.ul,cp=S.comp.includes(lv.id);let card=document.createElement('div');card.className='lc'+(ul?'':' lk')+(lv.id===cl?' ac':'')+(lv.boss?' bs':'');if(ul)card.onclick=()=>sg(lv.id);else card.onclick=()=>toast('🔒 Completa el nivel anterior para desbloquear este.');let dots=lv.p.map(c=>`<span class="ldo" style="background:${c}"></span>`).join('');let sub=lv.boss?'👤 ¡Atrápalo antes de que escape!':(lv.avoid?'💣 Toca lo seguro, evitá las trampas':'Meta: '+lv.t+' pts | '+lv.time+'s');card.innerHTML=`<div class="ln">${lv.id}</div><div class="lna">${lv.n}</div><div class="lme">${sub}</div>${cp?'<div class="lst">✅ Completado</div>':(ul?'<div class="lst">Mejor: '+(hs||0)+' pts</div>':'<div class="lst">🔒 Bloqueado</div>')}<div class="ld">${dots}</div>`;g.appendChild(card);}document.getElementById('pf').style.width=Math.round((tp/mp)*100)+'%';}
   function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
@@ -943,7 +944,13 @@ html,body{background:#030205;color:#fff}
   });
 
   // ===== 3.0 GAMER: CONTROLES ROBUSTOS =====
+  // Guardia anti-doble-toque: varios navegadores móviles (WebViews de apps, Android
+  // antiguos) disparan pointerup Y click para el mismo toque, lo que ejecutaba estas
+  // acciones 2-3 veces seguidas (tutorial se reabría, reintentar saltaba de nivel).
+  let lastTapActionTs=0;
+  function tapOnce(){const now=Date.now();if(now-lastTapActionTs<450)return false;lastTapActionTs=now;return true;}
   function closeTutorialAndPlay(){
+    if(!tapOnce())return;
     const tut=document.getElementById('g30tutorial');
     if(tut) tut.classList.add('h');
     gs='play';
@@ -952,6 +959,7 @@ html,body{background:#030205;color:#fff}
     try{st=performance.now();}catch(_){ }
   }
   function quickResultAction(){
+    if(!tapOnce())return;
     const result=document.getElementById('g30result');
     if(result) result.classList.add('h');
     const nextCampaign=(mode==='campaign' && LVLS[cl-1] && sc>=LVLS[cl-1].t && cl<LVLS.length);
@@ -980,7 +988,7 @@ html,body{background:#030205;color:#fff}
   },true);
   // Reintento desde el resultado clásico también abre el juego directamente.
   // INIT
-  try{sr();}catch(err){console.warn('Inicio recuperado:',err);try{showScreen('sr');document.getElementById('nb').style.display='none';document.getElementById('pt').style.display='none';}catch(_) {}}
+  try{sr();}catch(err){console.warn('Inicio recuperado:',err);try{showScreen('sr');document.getElementById('nb').classList.add('hide');document.getElementById('pt').style.display='none';}catch(_) {}}
   dr();
 })();
 </script>
