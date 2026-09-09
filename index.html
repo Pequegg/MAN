@@ -40,7 +40,7 @@ html,body{width:100%;height:100%;background:#050505;overflow:hidden;font-family:
 .lg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:280px;width:100%;margin-bottom:14px}
 .lc{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:all .3s}
 .lc:hover,.lc:active{transform:scale(1.03);border-color:rgba(255,255,255,.4)}
-.lc.lk{opacity:.3;border-color:rgba(255,255,255,.06);pointer-events:none}
+.lc.lk{opacity:.38;border-color:rgba(255,255,255,.06);cursor:not-allowed}
 .lc.ac{border-color:#00f0ff;box-shadow:0 0 15px rgba(0,240,255,.12)}
 .lc.bs{border-color:rgba(255,215,0,.5)}
 .lc.bs .ln{color:#ffd700}
@@ -240,6 +240,12 @@ html,body{background:#030205;color:#fff}
 .inp{background:rgba(0,0,0,.62);border-color:rgba(255,255,255,.38);box-shadow:0 8px 25px rgba(0,0,0,.3);text-shadow:0 1px 4px #000}
 .inp::placeholder{color:#b8afb6;opacity:1}
 .g30card{background:rgba(3,2,5,.93)!important;border-color:rgba(255,70,101,.45);box-shadow:0 18px 60px rgba(0,0,0,.55),0 0 45px rgba(255,33,71,.12)}
+/* FIX 3.0: el resultado no debe bloquear el menú inferior; solo la tarjeta captura toques */
+#g30result{pointer-events:none!important}
+#g30result .g30card{pointer-events:auto}
+#nb{z-index:100!important}
+#nb button,.g30btn,.bt,.gmode,.gplay,.qbtn,.ggear,.sib,.sie{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+
 .g30txt{color:#d6ced3}.g30tap{color:#aaa0a8}.g30mini small{color:#aaa0a8}
 .v2box,.mission,.si,.ac-card,.lc{background:rgba(3,2,5,.82)!important;box-shadow:0 8px 25px rgba(0,0,0,.28)}
 .v2box small{color:#bdb5bc}.mission small{color:#c5bdc3}
@@ -549,6 +555,7 @@ html,body{background:#030205;color:#fff}
   function xpNeed(){return 100+(S.plvl-1)*75;}
   function addXP(n){S.xp+=Math.max(0,Math.floor(n));while(S.xp>=xpNeed()){S.xp-=xpNeed();S.plvl++;let t=document.getElementById('to');t.textContent='⭐ ¡Subiste a nivel '+S.plvl+'!';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1800);}sv();}
   function comboPop(){if(cb<5)return;let e=document.getElementById('cpop');e.textContent=cb>=20?'FRENZY!':cb>=15?'ULTRA COMBO!':'COMBO x'+cb;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),420);}
+  function toast(msg,ms=1600){let t=document.getElementById('to');if(!t)return;t.textContent=msg;t.classList.add('s');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('s'),ms);}
   function dailyDate(){return new Date().toISOString().slice(0,10)}
   function updateStreak(){let d=dailyDate();if(S.streakDay===d)return;let prev=new Date(Date.now()-86400000).toISOString().slice(0,10);S.streak=S.streakDay===prev?(S.streak||0)+1:1;S.streakDay=d;sv();}
   function dailyProgress(id,val){let d=S.daily;let day=dailyDate();if(d.day!==day){d.day=day;d.done={};d.val={};}d.val=d.val||{};d.done=d.done||{};d.val[id]=Math.max(d.val[id]||0,val);let q=DAILY.find(x=>x.id===id);if(q&&d.val[id]>=q.goal&&!d.done[id]){d.done[id]=1;S.c+=q.reward;addXP(40);let t=document.getElementById('to');t.textContent='🎯 Misión: '+q.n+' +'+q.reward+'🪙';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1800);}sv();}
@@ -798,7 +805,7 @@ html,body{background:#030205;color:#fff}
       msg.textContent=lv.boss?'Se escapó... Faltaron '+(lv.t-sc)+' pts.':(lv.avoid?'Pisaste demasiadas trampas. Faltaron '+(lv.t-sc)+' pts.':'Meta: '+lv.t+' | Faltaron '+(lv.t-sc)+' pts.');
       nb.style.display='none';
     }
-    document.getElementById('sg').classList.remove('h');document.getElementById('nb').style.display='flex';
+    document.getElementById('sg').classList.add('h');document.getElementById('nb').style.display='flex';
     let r30=document.getElementById('g30result');document.getElementById('g30rs').textContent=sc;document.getElementById('g30rc').textContent='x'+mcb;document.getElementById('g30rx').textContent='+'+(S.lastXP||0);document.getElementById('g30streak').textContent='🔥 Racha '+(S.streak||0)+' días';let near='';if(!ps&&mode==='campaign'){let diff=Math.max(0,lv.t-sc);if(diff<=150)near='⚡ ¡Casi! Te faltaron solo '+diff+' puntos';else if(diff<=350)near='💥 Estuviste muy cerca: '+diff+' puntos';}document.getElementById('g30near').textContent=near;document.getElementById('g30resultEy').textContent=ps?'VICTORIA':'FIN DE PARTIDA';document.getElementById('g30resultTitle').textContent=ps?(mode==='endless'?'♾️ RUN TERMINADA':'🏆 ¡NIVEL SUPERADO!'):'💀 GAME OVER';document.getElementById('g30resultTxt').textContent=ps?(mode==='endless'?'Nuevo intento listo. ¡Supera tu récord!':'¡Buen trabajo! Mantén el combo para multiplicar tu puntuación.'):(near||'No pasa nada. El siguiente intento puede ser el bueno.');document.getElementById('g30quick').textContent=ps&&mode==='campaign'&&cl<LVLS.length?'SIGUIENTE NIVEL':'REINTENTAR';r30.classList.remove('h');
   }
   const sgOriginal=sg;sg=function(lvl){document.getElementById('g30result').classList.add('h');sgOriginal(lvl);let mm=document.getElementById('g30mode');mm.textContent=V2MODES[mode]||mode;mm.className='g30mode '+(mode==='endless'?'endless':mode==='hardcore'?'hardcore':'');if(!S.tutorialSeen&&cl===1&&mode==='campaign'){gs='tutorial';document.getElementById('g30tutorial').classList.remove('h');}};
@@ -816,8 +823,8 @@ html,body{background:#030205;color:#fff}
   function sac(){showScreen('sac');setNav('nac');rAch();}
   function scred(){showScreen('scred');document.getElementById('nb').style.display='none';document.getElementById('cd').style.display='none';}
 
-  function rl(){let g=document.getElementById('lg');g.innerHTML='';let tp=0,mp=0;for(let lv of LVLS){mp+=lv.t;let hs=S.hs[lv.id]||0;tp+=Math.min(hs,lv.t);let ul=lv.id<=S.ul,cp=S.comp.includes(lv.id);let card=document.createElement('div');card.className='lc'+(ul?'':' lk')+(lv.id===cl?' ac':'')+(lv.boss?' bs':'');if(ul)card.onclick=()=>sg(lv.id);let dots=lv.p.map(c=>`<span class="ldo" style="background:${c}"></span>`).join('');let sub=lv.boss?'👤 ¡Atrápalo antes de que escape!':(lv.avoid?'💣 Toca lo seguro, evitá las trampas':'Meta: '+lv.t+' pts | '+lv.time+'s');card.innerHTML=`<div class="ln">${lv.id}</div><div class="lna">${lv.n}</div><div class="lme">${sub}</div>${cp?'<div class="lst">✅ Completado</div>':(ul?'<div class="lst">Mejor: '+(hs||0)+' pts</div>':'<div class="lst">🔒 Bloqueado</div>')}<div class="ld">${dots}</div>`;g.appendChild(card);}document.getElementById('pf').style.width=Math.round((tp/mp)*100)+'%';}
-  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(S.c>=it.p)bbtn.onclick=()=>by(it);let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
+  function rl(){let g=document.getElementById('lg');g.innerHTML='';let tp=0,mp=0;for(let lv of LVLS){mp+=lv.t;let hs=S.hs[lv.id]||0;tp+=Math.min(hs,lv.t);let ul=lv.id<=S.ul,cp=S.comp.includes(lv.id);let card=document.createElement('div');card.className='lc'+(ul?'':' lk')+(lv.id===cl?' ac':'')+(lv.boss?' bs':'');if(ul)card.onclick=()=>sg(lv.id);else card.onclick=()=>toast('🔒 Completa el nivel anterior para desbloquear este.');let dots=lv.p.map(c=>`<span class="ldo" style="background:${c}"></span>`).join('');let sub=lv.boss?'👤 ¡Atrápalo antes de que escape!':(lv.avoid?'💣 Toca lo seguro, evitá las trampas':'Meta: '+lv.t+' pts | '+lv.time+'s');card.innerHTML=`<div class="ln">${lv.id}</div><div class="lna">${lv.n}</div><div class="lme">${sub}</div>${cp?'<div class="lst">✅ Completado</div>':(ul?'<div class="lst">Mejor: '+(hs||0)+' pts</div>':'<div class="lst">🔒 Bloqueado</div>')}<div class="ld">${dots}</div>`;g.appendChild(card);}document.getElementById('pf').style.width=Math.round((tp/mp)*100)+'%';}
+  function rs(){let g=document.getElementById('shg');g.innerHTML='';document.getElementById('cvv').textContent=S.c;for(let it of SHOP){let cnt=S.inv[it.id]||0;let eqd=S.eq.includes(it.id);let div=document.createElement('div');div.className='si';div.innerHTML=`<div class="sif"><div class="sin">${it.n}${cnt>0?' <span class="sic">x'+cnt+'</span>':''}</div><div class="sid">${it.d}</div></div><div class="sir"><button class="sib ${S.c<it.p?'nc':''}">${it.p}🪙</button>${cnt>0?'<button class="sie'+(eqd?' on':'')+'">'+(eqd?'✓ Equipado':'Equipar')+'</button>':''}</div>`;let bbtn=div.querySelector('.sib');if(bbtn)bbtn.onclick=()=>{if(S.c>=it.p)by(it);else toast('🪙 Te faltan '+(it.p-S.c)+' monedas.');};let ebtn=div.querySelector('.sie');if(ebtn)ebtn.onclick=()=>tEq(it.id);g.appendChild(div);}}
   function by(it){if(S.c<it.p)return;S.c-=it.p;S.inv[it.id]=(S.inv[it.id]||0)+1;if(!S.boughtSet.includes(it.id)){S.boughtSet.push(it.id);}if(S.boughtSet.length>=5)unlockAch('coleccionista');sv();rs();let t=document.getElementById('to');t.textContent='¡Comprado: '+it.n+'!';t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2000);}
   function rSkins(){
     let g=document.getElementById('skg');if(!g)return;g.innerHTML='';
@@ -829,7 +836,7 @@ html,body{background:#030205;color:#fff}
       div.innerHTML=`<div class="sif"><div class="sin">${sk.n}</div><div class="sid">${sk.d}</div></div><div class="sir">${btnHtml}</div>`;
       let b=div.querySelector('button');
       if(owned){b.onclick=()=>{S.skin=sk.id;sv();rSkins();};}
-      else if(S.c>=sk.p){b.onclick=()=>{S.c-=sk.p;S.skins.push(sk.id);S.skin=sk.id;sv();rs();rSkins();};}
+      else {b.onclick=()=>{if(S.c>=sk.p){S.c-=sk.p;S.skins.push(sk.id);S.skin=sk.id;sv();rs();rSkins();}else toast('🪙 Te faltan '+(sk.p-S.c)+' monedas.');};}
       g.appendChild(div);
     }
   }
@@ -874,6 +881,7 @@ html,body{background:#030205;color:#fff}
   document.getElementById('nac').onclick=sac;document.getElementById('npr').onclick=spr;document.getElementById('nmi').onclick=smi;document.getElementById('prback').onclick=sl;document.getElementById('miback').onclick=sl;
   document.getElementById('bsb').onclick=sl;
   document.getElementById('brk').onclick=sl;
+  document.getElementById('nb').addEventListener('click',function(e){let b=e.target.closest('button');if(!b)return;let fn={nl:sl,nsh:ssh,nrk:srk,nac:sac,npr:spr,nmi:smi}[b.id];if(typeof fn==='function'){e.preventDefault();e.stopPropagation();fn();}});
   document.getElementById('pt').onclick=function(){
     let p=document.getElementById('avr2');
     if(p.style.display==='none'||!p.style.display){
@@ -899,7 +907,7 @@ html,body{background:#030205;color:#fff}
 
   document.getElementById('g30start').onclick=function(){S.tutorialSeen=true;sv();document.getElementById('g30tutorial').classList.add('h');gs='play';ia();vb(20);};
   document.getElementById('g30tutorial').addEventListener('click',function(e){if(e.target===this){S.tutorialSeen=true;sv();this.classList.add('h');gs='play';}});
-  document.getElementById('g30quick').onclick=function(){document.getElementById('g30result').classList.add('h');if(mode==='campaign'&&sc>=LVLS[cl-1].t&&cl<LVLS.length){sg(cl+1);}else{sg(cl);}};
+  document.getElementById('g30quick').onclick=function(){document.getElementById('g30result').classList.add('h');document.getElementById('nb').style.display='none';if(mode==='campaign'&&sc>=LVLS[cl-1].t&&cl<LVLS.length){sg(cl+1);}else{sg(cl);}};
   // Reintento desde el resultado clásico también abre el juego directamente.
   // INIT
   try{if(S.n){sl();setMode(S.mode||'campaign');}else{sr();}}catch(err){console.warn('Inicio recuperado:',err);try{showScreen(S.n?'sl':'sr');document.getElementById('nb').style.display=S.n?'flex':'none';}catch(_){}}
