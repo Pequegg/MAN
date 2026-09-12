@@ -3,11 +3,9 @@
 "use strict";
 
 /* ---------- Configuración ----------
-   Para activar el ranking online, crea una base en
-   https://console.firebase.google.com -> Realtime Database
-   (reglas en modo "test" por ahora) y pega aquí su URL:
-   https://tuproyecto-default-rtdb.europe-west1.firebasedatabase.app/  */
-var FIREBASE_URL = "";
+   El modo online se enciende poniendo tu llave publica en
+   js/config/supabase.js (proyecto Supabase). Sin llave, todo
+   funciona 100% en local. */
 
 var ARENA_TIME = 60;
 var ARENA_ATTEMPTS = 3;

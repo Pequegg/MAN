@@ -2,26 +2,24 @@
 
 "use strict";
 
-/* ---------- Ranking (local + Firebase) ---------- */
+/* ---------- Ranking (local + Supabase) ---------- */
 var onlineRank=false, rankBusy=false;
 function localScores(){ return ls("localScores")||[]; }
 function saveLocalScores(a){ ls("localScores", a.slice(0,300)); }
 function pushScore(entry){
   var a=localScores(); a.push(entry); saveLocalScores(a);
-  if(FIREBASE_URL) postRemote(entry);
+  if(SupRemote.on()) postRemote(entry);
 }
 function postRemote(entry){
   try{
-    var url=FIREBASE_URL.replace(/\/$/,"")+"/scores/"+uid()+".json";
-    fetch(url,{method:"PUT",body:JSON.stringify(entry)}).catch(function(){});
+    SupRemote.upsert("scores",[{uid:uid(), name:entry.name, avatar:entry.avatar, score:entry.score, ts:entry.ts}]).catch(function(){});
   }catch(e){}
 }
 function fetchRemote(){ return new Promise(function(resolve){
-  if(!FIREBASE_URL || rankBusy){ resolve([]); return; }
+  if(!SupRemote.on() || rankBusy){ resolve([]); return; }
   rankBusy=true;
-  var url=FIREBASE_URL.replace(/\/$/,"")+"/scores.json";
-  fetch(url).then(function(r){ return r.json(); }).then(function(j){
-    var out=[]; if(j){ Object.keys(j).forEach(function(k){ var v=j[k]; if(v && v.score!=null) out.push(v); }); }
+  SupRemote.get("scores","order=score.desc.nullslast&limit=300").then(function(j){
+    var out=[]; (j||[]).forEach(function(v){ if(v && v.score!=null) out.push(v); });
     onlineRank=true; resolve(out);
   }).catch(function(){ resolve([]); }).then(function(){ rankBusy=false; });
 }); }
@@ -60,6 +58,6 @@ function loadRanking(f){
     var merged=Object.keys(byUid).map(function(k){return byUid[k];}).filter(function(e){ return entryInRange(e,f); });
     merged.sort(function(a,b){ return (b.score||0)-(a.score||0); });
     renderRankRows($("rankList"), merged.slice(0,20), uid());
-    $("rankNote").innerHTML = onlineRank && FIREBASE_URL ? '' : '<div class="note-off">\u26A0 Modo sin conexión: el ranking es local a este dispositivo. Para el ranking online global, configura FIREBASE_URL (cerca del inicio del código).</div>';
+    $("rankNote").innerHTML = onlineRank && SupRemote.on() ? '' : '<div class="note-off">\u26A0 Modo sin conexión: el ranking es local a este dispositivo. Para el ranking online global, pega tu SUPABASE_ANON_KEY en js/config/supabase.js y corre supabase/arena.sql.</div>';
   });
 }

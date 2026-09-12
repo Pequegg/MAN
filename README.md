@@ -97,37 +97,38 @@ node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 
 
 ## Ranking mundial (Arena online)
 
-La Arena y el reto diario funcionan **100% local** (guardan en tu dispositivo).
-Para que **todo el mundo** comparta el reto diario y se vea un **ranking mundial**,
-activa la capa online de Firebase con un solo comando (Windows):
+La Arena, el reto diario y el ranking funcionan **100% local** (guardan en tu
+dispositivo) hasta que conectas **Supabase**. Para que **todo el mundo** comparta
+el reto diario y se vea un **ranking mundial / global**, hay que hacer 3 pasos
+(una sola vez):
 
-```bash
-powershell -ExecutionPolicy Bypass -File tools\firebase-online.ps1
-```
+1. Abre tu proyecto en <https://supabase.com/dashboard> → **SQL Editor**.
+2. Pega el contenido de `supabase/arena.sql` y pulsa **Run**. Crea las tablas
+   (`scores`, `daily`, `group_members`, `group_pts`, `arena_daily`, `users`,
+   `duels`…), los índices y las políticas RLS (los anónimos solo tocan sus datos).
+3. Copia tu llave **anon public** (Dashboard → Settings → API) y pégala en
+   `js/config/supabase.js`:
 
-El script instala `firebase-tools`, te pide entrar con tu cuenta de Google (una
-sola vez, se abre el navegador; plan gratuito Spark), crea el proyecto y la
-Realtime Database, sube las reglas de prueba y deja la URL puesta en
-`js/config/settings.js`. Luego solo hay que subir el cambio:
+   ```js
+   var SUPABASE_ANON_KEY = "eyJ...tu-llave-anon...";
+   ```
 
-```bash
-git add js/config/settings.js
-git commit -m "firebase online"
-git push
-```
+   La llave *anon* es pública por diseño; la seguridad la dan las políticas RLS
+   del SQL, no la llave.
 
-Si prefieres hacerlo a mano: crea una base en
-[Firebase Realtime Database](https://console.firebase.google.com) y pega su URL en
-`js/config/settings.js`:
-
-```js
-var FIREBASE_URL = "https://tuproyecto-default-rtdb.europe-west1.firebasedatabase.app/";
-```
-
-Reglas de prototipo (archivo `firebase-rules.json`): lectura/escritura abiertas
-solo bajo `/arena/*` (miembros, puntos de temporada y marcador del reto diario).
 Con eso la Arena sincroniza **grupos, temporadas y el ranking mundial** entre todos
-los jugadores.
+los jugadores, y el reto diario + ranking global se comparten por internet. Sin
+llave o sin red, todo sigue funcionando local (offline-first).
+
+### Configurar el proyecto
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools\supabase-setup.ps1
+```
+
+Ese script comprueba si tienes la CLI de Supabase y, si el proyecto ya está
+enlazado, sube el esquema automáticamente; si no, te indica exactamente los 2
+clics que quedan en el dashboard.
 
 ## Publicar (alternativas)
 

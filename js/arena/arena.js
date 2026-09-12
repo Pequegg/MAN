@@ -101,22 +101,36 @@ function createGroup(){
   renderArenaGroups(); renderSeason(); renderWardrobe();
 }
 function pushGroupRemote(code){
-  if(!FIREBASE_URL) return;
-  var base=FIREBASE_URL.replace(/\/$/,""); var sk=seasonKey();
+  if(!SupRemote.on()) return;
   var gd=arena.groupData[code]; if(!gd) return;
+  var sk=seasonKey(); var me=gd.members[uid()];
   try{
-    fetch(base+"/arena/groups/"+code+"/members/"+uid()+".json",{method:"PUT",body:JSON.stringify(gd.members[uid()]||{name:profile.name,avatar:profile.avatar,wear:myWear()})}).catch(function(){});
-    fetch(base+"/arena/groups/"+code+"/pts/"+sk+"/"+uid()+".json",{method:"PUT",body:JSON.stringify((gd.pts[sk]&&gd.pts[sk][uid()])||0)}).catch(function(){});
+    SupRemote.upsert("group_members",[{group_code:code, uid:uid(),
+      name:(me&&me.name)||profile.name, avatar:(me&&me.avatar)||profile.avatar,
+      wear:(me&&me.wear)||myWear(), joined:(me&&me.joined)||Date.now()}]).catch(function(){});
+    SupRemote.upsert("group_pts",[{group_code:code, season:sk, uid:uid(),
+      pts:(gd.pts&&gd.pts[sk]&&gd.pts[sk][uid()])||0}]).catch(function(){});
   }catch(e){}
 }
 function fetchGroupRemote(code){ return new Promise(function(resolve){
-  if(!FIREBASE_URL){ resolve(null); return; }
-  fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/groups/"+code+".json").then(function(r){return r.json();}).then(function(j){ resolve(j); }).catch(function(){ resolve(null); });
+  if(!SupRemote.on()){ resolve(null); return; }
+  var enc=SupRemote.enc;
+  try{
+    Promise.all([
+      SupRemote.get("group_members","group_code=eq."+enc(code)),
+      SupRemote.get("group_pts","group_code=eq."+enc(code))
+    ]).then(function(res){
+      var members={}; var pts={};
+      (res[0]||[]).forEach(function(r){ members[r.uid]={name:r.name,avatar:r.avatar,wear:r.wear||{},joined:r.joined}; });
+      (res[1]||[]).forEach(function(r){ if(!pts[r.season]) pts[r.season]={}; pts[r.season][r.uid]=r.pts; });
+      resolve({members:members, pts:pts});
+    }).catch(function(){ resolve(null); });
+  }catch(e){ resolve(null); }
 }); }
 
 function renderArenaGroups(){
-  $("arenaOffNote").style.display = FIREBASE_URL ? "none" : "block";
-  $("arenaOffNote").innerHTML = "\u26A0 Modo sin conexi\u00F3n: los grupos se guardan solo en este dispositivo. Configura FIREBASE_URL (cerca del inicio del c\u00F3digo) para compartirlos entre amigos.";
+  $("arenaOffNote").style.display = SupRemote.on() ? "none" : "block";
+  $("arenaOffNote").innerHTML = "\u26A0 Modo sin conexi\u00F3n: los grupos se guardan solo en este dispositivo. Pega tu SUPABASE_ANON_KEY en js/config/supabase.js y corre supabase/arena.sql en tu proyecto para compartirlos entre amigos.";
   var list=$("arenaGroupList"); list.innerHTML="";
   if(!arena.groups.length){
     list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Aún no estás en ningún grupo. Crea uno o únete con el código de un amigo.</div>';
@@ -221,7 +235,7 @@ function equipWear(id){
   if(arena.activeGroup && arena.groupData[arena.activeGroup] && arena.groupData[arena.activeGroup].members[uid()]){
     arena.groupData[arena.activeGroup].members[uid()].wear=myWear();
     arena.groupData[arena.activeGroup].members[uid()].avatar=profile.avatar;
-    if(FIREBASE_URL){ try{ fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/groups/"+arena.activeGroup+"/members/"+uid()+".json",{method:"PUT",body:JSON.stringify(arena.groupData[arena.activeGroup].members[uid()])}).catch(function(){}); }catch(e){} }
+    pushGroupRemote(arena.activeGroup);
   }
   renderWardrobe(); renderArenaGroups(); renderSeason();
 }
@@ -263,40 +277,37 @@ function renderWardrobe(){
   });
 }
 
-/* ---------- Ranking mundial (requiere FIREBASE_URL) ---------- */
-function renderWorldRows(j){
+/* ---------- Ranking mundial (requiere SupRemote.on()) ---------- */
+function renderWorldRows(arr){
   var list=$("arenaWorldList"), cnt=$("arenaWorldCount");
-  var arr=Object.keys(j||{}).map(function(u){ return j[u]; }).filter(function(e){ return e && e.score>0; });
-  arr.sort(function(a,b){ return b.score-a.score; });
-  arr=arr.slice(0,25);
-  if(cnt) cnt.textContent=arr.length+" jug.";
+  var rows=(arr||[]).filter(function(e){ return e && e.score>0; }).slice(0,25);
+  if(cnt) cnt.textContent=rows.length+" jug.";
   if(!list) return;
-  if(!arr.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Aún nadie ha jugado el reto de hoy.</div>'; return; }
+  if(!rows.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Aún nadie ha jugado el reto de hoy.</div>'; return; }
   var me=uid();
   list.innerHTML="";
-  arr.forEach(function(e,i){
+  rows.forEach(function(e,i){
     var isMe=e.uid===me;
     var med=i<3?(" med"+(i+1)):"";
     list.innerHTML+='<div class="rank-row'+(isMe?" me":"")+'"><span class="rank-num'+med+'">'+(i+1)+'</span>'+
       '<span class="rank-av">'+esc(e.avatar||"\u{1F47D}")+'</span>'+
-      '<span class="rank-name">'+(i===0&&arr[0].score>0?'\u{1F451} ':'')+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
+      '<span class="rank-name">'+(i===0&&rows[0].score>0?'\u{1F451} ':'')+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
       '<span class="rank-score">'+num(e.score)+'</span></div>';
   });
 }
 function renderWorldRank(){
   var list=$("arenaWorldList"); if(!list) return;
   var cnt=$("arenaWorldCount"), sub=$("arenaWorldSub");
-  if(!FIREBASE_URL){
+  if(!SupRemote.on()){
     if(cnt) cnt.textContent="local";
-    if(sub) sub.textContent="Conecta Firebase (tools\\firebase-online.ps1) para jugar contra el mundo.";
-    list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">El ranking mundial se activa al conectar la base online.</div>';
+    if(sub) sub.textContent="Pega tu SUPABASE_ANON_KEY para jugar contra el mundo.";
+    list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">El ranking mundial se activa al conectar Supabase.</div>';
     return;
   }
   if(sub) sub.textContent="Puntajes de hoy de todos los jugadores";
   list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Cargando\u2026</div>';
-  fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/daily/"+todayKey()+".json")
-    .then(function(r){ return r.json(); })
-    .then(function(j){ renderWorldRows(j||{}); })
+  SupRemote.get("arena_daily","date=eq."+SupRemote.enc(todayKey())+"&order=score.desc.nullslast&limit=25")
+    .then(function(rows){ renderWorldRows(rows||[]); })
     .catch(function(){
       if(sub) sub.textContent="Sin conexión: ahora mismo se muestra solo tu grupo.";
       list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">No hay ranking mundial disponible en este momento.</div>';
@@ -413,10 +424,11 @@ function finishArena(){
   if(won) unlock("arenastar");
   if(arena.daysDone.length>=3) unlock("arenaday");
   addSeasonPoints(pts);
-  if(FIREBASE_URL){
+  if(SupRemote.on()){
     try{
-      fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/daily/"+k+"/"+uid()+".json",
-        {method:"PUT",body:JSON.stringify({uid:uid(),name:profile.name,avatar:profile.avatar,score:score,ts:Date.now(),mode:g.mode})}).catch(function(){});
+      SupRemote.bestScore("arena_daily",
+        "date=eq."+SupRemote.enc(k)+"&uid=eq."+SupRemote.enc(uid()),
+        {date:k, uid:uid(), name:profile.name, avatar:profile.avatar, score:score, ts:Date.now(), mode:g.mode}).catch(function(){});
     }catch(e){}
   }
   refreshMenuCoins();

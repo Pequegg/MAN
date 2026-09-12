@@ -652,8 +652,12 @@ function finishGame(won){
   } else {
     var db=ls("dailyBest")||{}; var k=todayKey();
     if(!db[k] || score>(db[k].score||0)){ db[k]={score:score, ts:Date.now()}; ls("dailyBest",db); }
-    if(FIREBASE_URL){
-      try{ fetch(FIREBASE_URL.replace(/\/$/,"")+"/daily/"+k+"/"+uid()+".json",{method:"PUT",body:JSON.stringify({uid:uid(),name:profile.name,avatar:profile.avatar,score:score,ts:Date.now()})}).catch(function(){}); }catch(e){}
+    if(SupRemote.on()){
+      try{
+        SupRemote.bestScore("daily",
+          "date=eq."+SupRemote.enc(k)+"&uid=eq."+SupRemote.enc(uid()),
+          {date:k, uid:uid(), name:profile.name, avatar:profile.avatar, score:score, ts:Date.now()}).catch(function(){});
+      }catch(e){}
     }
   }
   // logros

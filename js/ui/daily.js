@@ -15,21 +15,18 @@ function renderDaily(){
   var el=$("dailyPlay"); el.textContent = db!=null ? ("Volver a jugar (récord de hoy: "+num(db.score)+")") : "Jugar el desafío";
   var list=$("dailyRankList");
   var rows=localScores().filter(function(e){ return entryInRange(e,"hoy"); });
-  // remoto diario
-  if(FIREBASE_URL){
-    var url=FIREBASE_URL.replace(/\/$/,"")+"/daily/"+todayKey()+".json";
-    fetch(url).then(function(r){return r.json();}).then(function(j){
-      if(j){ Object.keys(j).forEach(function(k){ var v=j[k]; if(v&&v.score!=null) rows.push(v); }); }
-      var du={}; rows.forEach(function(e){ if(!e.uid) return; if(!du[e.uid]||e.score>du[e.uid].score) du[e.uid]=e; });
-      var merged=Object.keys(du).map(function(k){return du[k];});
-      merged.sort(function(a,b){return b.score-a.score;});
-      renderRankRows(list, merged.slice(0,20), uid());
-    }).catch(function(){ rows.sort(function(a,b){return b.score-a.score;}); renderRankRows(list, rows.slice(0,20), uid()); });
+  var mergeAnd=function(src){
+    var du={}; src.forEach(function(e){ if(!e.uid) return; if(!du[e.uid]||e.score>du[e.uid].score) du[e.uid]=e; });
+    var merged=Object.keys(du).map(function(k){return du[k];});
+    merged.sort(function(a,b){return b.score-a.score;});
+    renderRankRows(list, merged.slice(0,20), uid());
+  };
+  if(SupRemote.on()){
+    SupRemote.get("daily","date=eq."+SupRemote.enc(todayKey())+"&order=score.desc.nullslast&limit=40")
+      .then(function(rem){ mergeAnd(rows.concat(rem||[])); })
+      .catch(function(){ mergeAnd(rows); });
   } else {
-    var du2={}; rows.forEach(function(e){ if(!e.uid) return; if(!du2[e.uid]||e.score>du2[e.uid].score) du2[e.uid]=e; });
-    var merged2=Object.keys(du2).map(function(k){return du2[k];});
-    merged2.sort(function(a,b){return b.score-a.score;});
-    renderRankRows(list, merged2.slice(0,20), uid());
+    mergeAnd(rows);
   }
 }
 $("dailyPlay").addEventListener("click", function(){ ensureAudio(); sfxClick(); startGame("daily"); });
