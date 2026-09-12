@@ -190,3 +190,72 @@ grant select on public.scores, public.daily, public.group_members, public.group_
   public.arena_daily, public.users, public.duels, public.friends, public.purchases to anon;
 grant insert, update on public.scores, public.daily, public.group_members, public.group_pts,
   public.arena_daily, public.users, public.duels, public.friends to anon;
+
+-- ============================================================
+-- Fase 1 (spec v2.0): economia con transaccion (RPC)
+-- Compras validadas y descontadas ATOMICAMENTE en Postgres:
+-- bloqueo de fila (FOR UPDATE), nunca saldo negativo, y cada
+-- compra queda auditada en `purchases`. El cliente nunca decide
+-- el resultado; solo pide y aplica el perfil que devuelve el server.
+-- ============================================================
+create or replace function public.redeem_item(p_item text, p_cat text, p_price integer)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  uid_ text := auth.uid()::text;
+  u public.users%rowtype;
+  prof jsonb;
+  coins_ integer;
+  arr jsonb;
+  q integer;
+begin
+  if uid_ is null or uid_ = '' then
+    raise exception 'not-authenticated';
+  end if;
+  select * into u from public.users where uid = uid_ for update;
+  if not found then
+    insert into public.users(uid, profile, updated_at)
+    values (uid_, '{"coins":0}'::jsonb, now())
+    returning * into u;
+  end if;
+  prof := coalesce(u.profile, '{"coins":0}'::jsonb);
+  if jsonb_typeof(prof) <> 'object' then prof := '{"coins":0}'::jsonb; end if;
+  coins_ := coalesce((prof->>'coins')::int, 0);
+  if coins_ < p_price then
+    raise exception 'slv: monedas insuficientes';
+  end if;
+  prof := jsonb_set(prof, '{inventory}', coalesce(prof->'inventory','{}'::jsonb));
+  prof := jsonb_set(prof, '{wardrobe}', coalesce(prof->'wardrobe','{}'::jsonb));
+  if p_cat = 'inv' then
+    q := coalesce((prof->'inventory'->>p_item)::int, 0) + 1;
+    prof := jsonb_set(prof, ('{inventory,' || p_item || '}')::text[], to_jsonb(q));
+  elsif p_cat = 'skin' then
+    arr := coalesce(prof->'ownedSkins', '[]'::jsonb);
+    if arr @> jsonb_build_array(p_item) then
+      raise exception 'slv: ya lo tienes';
+    end if;
+    prof := jsonb_set(prof, '{ownedSkins}', arr || jsonb_build_array(p_item));
+  elsif p_cat = 'wear' then
+    arr := coalesce(prof->'wardrobe'->'owned', '[]'::jsonb);
+    if arr @> jsonb_build_array(p_item) then
+      raise exception 'slv: ya lo tienes';
+    end if;
+    prof := jsonb_set(prof, '{wardrobe,owned}', arr || jsonb_build_array(p_item));
+  else
+    arr := coalesce(prof->'ownedCosmetics', '[]'::jsonb);
+    if arr @> jsonb_build_array(p_item) then
+      raise exception 'slv: ya lo tienes';
+    end if;
+    prof := jsonb_set(prof, '{ownedCosmetics}', arr || jsonb_build_array(p_item));
+  end if;
+  prof := jsonb_set(prof, '{coins}', to_jsonb(coins_ - p_price));
+  update public.users set profile = prof, updated_at = now() where uid = uid_;
+  insert into public.purchases(uid, item, price, ts)
+  values (uid_, p_item, p_price, (floor(extract(epoch from now()) * 1000))::bigint)
+  on conflict do nothing;
+  return prof;
+end;
+$$;
+grant execute on function public.redeem_item(text, text, integer) to anon;
+create index if not exists idx_purchases_uid_ts on public.purchases(uid, ts desc);

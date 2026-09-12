@@ -35,5 +35,19 @@ var SupRemote = (function(){
       return null;
     });
   }
-  return {on:on, base:base, enc:enc, get:get, upsert:upsert, bestScore:bestScore};
+  function rpc(fn, body){
+    var h={"apikey":SUPABASE_ANON_KEY,"Content-Type":"application/json","Prefer":"return=representation"};
+    var tok=SUPABASE_ANON_KEY;
+    if(typeof Auth!=="undefined" && Auth.session){
+      var s=Auth.session(); if(s&&s.access_token) tok=s.access_token;
+    }
+    h["Authorization"]="Bearer "+tok;
+    return fetch(base()+"/rpc/"+fn,{method:"POST",headers:h,body:JSON.stringify(body||{})})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, status:r.status, data:j}; }); })
+      .then(function(j){
+        if(!j.ok) throw new Error((j.data&&(j.data.message||j.data.msg))||"rpc error "+j.status);
+        return j.data;
+      });
+  }
+  return {on:on, base:base, enc:enc, get:get, upsert:upsert, bestScore:bestScore, rpc:rpc};
 })();

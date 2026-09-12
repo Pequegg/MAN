@@ -119,8 +119,10 @@
     <div class="topbar">
       <div class="profile-card grow">
         <div class="big-avatar" id="menuAvatar">&#x1FA99;</div>
+        <span class="menu-mascot" id="menuMascot" style="display:none;" title="Toca a tu compañero">🐼</span>
         <div class="grow">
           <div id="menuName" style="font-weight:900; font-size:16px;">-</div>
+          <div id="menuTitle" style="font-size:11px; color:var(--gold); font-weight:700;">-</div>
           <div class="row wrap" style="gap:4px; margin-top:3px;">
             <span class="coins-pill" style="font-size:12px;">🪙 <b id="menuCoins">0</b></span>
             <span class="tier-chip" id="menuTier">✨ Novato</span>
@@ -137,6 +139,7 @@
     <button class="menu-btn" id="btnAch"><span class="ico">🏅</span><span class="grow"><div>Logros</div><div class="desc">Medallas y premios</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnRank"><span class="ico">🏆</span><span class="grow"><div>Ranking</div><div class="desc">Top global y local</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnArmario"><span class="ico">🪭</span><span class="grow"><div>Armario</div><div class="desc">Mascota, abanico, marco y título</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -172,9 +175,11 @@
     <div class="tabs">
       <div class="tab on" id="tabConsum">Consumibles</div>
       <div class="tab" id="tabSkins">Skins</div>
+      <div class="tab" id="tabRot">Rotativa</div>
     </div>
     <div id="consumList" class="list"></div>
     <div id="skinList" class="list hidden"></div>
+    <div id="rotList" class="list"></div>
   </section>
 
   <!-- LOGROS -->
@@ -311,6 +316,36 @@
     </div>
   </section>
 
+  <!-- ARMARIO -->
+  <section id="screen-armario" class="screen">
+    <div class="topbar">
+      <button class="back" id="armBack">←</button>
+      <h1 class="title grow" style="margin:0;">🪭 Armario</h1>
+      <div class="coins-pill">🪙 <b id="armCoins">0</b></div>
+    </div>
+    <div class="panel">
+      <div class="row" style="gap:12px; align-items:center;">
+        <div id="armPv" class="ava-stack" style="width:56px; height:56px; border-radius:16px;"></div>
+        <div class="grow">
+          <div style="font-weight:900;" id="armName">-</div>
+          <div class="sd" id="armTitle" style="font-size:12px; color:var(--gold);">-</div>
+          <div class="sd" style="font-size:11px; color:var(--dim);" id="armFrame">-</div>
+        </div>
+        <div class="mascot-chip" id="armMascot">🐼</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab on" id="armTabMascot">🐼 Mascotas</div>
+      <div class="tab" id="armTabFanskin">🪭 Abanico</div>
+      <div class="tab" id="armTabFrame">🏆 Marco</div>
+      <div class="tab" id="armTabTitle">🎖️ Título</div>
+    </div>
+    <div id="armListMascot" class="list"></div>
+    <div id="armListFanskin" class="list hidden"></div>
+    <div id="armListFrame" class="list hidden"></div>
+    <div id="armListTitle" class="list hidden"></div>
+  </section>
+
   <!-- JUEGO -->
   <section id="screen-game" class="screen">
     <div id="gameWrap">
@@ -382,11 +417,13 @@
   <script src="js/config/supabase.js"></script>
   <script src="js/core/remote.js"></script>
   <script src="js/core/db.js"></script>
+  <script src="js/core/economy.js"></script>
   <script src="js/core/auth.js"></script>
   <script src="js/core/util.js"></script>
   <script src="js/levels/levels.js"></script>
-  <script src="js/levels/daily.js"></script>
+<script src="js/levels/daily.js"></script>
   <script src="js/core/state.js"></script>
+  <script src="js/levels/cosmetics.js"></script>
   <script src="js/core/audio.js"></script>
   <script src="js/core/engine.js"></script>
   <script src="js/arena/arena.js"></script>
@@ -404,6 +441,7 @@
   <script src="js/ui/results.js"></script>
   <script src="js/ui/end.js"></script>
 <script src="js/loader/assets.js"></script>
+  <script src="js/ui/armario.js"></script>
   <script src="js/ui/nav.js"></script>
   <script>
   try{ if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(function(){}); } }catch(e){}

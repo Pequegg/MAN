@@ -20,8 +20,11 @@ var Db = (function(){
     return { name:profile.name, avatar:profile.avatar, coins:coins,
       inventory:inventory, equipped:equipped, completed:completed, pb:pb,
       achievements:achievements, totalEarned:totalEarned,
-      ownedSkins:ownedSkins, activeSkin:activeSkin, settings:settings,
-      introDone:introDone, arena:arena, dailyBest:ls("dailyBest")||{} };
+      ownedSkins:ownedSkins, activeSkin:activeSkin,
+      ownedCosmetics:ownedCosmetics, activeFanSkin:activeFanSkin,
+      activeFrame:activeFrame, activeTitle:activeTitle, activeMascot:activeMascot,
+      settings:settings, introDone:introDone, arena:arena,
+      dailyBest:ls("dailyBest")||{} };
   }
 
   function C(v,d){ return (typeof v==="undefined"||v===null)?d:v; }
@@ -95,6 +98,11 @@ var Db = (function(){
     totalEarned=C(p.totalEarned,totalEarned);
     ownedSkins=C(p.ownedSkins,ownedSkins);
     activeSkin=C(p.activeSkin,activeSkin);
+    ownedCosmetics=C(p.ownedCosmetics,ownedCosmetics);
+    activeFanSkin=C(p.activeFanSkin,activeFanSkin);
+    activeFrame=C(p.activeFrame,activeFrame);
+    activeTitle=C(p.activeTitle,activeTitle);
+    activeMascot=C(p.activeMascot,activeMascot);
     if(p.settings) settings=C(p.settings,settings);
     introDone=C(p.introDone,introDone);
     if(p.dailyBest) ls("dailyBest",p.dailyBest);

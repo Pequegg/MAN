@@ -19,8 +19,9 @@ js/
   config/supabase.js    URL del proyecto + llave anon (el interruptor del online)
   core/
     util.js             Helpers ($, randoms, fechas, localStorage)
-    remote.js           Cliente Supabase (PostgREST) sin SDK
+    remote.js           Cliente Supabase (PostgREST) sin SDK + RPC
     db.js               Capa de datos offline-first: local + sync a la nube
+    economy.js          Economía (Fase 1): compras con transacción (RPC) o local
     auth.js             Login Google (PKCE) + sesión de invitado (GoTrue)
     state.js            Estado global persistido, toasts, logros
     audio.js            Web Audio: synth de SFX + gancho a sonidos reales
@@ -29,12 +30,13 @@ js/
   levels/
     levels.js           Los 18 niveles + datos de tienda/skins/logros
     daily.js            Definición del reto diario
+    cosmetics.js        Cosmética (Fase 1): abanicos, marcos, títulos, mascotas, tienda rotativa
   arena/
     arena.js            Entrada/salida de arena, grupos, temporadas, armario
     minigames.js        4 mini-juegos de arena (caligrafía, faroles, rueda, tambor)
   ui/                   Render y eventos de cada pantalla (settings, menu,
-                        tutorial, register, levels, shop, ach, rank, daily,
-                        results, end, nav)
+                        tutorial, register, levels, shop, armario, ach, rank,
+                        daily, results, end, nav)
   loader/
     assets.js           Mapa de assets + carga inteligente + música + fallbacks
 assets/
@@ -104,28 +106,22 @@ node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 
 
 ## Ranking mundial (Arena online)
 
-La Arena, el reto diario y el ranking funcionan **100% local** (guardan en tu
-dispositivo) hasta que conectas **Supabase**. Para que **todo el mundo** comparta
-el reto diario y se vea un **ranking mundial / global**, hay que hacer 3 pasos
-(una sola vez):
+La Arena, el reto diario y el ranking comparten datos por internet ya que el
+**esquema SQL ya está aplicado en el proyecto Supabase del jugador** y la llave
+**anon** ya vive en `js/config/supabase.js`. Las tablas creadas son: `scores`,
+`daily`, `group_members`, `group_pts`, `arena_daily`, `users`, `duels`,
+`friends`, `purchases`; con índices y políticas RLS (los anónimos solo tocan sus
+datos). Si algún día clonas este repo en otro proyecto Supabase, el orden es:
 
-1. Abre tu proyecto en <https://supabase.com/dashboard> → **SQL Editor**.
-2. Pega el contenido de `supabase/arena.sql` y pulsa **Run**. Crea las tablas
-   (`scores`, `daily`, `group_members`, `group_pts`, `arena_daily`, `users`,
-   `duels`…), los índices y las políticas RLS (los anónimos solo tocan sus datos).
-3. Copia tu llave **anon public** (Dashboard → Settings → API) y pégala en
+1. Dashboard → **SQL Editor** → pega el contenido de `supabase/arena.sql` → **Run**
+   (crea tablas, índices, RLS y el RPC `redeem_item`, todo idempotente).
+2. Copia tu llave **anon public** (Settings → API) y pégala en
    `js/config/supabase.js`:
+   `var SUPABASE_ANON_KEY = "eyJ...tu-llave-anon...";`
 
-   ```js
-   var SUPABASE_ANON_KEY = "eyJ...tu-llave-anon...";
-   ```
-
-   La llave *anon* es pública por diseño; la seguridad la dan las políticas RLS
-   del SQL, no la llave.
-
-Con eso la Arena sincroniza **grupos, temporadas y el ranking mundial** entre todos
-los jugadores, y el reto diario + ranking global se comparten por internet. Sin
-llave o sin red, todo sigue funcionando local (offline-first).
+Con eso la Arena sincroniza **grupos, temporadas y el ranking mundial**, y el reto
+diario + ranking global se comparten por internet. Sin llave o sin red, todo sigue
+funcionando local (offline-first).
 
 ### Cuentas (Fase 0) — "Continuar con Google"
 
@@ -174,11 +170,16 @@ Se siguió la spec `SPEC-op-art-fan-v2.md`. **Capa de datos elegida: Supabase**
 (en vez de Firebase): el jugador ya tenía su proyecto, es SQL real (PostgREST
 abierto, sin SDK) y el esquema/RLS vive en un solo archivo versionable.
 
-- ✅ **Fase 0 — Fundaciones**: capa `DB` offline-first (SQL→ `js/core/db.js`),
+- ✅ **Fase 0 — Fundaciones**: capa `DB` offline-first (`js/core/db.js`),
   auth Google (PKCE) + invitado (`js/core/auth.js`), perfil en la nube (tabla
   `users`), migración del progreso local al loguear, ranking/diario/arena online.
-- ⬜ **Fase 1 — Identidad y economía**: armario con validación server-side (RPC
-  `redeem_item`), tienda rotativa diaria, compras con transacción, títulos/marcos.
+- ✅ **Fase 1 — Identidad y economía**: armario completo (mascota, abanico, marco,
+  título) con **validación server-side** por el RPC `redeem_item` (transacción,
+  bloqueo de fila, auditoría en `purchases`), tienda **rotativa** diaria (semilla
+  de `daily.js`), y 8 abanicos + 6 marcos + 5 títulos + 4 mascotas de contenido.
+  *Criterio cumplido*: dos dispositivos con la misma cuenta ven el mismo
+  inventario y equipamiento (se sincroniza en `users.profile`).
+  Módulos: `js/levels/cosmetics.js`, `js/core/economy.js`, `js/ui/armario.js`.
 - ⬜ **Fase 2 — Duelos asíncronos**: tabla `duels` ya creada en el SQL; falta el
   flujo reto => huella validada => `resolve_duel` (RPC anti-trampas) => recompensas.
 - ⬜ **Fase 3 — Tiempo real y producción**: salas 1v1 (realtime), push, admin.

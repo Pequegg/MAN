@@ -243,9 +243,14 @@ function buyWear(id){
   var it=wearItem(id); if(!it) return;
   if(wearOwned(id)){ equipWear(id); return; }
   if(wearUnlock(id)){ arena.wardrobe.owned.push(id); saveArena(); sfxGold(); toast(it.name+" desbloqueado por retos!","\u2B50"); equipWear(id); return; }
-  if(coins<it.price){ toast("Te faltan monedas","\u{1FA99}","err"); sfxMiss(); return; }
-  coins-=it.price; arena.wardrobe.owned.push(id); saveAll(); saveArena(); sfxGold(); sndPlay("buy");
-  toast(it.name+" comprado","\u{1F464}"); equipWear(id);
+  Ec.buy("wear", id, it.price).then(function(res){
+    if(!res.ok){ toast(res.msg||"No se pudo comprar","\u{1FA99}","err"); sfxMiss(); return; }
+    sndPlay("buy"); unlock("comprar");
+    toast(it.name+" comprado","\u{1F464}");
+    if(!wearOwned(id)) arena.wardrobe.owned.push(id);  // invitado/servidor no lo añadió (local ya lo hizo)
+    saveArena();
+    equipWear(id);
+  });
 }
 function renderWardrobe(){
   $("wardrobeName").textContent=profile.name+" \u00B7 "+profile.avatar;

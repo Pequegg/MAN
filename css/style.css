@@ -277,6 +277,20 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
 .wear-item.on{border-color:var(--gold); box-shadow:0 0 0 3px rgba(255,214,67,.22);}
 .wear-item.lock{opacity:.55; filter:grayscale(.6);}
 
+/* ---------- Armario (Fase 1): marcos y mascota ---------- */
+.big-avatar.frm-rojo,.ava-stack.frm-rojo{border:2px solid #c23a2a!important; box-shadow:0 0 0 3px rgba(226,80,60,.35);}
+.big-avatar.frm-jade,.ava-stack.frm-jade{border:2px solid #2f9c6b!important; box-shadow:0 0 0 3px rgba(72,220,150,.35);}
+.big-avatar.frm-oro,.ava-stack.frm-oro{border:2px solid #d9a441!important; box-shadow:0 0 0 3px rgba(255,214,67,.4);}
+.big-avatar.frm-neon,.ava-stack.frm-neon{border:2px solid #2ee6ff!important; box-shadow:0 0 0 3px rgba(46,230,255,.45); animation:frmPulse 2.2s ease-in-out infinite;}
+.big-avatar.frm-iris,.ava-stack.frm-iris{border:2px solid transparent!important; background:linear-gradient(90deg,#ff4d4d,#ffd83d,#3dff6e,#2ee6ff,#c86bff,#ff4d4d)!important; animation:frmFlow 5s linear infinite;}
+.big-avatar.frm-legend,.ava-stack.frm-legend{border:2px solid #ffe27a!important; box-shadow:0 0 10px rgba(255,214,67,.9),0 0 0 3px rgba(255,226,122,.5); animation:frmPulse 1.8s ease-in-out infinite;}
+.menu-mascot{position:absolute; bottom:4px; left:44px; font-size:19px; line-height:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)); z-index:3; cursor:pointer;}
+.profile-card{position:relative;}
+.mascot-chip{font-size:26px; line-height:1; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); cursor:pointer;}
+@keyframes frmPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.35);}}
+@keyframes frmFlow{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+.big-avatar.frm-iris,.ava-stack.frm-iris{background-size:200% 100%;}
+
 @media (min-width:760px){
   .screen{max-width:560px;}
   .btn{cursor:pointer;}

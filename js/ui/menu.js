@@ -3,7 +3,16 @@
 "use strict";
 
 /* ---------- Menú ---------- */
-function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); showAuthChip(); }
+function refreshMenu(){
+  var av=$("menuAvatar"); av.textContent=profile.avatar;
+  var fr=frameById(activeFrame);
+  av.className="big-avatar"+(fr.cls?" "+fr.cls:"");
+  $("menuName").textContent=profile.name;
+  $("menuTitle").textContent=titleById(activeTitle).name;
+  var mm=$("menuMascot"); if(mm){ mm.style.display=activeMascot?"inline-flex":"none"; mm.textContent=(mascotById(activeMascot)||{}).icon||""; }
+  $("menuCoins").textContent=num(coins); paintToggle(); renderMenuStatus(); showAuthChip();
+}
+$("menuMascot").addEventListener("click", function(){ ensureAudio(); sfxClick(); var f=mascotPhrase(activeMascot); if(f) toast(f, mascotById(activeMascot).icon); });
 function showAuthChip(){
   var mc=$("menuCloud");
   if(mc) mc.style.display = (typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed() && Auth.uid()) ? "inline-flex" : "none";
@@ -19,6 +28,7 @@ $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); u
 $("btnShop").addEventListener("click", function(){ sfxClick(); renderShop(); show("shop"); });
 $("btnAch").addEventListener("click", function(){ sfxClick(); renderAch(); show("ach"); });
 $("btnRank").addEventListener("click", function(){ sfxClick(); openRanking(); show("rank"); });
+$("btnArmario").addEventListener("click", function(){ sfxClick(); renderArmario(); refreshMenuCoins(); show("armario"); });
 $("btnCredits").addEventListener("click", function(){ sfxClick(); show("end"); });
 $("levelsBack").onclick = $("shopBack").onclick = $("achBack").onclick = $("rankBack").onclick = $("dailyBack").onclick = function(){ sfxClick(); goMenu(); };
 

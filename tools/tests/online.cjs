@@ -33,12 +33,21 @@ global.achievements = [];
 global.totalEarned = 0;
 global.ownedSkins = [];
 global.activeSkin = 'clasico';
+global.ownedCosmetics = [];
+global.activeFanSkin = 'fan-clasico';
+global.activeFrame = 'fr-none';
+global.activeTitle = 'ti-novato';
+global.activeMascot = '';
 global.settings = {};
 global.introDone = true;
 global.arena = { groups: [], groupData: {}, activeGroup: null, wardrobe: { owned: [], hat: '', fan: '', cape: '', bg: '' }, days: {}, daysDone: [], retosWon: {} };
 global.saveArena = () => {};
 global.saveAll = () => {};
 global.pushGroupRemote = () => {};
+global.sfxGold = () => {};
+global.toast = () => {};
+global.dayNum = () => 20260101;
+global.mulberry32 = a => { return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; };
 function uidLocal() { let u = global.ls('uid'); if (!u) { u = 'u' + Date.now().toString(36); global.ls('uid', u); } return u; }
 
 // ---- fetch falso ----
@@ -53,6 +62,7 @@ global.fetch = (url, opts) => {
       return Promise.resolve(jsonResp({ access_token: 'tok-123', refresh_token: 'ref-1', expires_in: 3600, user: { id: 'u-google-1', email: 'gus@test.dev', user_metadata: { full_name: 'Gustavo' } } }, 200));
     }
     if (/\/rest\/v1\/users/.test(u)) return Promise.resolve(jsonResp([], 200));
+    if (/\/rest\/v1\/rpc\/redeem_item/.test(u)) return Promise.resolve(jsonResp({ coins: 999, ownedCosmetics: ['fan-lotus'], inventory: { time5: 1 } }, 200));
     return Promise.resolve(jsonResp([], 200));
   }
   network.gets.push(u);
@@ -67,6 +77,10 @@ global.SUPABASE_ANON_KEY = ''; // el repo puede llevar una llave real; forzamos 
 gload('js/core/remote.js');
 gload('js/core/db.js');
 gload('js/core/auth.js');
+gload('js/levels/levels.js');
+gload('js/levels/cosmetics.js');
+gload('js/core/economy.js');
+global.SUPABASE_ANON_KEY = '';
 
 // en un segundo, montamos pruebas
 (async () => {
@@ -114,6 +128,32 @@ gload('js/core/auth.js');
   const gd = arena.groupData.G1;
   ok('miembro migrado a la cuenta', !!gd.members['u-google-1'] && !gd.members['u-local-old']);
   ok('puntos migrados a la cuenta', gd.pts.S5['u-google-1'] === 12);
+
+  // 8) Economia (Fase 1)
+  //    a) tienda rotativa determinista por dia
+  const r1 = ROT.pick(dayNum());
+  const r2 = ROT.pick(dayNum());
+  ok('rotativa: 7 ofertas estables el mismo dia', r1.length === 7 && JSON.stringify(r1) === JSON.stringify(r2));
+  const cats = r1.map(x => x.cat);
+  ok('rotativa: una pieza por categoria (consumibles permiten mas)', new Set(cats.filter(c => c !== 'inv')).size === cats.filter(c => c !== 'inv').length);
+  ok('rotativa: cambia con el dia', JSON.stringify(ROT.pick(20260102)) !== JSON.stringify(r1));
+  //    b) compra local como invitado (modo offline)
+  global.SUPABASE_ANON_KEY = ''; // invalida la llave -> camino local
+  global.coins = 200;
+  const resLocal = await Ec.buy('inv', 'time5', 60);
+  ok('compra local descuenta y suma inventario', resLocal.ok && coins === 140 && inventory.time5 === 1);
+  const resInsuf = await Ec.buy('inv', 'time5', 999999);
+  ok('compra local rechaza sin monedas', !resInsuf.ok && coins === 140 && inventory.time5 === 1);
+  //    c) compra con sesion: pasa por RPC y aplica el perfil del servidor
+  global.SUPABASE_ANON_KEY = 'anKey-fake';
+  network.posts.length = 0;
+  const resRpc = await Ec.buy('fanskin', 'fan-lotus', 300);
+  const post = network.posts.find(p => /\/rest\/v1\/rpc\/redeem_item/.test(p.url));
+  ok('compra con sesion llama al RPC redeem_item', !!post && post.body.p_item === 'fan-lotus' && post.body.p_cat === 'fanskin' && post.body.p_price === 300);
+  ok('perfil del servidor aplicado (monedas + inventario)', resRpc.ok && coins === 999 && ownedCosmetics.indexOf('fan-lotus') > -1 && inventory.time5 === 1);
+  //    d) el catalogo de cosmeticas cumple el minimo de contenido de la spec
+  ok('contenido Fase 1: 8 abanicos, 6 marcos, 5 titulos, 4 mascotas',
+    FANSKINS.length === 9 && FRAMES.length === 7 && TITLES.length === 5 && MASCOTS.length === 4);
 
   console.log(fail ? ('FALLOS: ' + fail) : 'ONLINE OK');
   process.exit(fail ? 1 : 0);

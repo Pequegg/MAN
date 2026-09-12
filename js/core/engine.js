@@ -228,6 +228,8 @@ function prerender(){
   prerenderBg();
   var o=fanOff.getContext("2d");
   var lv=GS.lv, cols=lv.c;
+  var fs=(typeof activeFanSkin!=="undefined")?fanSkinById(activeFanSkin):null;
+  if(fs && fs.pal) cols=fs.pal;   // fan-skin: paleta cosmética del abanico
   var skin=skinById(activeSkin);
   for(var ring=0; ring<6; ring++){
     var n=RINGS[ring], cw=Math.PI/n, r0=rw*ring, r1=rw*(ring+1);

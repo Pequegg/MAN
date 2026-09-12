@@ -66,7 +66,9 @@ var ACH = [
  {id:"diario", icon:"\u{1F5D3}", name:"Rutina Diaria", desc:"Juega el desafío diario"},
  {id:"record", icon:"\u2B50", name:"Plusmarquista", desc:"Bate tu récord personal en un nivel"},
  {id:"equipado", icon:"\u{1F392}", name:"Bien Equipado", desc:"Equipa 3 artículos a la vez"},
-  {id:"arena", icon:"\u{1F3EE}", name:"Primer Reto", desc:"Juega tu primer reto de Arena"},
-  {id:"arenastar", icon:"\u2B50", name:"Estrella del Reto", desc:"Completa un reto de Arena"},
-  {id:"arenaday", icon:"\u{1F5D3}", name:"Rutina de Arena", desc:"Juega retos en 3 días distintos"}
+{id:"arena", icon:"\u{1F3EE}", name:"Primer Reto", desc:"Juega tu primer reto de Arena"},
+   {id:"arenastar", icon:"\u2B50", name:"Estrella del Reto", desc:"Completa un reto de Arena"},
+   {id:"arenaday", icon:"\u{1F5D3}", name:"Rutina de Arena", desc:"Juega retos en 3 días distintos"},
+   {id:"armario", icon:"\u{1F5C2}", name:"Estilista", desc:"Compra tu primera pieza de armario"}
 ];
+function achById(id){ return ACH.find(function(a){return a.id===id;})||{id:id,name:id,desc:""}; }
