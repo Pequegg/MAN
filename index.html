@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#1b0a05">
-<meta name="description" content="Op-Art Fan - abanico mandala interactivo con tematica china: 18 niveles, arena, ranking y musica.">
+<meta name="theme-color" content="#15102e">
+<meta name="description" content="Op-Art Fan - abanico mandala interactivo con tematica china: 18 niveles, Arena por temporadas, reto diario, ranking y musica.">
 <title>Op-Art Fan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,7 +110,11 @@
         <div class="big-avatar" id="menuAvatar">&#x1FA99;</div>
         <div class="grow">
           <div id="menuName" style="font-weight:900; font-size:16px;">-</div>
-          <div class="coins-pill" style="font-size:13px;">🪙 <b id="menuCoins">0</b></div>
+          <div class="row wrap" style="gap:4px; margin-top:3px;">
+            <span class="coins-pill" style="font-size:12px;">🪙 <b id="menuCoins">0</b></span>
+            <span class="tier-chip" id="menuTier">✨ Novato</span>
+          </div>
+          <span class="streak-chip" id="menuStreak" style="display:none;"></span>
         </div>
       </div>
     </div>
@@ -323,11 +327,12 @@
     </div>
     <div id="resLevelLine" class="panel" style="font-size:12px; color:var(--dim);"></div>
     <textarea id="shareText" readonly></textarea>
-    <div class="row wrap" style="gap:8px;">
-      <button class="btn pink grow" id="resRetry">↻ Reintentar</button>
-      <button class="btn cyan grow" id="resNext">Siguiente ▶</button>
-      <button class="btn gold grow" id="resShare">📤 Compartir</button>
-      <button class="btn ghost" id="resMenu">Menú</button>
+<div class="row wrap" style="gap:8px;">
+        <button class="btn pink grow" id="resRetry">↻ Reintentar</button>
+        <button class="btn cyan grow" id="resNext">Siguiente ▶</button>
+        <button class="btn gold grow" id="resShare">📤 Compartir</button>
+        <button class="btn ghost" id="resMenu">Menú</button>
+      </div>
     </div>
   </section>
 
@@ -348,6 +353,7 @@
     </div>
   </section>
 
+  <div id="confetti"></div>
   <div id="toasts"></div>
 </div>
 

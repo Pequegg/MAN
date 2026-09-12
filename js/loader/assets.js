@@ -179,13 +179,13 @@ function afnShow(p, t) {
   var el = $('loading');
   if (!el) {
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#0d0703;';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#0f0b2a;';
     var bar = document.createElement('div');
-    bar.style.cssText = 'width:60%;max-width:320px;height:10px;border-radius:6px;background:rgba(255,232,122,.18);overflow:hidden;';
-    bar.innerHTML = '<div id="afnFill" style="height:100%;width:0;background:#f2a611;transition:width .25s;"></div>';
+    bar.style.cssText = 'width:60%;max-width:320px;height:10px;border-radius:6px;background:rgba(169,155,255,.22);overflow:hidden;';
+    bar.innerHTML = '<div id="afnFill" style="height:100%;width:0;background:#7a6bff;transition:width .25s;"></div>';
     var txt = document.createElement('div');
     txt.id = 'afnTxt';
-    txt.style.cssText = 'margin-top:12px;color:#ffd93d;font-family:ZCOOL XiaoWei,serif;letter-spacing:2px;';
+    txt.style.cssText = 'margin-top:12px;color:#ffd643;font-family:ZCOOL XiaoWei,serif;letter-spacing:2px;';
     wrap.appendChild(bar); wrap.appendChild(txt);
     wrap.id = 'loading';
     document.body.appendChild(wrap);

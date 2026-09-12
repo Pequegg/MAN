@@ -3,7 +3,12 @@
 "use strict";
 
 /* ---------- Menú ---------- */
-function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); }
+function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); }
+function renderMenuStatus(){
+  var tierEl=$("menuTier"), stEl=$("menuStreak");
+  if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
+  if(stEl){ try{ var s=dayStreak(); if(s>0){ stEl.style.display="inline-flex"; stEl.innerHTML="\u{1F525} <b>"+s+"</b> "+(s===1?"día":"días"); } else { stEl.style.display="none"; } }catch(e){} }
+}
 function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); }
 $("btnPlay").addEventListener("click", function(){ sfxClick(); renderLevels(); refreshMenuCoins(); show("levels"); });
 $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); unlock("diario"); generateDaily(); renderDaily(); show("daily"); });

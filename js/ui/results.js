@@ -4,6 +4,27 @@
 
 /* ---------- Resultados ---------- */
 var lastResult=null;
+
+/* Celebracion estilo Playus: confeti + flash + zoom del marcador */
+function celebrate(strong){
+  var cv=$("confetti"); if(!cv) return;
+  cv.innerHTML="";
+  cv.classList.add("fly");
+  var n=strong?64:44;
+  var cols=["#ffffff","#ffd643","#8a7bff","#5bc0f0","#ff8ba7","#f7f5ee","#3dff88"];
+  for(var i=0;i<n;i++){
+    var s=document.createElement("span");
+    var c=cols[ri(0,cols.length-1)];
+    var sz=ri(6,11);
+    s.style.cssText="left:"+rnd(0,100).toFixed(2)+"%;width:"+sz+"px;height:"+sz+"px;background:"+c+";border-radius:"+(Math.random()<0.5?"50%":"3px")+";animation-duration:"+rnd(2.2,4.2).toFixed(2)+"s;animation-delay:"+rnd(0,1.2).toFixed(2)+"s;opacity:"+rnd(.55,1).toFixed(2)+";";
+    cv.appendChild(s);
+  }
+  var ico=$("resIco")||$("aresIco"); if(ico){ ico.classList.remove("result-win"); void ico.offsetWidth; ico.classList.add("result-win"); }
+  var sc=$("resScore")||$("aresScore"); if(sc){ sc.classList.remove("pop"); void sc.offsetWidth; sc.classList.add("pop"); }
+  try{ flash("gold"); }catch(e){}
+  setTimeout(function(){ cv.classList.remove("fly"); cv.innerHTML=""; },6500);
+}
+
 function showResult(res){
   lastResult=res;
   var lv=res.levelObj; var name=lv?lv.name:res.dailyName;
@@ -33,9 +54,10 @@ function showResult(res){
   }
   $("resLevelLine").textContent=line;
   showNextBtn(res);
-  var share="\u{1F3AE} Op-Art Fan \u{2014} "+ (lv?name:"Desafío diario") +"\n\u{1F3AF} Puntaje: "+num(res.score)+"\u{2B50} Combo: x"+res.bestCombo;
+  var share="\u{1F3AE} Op-Art Fan \u2014 "+ (lv?name:"Desafío diario") +"\n\u{1F3AF} Puntaje: "+num(res.score)+"\u{2B50} Combo: x"+res.bestCombo;
   $("shareText").value=share;
   show("result");
+  if(res.won) celebrate(!!res.bossWon);
 }
 function showNextBtn(res){
   var btn=$("resNext");

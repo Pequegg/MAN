@@ -24,6 +24,35 @@ var arena = ls("arena") || {groups:[], groupData:{}, activeGroup:null, days:{},
 function saveArena(){ ls("arena", arena); }
 
 function seasonKey(){ return "S"+Math.floor((Date.now()-ARENA_EPOCH)/(SEASON_DAYS*86400000)); }
+function dateKeyOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+var TIERS=[
+ {m:200, ico:"\u{1F451}", nm:"Corona"},
+ {m:120, ico:"\u{1F947}", nm:"Oro"},
+ {m:60,  ico:"\u{1F948}", nm:"Plata"},
+ {m:20,  ico:"\u{1F949}", nm:"Bronce"},
+ {m:0,   ico:"\u2728",   nm:"Novato"}
+];
+function mySeasonPts(){
+  var sk=seasonKey(); var pts=0;
+  (arena.groups||[]).forEach(function(code){
+    var gd=arena.groupData[code]||{}; var d=(gd.pts||{})[sk]||{};
+    pts+=(d[uid()]||0);
+  });
+  return pts;
+}
+function seasonTier(){
+  var p=mySeasonPts();
+  for(var i=0;i<TIERS.length;i++){ if(p>=TIERS[i].m) return {ico:TIERS[i].ico, nm:TIERS[i].nm, pts:p, next: i>0?TIERS[i-1].m:null}; }
+  return {ico:TIERS[TIERS.length-1].ico, nm:TIERS[TIERS.length-1].nm, pts:p, next:null};
+}
+function dayStreak(){
+  var days=arena.daysDone||[]; if(!days.length) return 0;
+  var set={}; days.forEach(function(d){ set[d]=1; });
+  var s=0; var d=new Date();
+  if(!set[todayKey()]) d=new Date(d.getTime()-86400000);
+  for(var i=0;i<400;i++){ var k=dateKeyOf(d); if(!set[k]) break; s++; d=new Date(d.getTime()-86400000); }
+  return s;
+}
 function seasonRange(){
   var d=SEASON_DAYS*86400000;
   var st=ARENA_EPOCH+Math.floor((Date.now()-ARENA_EPOCH)/d)*d;
@@ -150,13 +179,13 @@ function renderSeason(){
     if(!arr.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Todavía sin puntos.</div>'; return; }
     var me=uid();
     var best=arr[0];
-    $("arenaSeasonSub").textContent="Grupo "+code+" \u00B7 Temporada "+sk+" \u00B7 quedan "+sr.days+" d\u00EDas \u00B7 L\u00EDder: "+best.name;
+    $("arenaSeasonSub").textContent="Grupo "+code+" \u00B7 Temporada "+sk+" \u00B7 quedan "+sr.days+" d\u00EDas \u00B7 L\u00EDder: "+(best.pts>0?"\u{1F451} ":"")+best.name;
     arr.slice(0,50).forEach(function(e,i){
       var isMe=e.uid===me;
       var med=i<3?(" med"+(i+1)):"";
       list.innerHTML+='<div class="rank-row'+(isMe?" me":"")+'"><span class="rank-num'+med+'">'+(i+1)+'</span>'+
         '<span class="ava-stack'+(e.wear&&e.wear.bg?" "+e.wear.bg:"")+'">'+(e.wear?avaWearHtml(e.wear):"")+'<span class="wbase">'+esc(e.avatar||"\u{1F47D}")+'</span></span>'+
-        '<span class="rank-name">'+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
+        '<span class="rank-name">'+(i===0&&e.pts>0?'\u{1F451} ':'')+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
         '<span class="rank-score">'+num(e.pts)+' pts</span></div>';
     });
   });
@@ -370,6 +399,7 @@ function showArenaResult(){
   else { again.textContent="\u23F0 Sin intentos. EL nuevo reto llega a las 00:00 ("+fmtCD(nextMidnight()-Date.now())+")";
     btn.disabled=true; btn.textContent="\u21BB Reintentar"; }
   show("aresult");
+  if(arena.lastWon && typeof celebrate==="function") celebrate(false);
 }
 
 /* ---------- Handlers UI Arena ---------- */
