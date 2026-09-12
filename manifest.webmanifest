@@ -1,0 +1,19 @@
+{
+  "name": "Op-Art Fan",
+  "short_name": "Op-Art Fan",
+  "description": "Abanico mandala interactivo con tematica china: 18 niveles, Arena por temporadas, reto diario, ranking y musica.",
+  "lang": "es",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15102e",
+  "theme_color": "#15102e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "assets/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

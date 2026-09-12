@@ -82,15 +82,39 @@ node tools/tests/budget.cjs    # presupuesto de primera carga (<220 KB) y que to
 node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 niveles (pixeles)
 ```
 
-## Publicar
+## En línea
 
-1. GitHub Pages (recomendado, gratis):
-   - Sube el proyecto a un repo.
-   - *Settings → Pages → Deploy from a branch* → `main` / carpeta raíz.
-   - Listo: se sirve `index.html` sin build.
-2. Netlify/Vercel:
-   - Importa el repo; framework = *None*; public dir = `/`.
-3. Desplegar y servir en cualquier CDN/Hosting estático: sube todo tal cual.
+**Ya está publicado**: <https://pequegg.github.io/MAN/>
+
+- El deploy es automático (GitHub Pages, rama `main`, carpeta raíz): cada `git push`
+  a `main` se publica en 1-2 minutos.
+- Es una **PWA instalable**: en móvil abre la URL y usa *Añadir a pantalla de inicio*
+  (Android) o *Agregar a pantalla de inicio* (iOS). Se abre a pantalla completa y
+  sigue jugable **offline** gracias al service worker (`sw.js`), que precachea el
+  núcleo y cachea bajo demanda fondos y música.
+- Tras publicar una versión nueva, la primera visita pide la última versión por red
+  (los navegadores actualizan el `sw.js` solos); si estás en modo avión, usa la caché.
+
+## Ranking mundial (Arena online)
+
+La Arena y el reto diario funcionan **100% local** (guardan en tu dispositivo).
+Para compartir *grupos* y *temporadas* entre jugadores hay una capa online opcional:
+crea una base en [Firebase Realtime Database](https://console.firebase.google.com)
+(reglas en modo `test` mientras pruebas), copia su URL y pégala en
+`js/config/settings.js`:
+
+```js
+var FIREBASE_URL = "https://tuproyecto-default-rtdb.europe-west1.firebasedatabase.app/";
+```
+
+Con eso la Arena sincroniza miembros, puntos de temporada y el marcador del reto
+diario entre todos los jugadores que la usan.
+
+## Publicar (alternativas)
+
+1. GitHub Pages: ya activo; cualquier push a `main` redeploya.
+2. Netlify/Vercel: importa el repo; framework = *None*; public dir = `/`.
+3. Cualquier CDN/Hosting estático: sube todo tal cual.
 
 Extensiones posibles en `tools/gen-assets.cjs`: `assets/audio/music/` ya admite
 varias candidatas por familia (heron-boat, ying, heavenly-rive…) si se amplía el
