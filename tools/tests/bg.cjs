@@ -53,6 +53,7 @@ const dom = new JSDOM(html, {
     wd.HTMLCanvasElement.prototype.getContext = function () { return realCtx(this); };
     wd.requestAnimationFrame = () => 0; // sin frames: solo interesa prerender + pixel
     wd.cancelAnimationFrame = () => {};
+    wd.fetch = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
     wd.addEventListener('error', e => errs.push(String(e.message)));
   },
 });

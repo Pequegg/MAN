@@ -42,6 +42,7 @@ const dom = new JSDOM(html, {
     w.HTMLCanvasElement.prototype.getContext = function () { return mkCtx(); };
     w.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 16);
     w.cancelAnimationFrame = id => clearTimeout(id);
+    w.fetch = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
     w.addEventListener('error', e => { errs.push(String(e.message)); failed = true; });
   },
 });

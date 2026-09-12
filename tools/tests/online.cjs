@@ -63,6 +63,7 @@ global.fetch = (url, opts) => {
 
 function gload(file) { vm.runInThisContext(fs.readFileSync(path.join(ROOT, file), 'utf8'), { filename: file }); }
 gload('js/config/supabase.js');
+global.SUPABASE_ANON_KEY = ''; // el repo puede llevar una llave real; forzamos off para este test
 gload('js/core/remote.js');
 gload('js/core/db.js');
 gload('js/core/auth.js');

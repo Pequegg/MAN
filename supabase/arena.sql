@@ -1,5 +1,5 @@
 -- ============================================================
--- Op-Art Fan · esquema online (Supabase / PostgreSQL)
+-- Op-Art Fan Â· esquema online (Supabase / PostgreSQL)
 -- Ejecutar en: Dashboard -> SQL Editor -> Run (una sola vez)
 -- La llave "anon" (publica) solo toca sus propios datos gracias
 -- a las politicas RLS definidas abajo.
@@ -157,12 +157,12 @@ create policy ad_write      on public.arena_daily   for insert with check (true)
 
 -- Datos de cuenta y sociales: solo la sesion real (Google) toca lo suyo.
 create policy users_read    on public.users         for select using (true);
-create policy users_write   on public.users         for insert with check (uid = auth.uid());
-create policy duels_read    on public.duels         for select using (p1 = auth.uid() or p2 = auth.uid());
-create policy duels_write   on public.duels         for insert with check (p1 = auth.uid() or p2 = auth.uid());
-create policy friends_read  on public.friends       for select using (uid = auth.uid() or fid = auth.uid());
-create policy friends_write on public.friends       for insert with check (uid = auth.uid());
-create policy purch_read    on public.purchases     for select using (uid = auth.uid());
+create policy users_write   on public.users         for insert with check (uid = auth.uid()::text);
+create policy duels_read    on public.duels         for select using (p1 = auth.uid()::text or p2 = auth.uid()::text);
+create policy duels_write   on public.duels         for insert with check (p1 = auth.uid()::text or p2 = auth.uid()::text);
+create policy friends_read  on public.friends       for select using (uid = auth.uid()::text or fid = auth.uid()::text);
+create policy friends_write on public.friends       for insert with check (uid = auth.uid()::text);
+create policy purch_read    on public.purchases     for select using (uid = auth.uid()::text);
 
 -- Actualizar registros propios (queremos update, no solo insert)
 drop policy if exists scores_upd   on public.scores;
@@ -181,9 +181,9 @@ create policy gm_upd      on public.group_members for update using (true);
 create policy gp_upd      on public.group_pts     for update using (true);
 create policy ad_upd      on public.arena_daily   for update using (true);
 -- Cuenta y sociales: solo la sesion real.
-create policy users_upd   on public.users         for update using (uid = auth.uid());
-create policy duels_upd   on public.duels         for update using (p1 = auth.uid() or p2 = auth.uid());
-create policy friends_upd on public.friends       for update using (uid = auth.uid());
+create policy users_upd   on public.users         for update using (uid = auth.uid()::text);
+create policy duels_upd   on public.duels         for update using (p1 = auth.uid()::text or p2 = auth.uid()::text);
+create policy friends_upd on public.friends       for update using (uid = auth.uid()::text);
 
 grant usage on schema public to anon;
 grant select on public.scores, public.daily, public.group_members, public.group_pts,

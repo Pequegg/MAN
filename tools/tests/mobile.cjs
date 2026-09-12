@@ -35,6 +35,7 @@ const dom = new JSDOM(html, {
     Object.defineProperty(wd, 'devicePixelRatio', { value: 2, configurable: true });
     wd.HTMLCanvasElement.prototype.getContext = function () { return mkCtx(); };
     wd.requestAnimationFrame = cb => setTimeout(() => cb(performance.now()), 16);
+    wd.fetch = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
     wd.preventDefault = () => {};
     wd.addEventListener('error', e => errs.push(String(e.message)));
     wd.addEventListener('unhandledrejection', e => errs.push('unhandled:' + e.reason));
