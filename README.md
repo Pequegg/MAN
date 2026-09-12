@@ -16,8 +16,12 @@ index.html              Página única: estructura + orden de carga de scripts
 css/style.css           Estilos (extraídos del HTML original)
 js/
   config/settings.js    Constantes de arena, temporadas y rangos
+  config/supabase.js    URL del proyecto + llave anon (el interruptor del online)
   core/
     util.js             Helpers ($, randoms, fechas, localStorage)
+    remote.js           Cliente Supabase (PostgREST) sin SDK
+    db.js               Capa de datos offline-first: local + sync a la nube
+    auth.js             Login Google (PKCE) + sesión de invitado (GoTrue)
     state.js            Estado global persistido, toasts, logros
     audio.js            Web Audio: synth de SFX + gancho a sonidos reales
     engine.js           Layout, prerender del abanico y del fondo
@@ -38,10 +42,13 @@ assets/
   audio/sfx/            8 sonidos reales (acierto, fallo, trampa, oro, combo,
                         compra, logro, jefe)
   audio/music/          3 pistas ambientales en loop (calma, fiesta, épica)
+supabase/
+  arena.sql             Esquema SQL (tablas + RLS) para ejecutar en Supabase
 tools/
   gen-assets.cjs        Regenera PNG + WAV (requiere node-canvas)
   split.cjs / build.cjs Regeneran el split y la estructura a partir del monolito
-  tests/                Suite de validación (jsdom + node-canvas)
+  supabase-setup.ps1    Guía para conectar el proyecto Supabase
+  tests/                Suite de validación (jsdom + node-canvas + red simulada)
 ```
 
 ## Cómo funciona la carga (carga inteligente)
@@ -120,6 +127,27 @@ Con eso la Arena sincroniza **grupos, temporadas y el ranking mundial** entre to
 los jugadores, y el reto diario + ranking global se comparten por internet. Sin
 llave o sin red, todo sigue funcionando local (offline-first).
 
+### Cuentas (Fase 0) — "Continuar con Google"
+
+La pantalla de registro muestra un botón **"Continuar con Google"**: entra con tu
+cuenta, el juego **migra el progreso de invitado a tu cuenta** (monedas, niveles
+desbloqueados, arena, puntajes) y desde entonces se **sincroniza en la nube** —
+abre el juego en otro dispositivo con la misma cuenta y verás tu progreso allí.
+
+- El juego sigue funcionando 100 % como invitado (local) sin login.
+- Todo paso por la capa `js/core/db.js`: siempre guarda en local primero
+  (offline-first) y sincroniza cuando hay sesión + red; los conflictos se resuelven
+  por *último guardado gana*.
+- El chip **☁️ nube** en el menú indica sesión conectada.
+
+Para habilitar el botón de Google en tu proyecto Supabase:
+1. Corre `supabase/arena.sql` (crea también la tabla `users`).
+2. Dashboard → **Authentication → Providers → Google**: actívalo con tus claves de
+   la Google Cloud Console (el botón solo escribe/lee si la llave anon está puesta).
+3. En **Authentication → URL Configuration**, añade
+   `https://pequegg.github.io/MAN/` como *Site URL* y redirect válido (o tu propio
+   dominio).
+
 ### Configurar el proyecto
 
 ```bash
@@ -139,3 +167,22 @@ clics que quedan en el dashboard.
 Extensiones posibles en `tools/gen-assets.cjs`: `assets/audio/music/` ya admite
 varias candidatas por familia (heron-boat, ying, heavenly-rive…) si se amplía el
 mapa de `CASETS.music`.
+
+## Roadmap (especificación v2.0 "Online")
+
+Se siguió la spec `SPEC-op-art-fan-v2.md`. **Capa de datos elegida: Supabase**
+(en vez de Firebase): el jugador ya tenía su proyecto, es SQL real (PostgREST
+abierto, sin SDK) y el esquema/RLS vive en un solo archivo versionable.
+
+- ✅ **Fase 0 — Fundaciones**: capa `DB` offline-first (SQL→ `js/core/db.js`),
+  auth Google (PKCE) + invitado (`js/core/auth.js`), perfil en la nube (tabla
+  `users`), migración del progreso local al loguear, ranking/diario/arena online.
+- ⬜ **Fase 1 — Identidad y economía**: armario con validación server-side (RPC
+  `redeem_item`), tienda rotativa diaria, compras con transacción, títulos/marcos.
+- ⬜ **Fase 2 — Duelos asíncronos**: tabla `duels` ya creada en el SQL; falta el
+  flujo reto => huella validada => `resolve_duel` (RPC anti-trampas) => recompensas.
+- ⬜ **Fase 3 — Tiempo real y producción**: salas 1v1 (realtime), push, admin.
+
+Criterios de aceptación de la Fase 0 (verificables): el juego funciona igual con y
+sin red; al loguear con Google, el progreso local aparece en la nube y en otro
+dispositivo.

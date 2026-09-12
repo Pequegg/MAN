@@ -10,3 +10,7 @@
       estan protegidos por las politicas RLS que crea el SQL. */
 var SUPABASE_URL = "https://yrrgyunksjnzinhcedqv.supabase.co";
 var SUPABASE_ANON_KEY = "";
+
+/* URL donde queda publicado el juego (para el login de Google y el
+   ranking). Si no la cambias, se usa la URL actual del navegador. */
+var SUPABASE_SITE_URL = "https://pequegg.github.io/MAN/";

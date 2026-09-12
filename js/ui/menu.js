@@ -3,7 +3,11 @@
 "use strict";
 
 /* ---------- Menú ---------- */
-function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); }
+function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); showAuthChip(); }
+function showAuthChip(){
+  var mc=$("menuCloud");
+  if(mc) mc.style.display = (typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed() && Auth.uid()) ? "inline-flex" : "none";
+}
 function renderMenuStatus(){
   var tierEl=$("menuTier"), stEl=$("menuStreak");
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }

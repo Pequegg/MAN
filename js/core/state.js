@@ -17,7 +17,7 @@ var settings = ls("settings") || {colorblind:false};
 var introDone = ls("introDone") || false;
 var introDoneKey = "introDone";
 var session = { activeNow:[], usedRevive:false, lastIn:0 };
-function saveAll(){ ls("profile",profile); ls("coins",coins); ls("inventory",inventory); ls("equipped",equipped); ls("completed",completed); ls("pb",pb); ls("achievements",achievements); ls("totalEarned",totalEarned); ls("ownedSkins",ownedSkins); ls("activeSkin",activeSkin); ls("settings",settings); ls("introDone",introDone); }
+function saveAll(){ ls("profile",profile); ls("coins",coins); ls("inventory",inventory); ls("equipped",equipped); ls("completed",completed); ls("pb",pb); ls("achievements",achievements); ls("totalEarned",totalEarned); ls("ownedSkins",ownedSkins); ls("activeSkin",activeSkin); ls("settings",settings); ls("introDone",introDone); if(typeof Db!=="undefined" && Db.queueSync) Db.queueSync(); }
 
 /* ---------- Toasts ---------- */
 function toast(msg, ico, cls, ms){ var t=document.createElement("div"); t.className="toast"+(cls?" "+cls:""); t.innerHTML="<span class='t-ico'>"+(ico||"")+"</span><span>"+msg+"</span>"; $("toasts").appendChild(t); setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); },320); }, ms||2600); }

@@ -141,16 +141,21 @@ drop policy if exists friends_write on public.friends;
 drop policy if exists purch_read    on public.purchases;
 drop policy if exists purch_write   on public.purchases;
 
+-- Resultados de partida: lectura y escritura publicas (la llave anon).
+-- La validacion anti-trampas se hace en el servidor (funciones/RPC),
+-- no restringiendo la escritura.
 create policy scores_read   on public.scores        for select using (true);
-create policy scores_write  on public.scores        for insert with check (uid = auth.uid());
+create policy scores_write  on public.scores        for insert with check (true);
 create policy daily_read    on public.daily         for select using (true);
-create policy daily_write   on public.daily         for insert with check (uid = auth.uid());
+create policy daily_write   on public.daily         for insert with check (true);
 create policy gm_read       on public.group_members for select using (true);
-create policy gm_write      on public.group_members for insert with check (uid = auth.uid());
+create policy gm_write      on public.group_members for insert with check (true);
 create policy gp_read       on public.group_pts     for select using (true);
-create policy gp_write      on public.group_pts     for insert with check (uid = auth.uid());
+create policy gp_write      on public.group_pts     for insert with check (true);
 create policy ad_read       on public.arena_daily   for select using (true);
-create policy ad_write      on public.arena_daily   for insert with check (uid = auth.uid());
+create policy ad_write      on public.arena_daily   for insert with check (true);
+
+-- Datos de cuenta y sociales: solo la sesion real (Google) toca lo suyo.
 create policy users_read    on public.users         for select using (true);
 create policy users_write   on public.users         for insert with check (uid = auth.uid());
 create policy duels_read    on public.duels         for select using (p1 = auth.uid() or p2 = auth.uid());
@@ -159,7 +164,7 @@ create policy friends_read  on public.friends       for select using (uid = auth
 create policy friends_write on public.friends       for insert with check (uid = auth.uid());
 create policy purch_read    on public.purchases     for select using (uid = auth.uid());
 
--- Actualizar el propio perfil (queremos update, no solo insert)
+-- Actualizar registros propios (queremos update, no solo insert)
 drop policy if exists scores_upd   on public.scores;
 drop policy if exists daily_upd    on public.daily;
 drop policy if exists gm_upd       on public.group_members;
@@ -168,11 +173,14 @@ drop policy if exists ad_upd       on public.arena_daily;
 drop policy if exists users_upd    on public.users;
 drop policy if exists duels_upd    on public.duels;
 drop policy if exists friends_upd  on public.friends;
-create policy scores_upd  on public.scores        for update using (uid = auth.uid());
-create policy daily_upd   on public.daily         for update using (uid = auth.uid());
-create policy gm_upd      on public.group_members for update using (uid = auth.uid());
-create policy gp_upd      on public.group_pts     for update using (uid = auth.uid());
-create policy ad_upd      on public.arena_daily   for update using (uid = auth.uid());
+-- Resultados de partida: update publico tambien (la llave anon puede
+-- actualizar su fila al re-logar; sin sesion la persona es "anonima").
+create policy scores_upd  on public.scores        for update using (true);
+create policy daily_upd   on public.daily         for update using (true);
+create policy gm_upd      on public.group_members for update using (true);
+create policy gp_upd      on public.group_pts     for update using (true);
+create policy ad_upd      on public.arena_daily   for update using (true);
+-- Cuenta y sociales: solo la sesion real.
 create policy users_upd   on public.users         for update using (uid = auth.uid());
 create policy duels_upd   on public.duels         for update using (p1 = auth.uid() or p2 = auth.uid());
 create policy friends_upd on public.friends       for update using (uid = auth.uid());

@@ -21,7 +21,7 @@ function modeById(id){ return ARENA_MODES.find(function(m){return m.id===id;})||
 var arena = ls("arena") || {groups:[], groupData:{}, activeGroup:null, days:{},
                             wardrobe:{owned:[], hat:"", fan:"", cape:"", bg:""}, retosWon:{}, daysDone:[],
                             lastMode:"lanterns", lastScore:0, lastWon:false, isNewBest:false, pendingPts:0};
-function saveArena(){ ls("arena", arena); }
+function saveArena(){ ls("arena", arena); if(typeof Db!=="undefined" && Db.queueSync) Db.queueSync(); }
 
 function seasonKey(){ return "S"+Math.floor((Date.now()-ARENA_EPOCH)/(SEASON_DAYS*86400000)); }
 function dateKeyOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }

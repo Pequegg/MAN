@@ -107,6 +107,10 @@
     <p class="sub" style="text-align:center;">Abanico de los Mil Motivos <span class="sin-title">扇</span> · ¿Quién va a jugar?</p>
     <input id="nameInput" class="name-input" type="text" maxlength="16" placeholder="Tu nombre o apodo" autocomplete="off">
     <div class="avatar-grid" id="avatarGrid"></div>
+    <div class="auth-row" id="authRow">
+      <button id="googleBtn" class="btn ghost g-btn" style="max-width:300px;"><span class="g-ico">G</span> <span id="gBtnTxt">Continuar con Google (guarda tu progreso)</span></button>
+    </div>
+    <p id="authStatus" class="sub" style="display:none; text-align:center;"></p>
     <button id="registerBtn" class="btn pink mt16" style="max-width:300px;">¡A jugar!</button>
   </section>
 
@@ -120,6 +124,7 @@
           <div class="row wrap" style="gap:4px; margin-top:3px;">
             <span class="coins-pill" style="font-size:12px;">🪙 <b id="menuCoins">0</b></span>
             <span class="tier-chip" id="menuTier">✨ Novato</span>
+            <span class="cloud-tag" id="menuCloud" style="display:none;" title="Progreso guardado en la nube con tu cuenta Google">☁️ nube</span>
           </div>
           <span class="streak-chip" id="menuStreak" style="display:none;"></span>
         </div>
@@ -376,6 +381,8 @@
 <script src="js/config/settings.js"></script>
   <script src="js/config/supabase.js"></script>
   <script src="js/core/remote.js"></script>
+  <script src="js/core/db.js"></script>
+  <script src="js/core/auth.js"></script>
   <script src="js/core/util.js"></script>
   <script src="js/levels/levels.js"></script>
   <script src="js/levels/daily.js"></script>

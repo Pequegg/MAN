@@ -4,7 +4,7 @@
 
 var P = "opartfan:";
 function ls(k, v){ if (v === undefined) { try { var s = localStorage.getItem(P+k); return s==null?null:JSON.parse(s);}catch(e){return null;} } try { localStorage.setItem(P+k, JSON.stringify(v)); }catch(e){} }
-function uid(){ var u = ls("uid"); if (!u){ u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2,10); ls("uid", u); } return u; }
+function uid(){ var au=(typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed()) ? Auth.uid() : null; if(au) return au; var u = ls("uid"); if (!u){ u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2,10); ls("uid", u); } return u; }
 var AVATARS = ["\u{1F98A}","\u{1F431}","\u{1F436}","\u{1F43C}","\u{1F438}","\u{1F984}","\u{1F419}","\u{1F916}","\u{1F60E}","\u{1F47D}"];
 function todayKey(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function weekKey(){ var d=new Date(); var day=(d.getDay()+6)%7; var m=new Date(d); m.setDate(d.getDate()-day); m.setHours(0,0,0,0); return m.getTime(); }

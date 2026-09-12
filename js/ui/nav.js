@@ -7,6 +7,11 @@ var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily"
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
 function goMenu(){ show("menu"); refreshMenuCoins(); }
 
+function finishBoot(){
+  if(!introDone){ tutSlide=0; showTut(); show("tutorial"); }
+  else if(!profile.name){ selectedAvatar=profile.avatar||AVATARS[0]; $("nameInput").value=""; paintAuth(); show("register"); }
+  else { refreshMenu(); goMenu(); showAuthChip(); }
+}
 function boot(){
   // activos: plan + pantalla de carga + precarga progresiva sin bloquear
   try{
@@ -26,8 +31,6 @@ function boot(){
   }catch(e){ try{ afnHide(); }catch(_){} }
   fillAvatars();
   generateDaily();
-  if(!introDone){ tutSlide=0; showTut(); show("tutorial"); }
-  else if(!profile.name){ selectedAvatar=profile.avatar||AVATARS[0]; $("nameInput").value=""; show("register"); }
-  else { refreshMenu(); goMenu(); }
+  Auth.boot(finishBoot);
 }
 window.addEventListener("load", boot);

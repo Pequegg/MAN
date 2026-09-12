@@ -66,6 +66,13 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
 .btn.cyan{background:linear-gradient(135deg,#5bc0f0,#2a66b8); box-shadow:inset 0 1px 0 rgba(255,255,255,.3), inset 0 -3px 8px rgba(4,30,60,.4), var(--glowc);}
 .btn.gold{background:linear-gradient(135deg,#ffe68a,#f3b640 55%,#a86f14); color:#2a1700; box-shadow:inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 8px rgba(90,50,0,.35), var(--glowg);}
 .btn.ghost{background:transparent; border:1px solid var(--line); box-shadow:none;}
+.btn.g-btn{border-color:rgba(255,255,255,.28);}
+.g-ico{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
+  background:linear-gradient(135deg,#4285f4,#34a853 55%,#fbbc05 75%,#ea4335); color:#fff; font-weight:900; font-size:12px; flex:none;}
+.auth-row{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; margin-top:14px;}
+#authStatus{font-size:12px; color:var(--dim); margin-top:10px;}
+.cloud-tag{display:inline-flex; align-items:center; gap:3px; background:rgba(77,175,232,.16); border:1px solid rgba(77,175,232,.4);
+  border-radius:999px; padding:2px 8px; font-size:10px; font-weight:800; color:var(--cyan); letter-spacing:.4px;}
 .btn.small{padding:9px 12px; font-size:13px; border-radius:11px; width:auto;}
 .btn:disabled{opacity:.4; pointer-events:none;}
 .chip{display:inline-flex; align-items:center; gap:4px; background:var(--panel2); border:1px solid var(--line);
@@ -383,6 +390,10 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <p class="sub" style="text-align:center;">Abanico de los Mil Motivos <span class="sin-title">扇</span> · ¿Quién va a jugar?</p>
     <input id="nameInput" class="name-input" type="text" maxlength="16" placeholder="Tu nombre o apodo" autocomplete="off">
     <div class="avatar-grid" id="avatarGrid"></div>
+    <div class="auth-row" id="authRow">
+      <button id="googleBtn" class="btn ghost g-btn" style="max-width:300px;"><span class="g-ico">G</span> <span id="gBtnTxt">Continuar con Google (guarda tu progreso)</span></button>
+    </div>
+    <p id="authStatus" class="sub" style="display:none; text-align:center;"></p>
     <button id="registerBtn" class="btn pink mt16" style="max-width:300px;">¡A jugar!</button>
   </section>
 
@@ -396,6 +407,7 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
           <div class="row wrap" style="gap:4px; margin-top:3px;">
             <span class="coins-pill" style="font-size:12px;">🪙 <b id="menuCoins">0</b></span>
             <span class="tier-chip" id="menuTier">✨ Novato</span>
+            <span class="cloud-tag" id="menuCloud" style="display:none;" title="Progreso guardado en la nube con tu cuenta Google">☁️ nube</span>
           </div>
           <span class="streak-chip" id="menuStreak" style="display:none;"></span>
         </div>
@@ -679,7 +691,11 @@ var ARENA_MODES = [
       y pegala abajo. La llave anon es publica por diseno; los datos
       estan protegidos por las politicas RLS que crea el SQL. */
 var SUPABASE_URL = "https://yrrgyunksjnzinhcedqv.supabase.co";
-var SUPABASE_ANON_KEY = "";</script>
+var SUPABASE_ANON_KEY = "";
+
+/* URL donde queda publicado el juego (para el login de Google y el
+   ranking). Si no la cambias, se usa la URL actual del navegador. */
+var SUPABASE_SITE_URL = "https://pequegg.github.io/MAN/";</script>
   <script>/* Op-Art Fan - modulo: js/core/remote.js */
 
 "use strict";
@@ -719,13 +735,265 @@ var SupRemote = (function(){
   }
   return {on:on, base:base, enc:enc, get:get, upsert:upsert, bestScore:bestScore};
 })();</script>
+  <script>/* Op-Art Fan - modulo: js/core/db.js */
+
+"use strict";
+
+/* ---------- Capa de datos offline-first (spec v2 Fase 0) ----------
+   - Guarda SIEMPRE en local (el juego funciona 100% sin red).
+   - Cuando hay sesión Google + Supabase configurado, sincroniza el
+     perfil completo con la tabla `users` (último guardado gana).
+   - Conflicto: se compara el timestamp del guardado (last-write-wins). */
+var Db = (function(){
+  var timer=null;
+
+  function ready(){
+    if(typeof SupRemote==="undefined" || !SupRemote.on()) return false;
+    if(typeof Auth==="undefined" || !Auth.isAuthed || !Auth.isAuthed()) return false;
+    return true;
+  }
+
+  function snapshot(){
+    return { name:profile.name, avatar:profile.avatar, coins:coins,
+      inventory:inventory, equipped:equipped, completed:completed, pb:pb,
+      achievements:achievements, totalEarned:totalEarned,
+      ownedSkins:ownedSkins, activeSkin:activeSkin, settings:settings,
+      introDone:introDone, arena:arena, dailyBest:ls("dailyBest")||{} };
+  }
+
+  function C(v,d){ return (typeof v==="undefined"||v===null)?d:v; }
+
+  function push(){
+    if(!ready()) return;
+    var s=snapshot(); s._saved=Date.now();
+    try{ SupRemote.upsert("users",[{uid:Auth.uid(), profile:s}]).catch(function(){}); }catch(e){}
+  }
+
+  function queueSync(){
+    if(!ready()) return;
+    if(timer) clearTimeout(timer);
+    timer=setTimeout(function(){ timer=null; push(); }, 2200);
+  }
+
+  function pull(){
+    return new Promise(function(res){
+      if(!ready()){ res(false); return; }
+      if(ls("dbPulling")){ res(false); return; }
+      ls("dbPulling", 1);
+      var q="uid=eq."+SupRemote.enc(Auth.uid());
+      try{
+        SupRemote.get("users",q).then(function(rows){
+          ls("dbPulling", 0);
+          var r=rows&&rows[0];
+          if(!r || !r.profile){ res(false); return; }
+          var s=r.profile;
+          var last=ls("lastSync")||0;
+          if((s._saved||0) > last){
+            applyRemote(s);
+            ls("lastSync", s._saved||Date.now());
+            res(true);
+          } else {
+            // nada remoto mas nuevo: marca para no repetir antes que local guarde
+            ls("lastSync", Date.now());
+            res(false);
+          }
+        }).catch(function(){ ls("dbPulling",0); res(false); });
+      }catch(e){ ls("dbPulling",0); res(false); }
+    });
+  }
+
+  function mergeGd(a,b){
+    var out=a||{};
+    Object.keys(b||{}).forEach(function(code){
+      var src=b[code]; var dst=out[code]||{members:{},pts:{}};
+      if(src.members){ Object.keys(src.members).forEach(function(u){ if(!dst.members[u]) dst.members[u]=src.members[u]; }); }
+      if(src.pts){ Object.keys(src.pts).forEach(function(sk){
+        if(!dst.pts[sk]) dst.pts[sk]={};
+        Object.keys(src.pts[sk]).forEach(function(u){
+          var v=src.pts[sk][u]||0;
+          if((dst.pts[sk][u]||0) < v) dst.pts[sk][u]=v;
+        });
+      }); }
+      out[code]=dst;
+    });
+    return out;
+  }
+
+  function applyRemote(p){
+    if(!p) return;
+    profile.name=C(p.name,profile.name);
+    if(p.avatar) profile.avatar=p.avatar;
+    coins=C(p.coins,coins);
+    inventory=C(p.inventory,inventory);
+    equipped=C(p.equipped,equipped);
+    completed=C(p.completed,completed);
+    pb=C(p.pb,pb);
+    achievements=C(p.achievements,achievements);
+    totalEarned=C(p.totalEarned,totalEarned);
+    ownedSkins=C(p.ownedSkins,ownedSkins);
+    activeSkin=C(p.activeSkin,activeSkin);
+    if(p.settings) settings=C(p.settings,settings);
+    introDone=C(p.introDone,introDone);
+    if(p.dailyBest) ls("dailyBest",p.dailyBest);
+    if(p.arena){
+      var a=p.arena;
+      if(a.groups && a.groups.length) arena.groups=a.groups.concat(arena.groups||[]).filter(function(x,i,arr){ return arr.indexOf(x)===i; });
+      if(a.groupData) arena.groupData=mergeGd(arena.groupData, a.groupData);
+      if(!arena.activeGroup && a.activeGroup) arena.activeGroup=a.activeGroup;
+      if(a.wardrobe && a.wardrobe.owned) arena.wardrobe=a.wardrobe;
+      if(a.days) Object.keys(a.days).forEach(function(k){ if(!arena.days[k]) arena.days[k]=a.days[k]; });
+      if(a.daysDone) arena.daysDone=a.daysDone.concat(arena.daysDone||[]).filter(function(x,i,arr){ return arr.indexOf(x)===i; });
+      if(a.retosWon) Object.keys(a.retosWon).forEach(function(m){ arena.retosWon[m]=(arena.retosWon[m]||0)+a.retosWon[m]; });
+    }
+    saveArena(); saveAll();
+  }
+
+  function remapUid(oldUid){
+    if(!oldUid) return;
+    if(typeof Auth==="undefined") return;
+    var nu=Auth.uid(); if(!nu || oldUid===nu) return;
+    // progreso de arena bajo la identidad vieja -> cuenta de Google
+    Object.keys(arena.groupData||{}).forEach(function(code){
+      var gd=arena.groupData[code];
+      if(gd.members && gd.members[oldUid]){ gd.members[nu]=gd.members[oldUid]; delete gd.members[oldUid]; }
+      if(gd.pts){ Object.keys(gd.pts).forEach(function(sk){
+        if(gd.pts[sk] && gd.pts[sk][oldUid]!=null){
+          gd.pts[sk][nu]=(gd.pts[sk][nu]||0)+gd.pts[sk][oldUid];
+          delete gd.pts[sk][oldUid];
+        }
+      }); }
+    });
+    var sc=ls("localScores")||[];
+    var moved=false;
+    var ns=sc.map(function(e){ if(e&&e.uid===oldUid){ moved=true; var x={}; Object.keys(e).forEach(function(k){ x[k]=e[k]; }); x.uid=nu; return x; } return e; });
+    if(moved) ls("localScores", ns);
+    ls("uid", nu);
+    saveArena();
+    if(arena.groups) arena.groups.forEach(pushGroupRemote);
+  }
+
+  return {ready:ready, queueSync:queueSync, push:push, pull:pull, applyRemote:applyRemote, remapUid:remapUid};
+})();</script>
+  <script>/* Op-Art Fan - modulo: js/core/auth.js */
+
+"use strict";
+
+/* ---------- Autenticación Supabase (GoTrue, sin SDK) ----------
+   Flujo "Continuar con Google": PKCE + redirect. Al volver del
+   navegador, el código se cambia por una sesión de token.
+   Sin sesión, el juego funciona como invitado con perfil local. */
+var Auth = (function(){
+  var SK="sb-session", VK="sb-pkce-verifier";
+
+  function apikey(){ return typeof SUPABASE_ANON_KEY!=="undefined" ? SUPABASE_ANON_KEY : ""; }
+  function authBase(){ return SUPABASE_URL.replace(/\/$/,"")+"/auth/v1"; }
+
+  function randomBytes(n){
+    var a=new Uint8Array(n);
+    if(window.crypto && crypto.getRandomValues){ crypto.getRandomValues(a); }
+    else { for(var i=0;i<n;i++) a[i]=Math.floor(Math.random()*256); }
+    return a;
+  }
+  function b64u(buf){ return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+
+  function saveSession(s){
+    if(!s || !s.access_token) return null;
+    var u=s.user||{};
+    ls(SK, JSON.stringify({access_token:s.access_token, refresh_token:s.refresh_token||"",
+      expires_at:(Date.now()/1000)+(s.expires_in||3600),
+      user:{id:u.id, email:u.email||"", meta:(u.user_metadata||{})}}));
+    return session();
+  }
+  function session(){ try{ var s=ls(SK); return s?JSON.parse(s):null; }catch(e){ return null; } }
+  function isAuthed(){ var s=session(); return !!(s&&s.access_token&&dateOk(s)); }
+  function dateOk(s){ return !s.expires_at || (s.expires_at*1000) > Date.now()+60000; }
+
+  function uid(){ var s=session(); return (s&&s.user&&s.user.id)||null; }
+  function userName(){ var s=session(); if(!s) return null; var m=s.user.meta||{}; return (m.full_name||m.name||s.user.email||"").toString().slice(0,16); }
+  function email(){ var s=session(); return (s&&s.user&&s.user.email)||""; }
+
+  function cleanUrl(){
+    var u=new URL(location.href);
+    if(u.searchParams.get("code")||u.searchParams.get("error")){
+      u.searchParams.delete("code"); u.searchParams.delete("error");
+      history.replaceState(null,"",u.pathname+u.search);
+    }
+  }
+
+  function boot(cb){
+    cb=cb||function(){};
+    var chain=Promise.resolve();
+    var mustPull=false;
+    if(new URL(location.href).searchParams.get("code")){ mustPull=true; chain=oauthReturn(); }
+    chain.then(function(){
+      if(isAuthed() && mustPull) return Db.pull().catch(function(){});
+      return null;
+    }).then(function(){ cleanUrl(); try{ cb(); }catch(e){} });
+  }
+
+  function oauthReturn(){
+    var u=new URL(location.href); var code=u.searchParams.get("code");
+    if(!code) return Promise.resolve();
+    var verifier=ls(VK); ls(VK,"");
+    if(!verifier) return Promise.resolve();
+    var oldUid=ls("uid")||null;
+    return exchange(code, verifier).then(function(s){
+      if(!s) return;
+      Db.remapUid(oldUid);  // mueve el progreso de invitado a la cuenta
+      try{ if(window.sfxGold) sfxGold(); }catch(e){}
+    }).catch(function(){});
+  }
+
+  function exchange(code, verifier){
+    return fetch(authBase()+"/token?grant_type=pkce", {
+      method:"POST", headers:{"apikey":apikey(),"Content-Type":"application/json"},
+      body:JSON.stringify({auth_code:code, code_verifier:verifier})
+    }).then(function(r){ if(!r.ok) throw new Error("oauth "+r.status); return r.json(); })
+      .then(function(j){ return saveSession(j); });
+  }
+
+  function challenge(){
+    return new Promise(function(res, rej){
+      if(!window.crypto || !crypto.subtle){ rej(new Error("no-crypto")); return; }
+      var v=b64u(randomBytes(48));
+      crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)).then(function(buf){
+        res({v:v, c:b64u(buf)});
+      }).catch(rej);
+    });
+  }
+
+  function googleLogin(){
+    if(typeof SupRemote==="undefined" || !SupRemote.on()){
+      if(window.toast) toast("Primero pega tu SUPABASE_ANON_KEY en js/config/supabase.js","\u26A0","err");
+      return;
+    }
+    var site=SUPABASE_SITE_URL||(location.origin+location.pathname);
+    challenge().then(function(h){
+      ls(VK, h.v);
+      location.href=authBase()+"/authorize?provider=google&redirect_to="+encodeURIComponent(site)+"&code_challenge="+h.c+"&code_challenge_method=S256";
+    }).catch(function(){ if(window.toast) toast("Tu navegador no soporta el login seguro (crypto.subtle)","\u26A0","err"); });
+  }
+
+  function signOut(){
+    var s=session();
+    if(s){
+      try{ fetch(authBase()+"/logout",{method:"POST",
+        headers:{"apikey":apikey(),"Authorization":"Bearer "+s.access_token}}).catch(function(){}); }catch(e){}
+    }
+    ls(SK, "");
+    location.reload();
+  }
+
+  return {boot:boot, googleLogin:googleLogin, signOut:signOut, refresh:null,
+    isAuthed:isAuthed, uid:uid, userName:userName, email:email, session:session};
+})();</script>
   <script>/* Op-Art Fan - modulo: js/core/util.js */
 
 "use strict";
 
 var P = "opartfan:";
 function ls(k, v){ if (v === undefined) { try { var s = localStorage.getItem(P+k); return s==null?null:JSON.parse(s);}catch(e){return null;} } try { localStorage.setItem(P+k, JSON.stringify(v)); }catch(e){} }
-function uid(){ var u = ls("uid"); if (!u){ u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2,10); ls("uid", u); } return u; }
+function uid(){ var au=(typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed()) ? Auth.uid() : null; if(au) return au; var u = ls("uid"); if (!u){ u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2,10); ls("uid", u); } return u; }
 var AVATARS = ["\u{1F98A}","\u{1F431}","\u{1F436}","\u{1F43C}","\u{1F438}","\u{1F984}","\u{1F419}","\u{1F916}","\u{1F60E}","\u{1F47D}"];
 function todayKey(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function weekKey(){ var d=new Date(); var day=(d.getDay()+6)%7; var m=new Date(d); m.setDate(d.getDate()-day); m.setHours(0,0,0,0); return m.getTime(); }
@@ -850,7 +1118,7 @@ var settings = ls("settings") || {colorblind:false};
 var introDone = ls("introDone") || false;
 var introDoneKey = "introDone";
 var session = { activeNow:[], usedRevive:false, lastIn:0 };
-function saveAll(){ ls("profile",profile); ls("coins",coins); ls("inventory",inventory); ls("equipped",equipped); ls("completed",completed); ls("pb",pb); ls("achievements",achievements); ls("totalEarned",totalEarned); ls("ownedSkins",ownedSkins); ls("activeSkin",activeSkin); ls("settings",settings); ls("introDone",introDone); }
+function saveAll(){ ls("profile",profile); ls("coins",coins); ls("inventory",inventory); ls("equipped",equipped); ls("completed",completed); ls("pb",pb); ls("achievements",achievements); ls("totalEarned",totalEarned); ls("ownedSkins",ownedSkins); ls("activeSkin",activeSkin); ls("settings",settings); ls("introDone",introDone); if(typeof Db!=="undefined" && Db.queueSync) Db.queueSync(); }
 
 /* ---------- Toasts ---------- */
 function toast(msg, ico, cls, ms){ var t=document.createElement("div"); t.className="toast"+(cls?" "+cls:""); t.innerHTML="<span class='t-ico'>"+(ico||"")+"</span><span>"+msg+"</span>"; $("toasts").appendChild(t); setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); },320); }, ms||2600); }
@@ -1181,7 +1449,7 @@ function modeById(id){ return ARENA_MODES.find(function(m){return m.id===id;})||
 var arena = ls("arena") || {groups:[], groupData:{}, activeGroup:null, days:{},
                             wardrobe:{owned:[], hat:"", fan:"", cape:"", bg:""}, retosWon:{}, daysDone:[],
                             lastMode:"lanterns", lastScore:0, lastWon:false, isNewBest:false, pendingPts:0};
-function saveArena(){ ls("arena", arena); }
+function saveArena(){ ls("arena", arena); if(typeof Db!=="undefined" && Db.queueSync) Db.queueSync(); }
 
 function seasonKey(){ return "S"+Math.floor((Date.now()-ARENA_EPOCH)/(SEASON_DAYS*86400000)); }
 function dateKeyOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -2678,7 +2946,11 @@ paintSound();</script>
 "use strict";
 
 /* ---------- Menú ---------- */
-function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); }
+function refreshMenu(){ $("menuAvatar").textContent = profile.avatar; $("menuName").textContent = profile.name; $("menuCoins").textContent = num(coins); paintToggle(); renderMenuStatus(); showAuthChip(); }
+function showAuthChip(){
+  var mc=$("menuCloud");
+  if(mc) mc.style.display = (typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed() && Auth.uid()) ? "inline-flex" : "none";
+}
 function renderMenuStatus(){
   var tierEl=$("menuTier"), stEl=$("menuStreak");
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
@@ -2713,12 +2985,36 @@ function finishIntro(){ introDone=true; saveAll(); show("register"); fillAvatars
 /* ---------- Registro ---------- */
 var selectedAvatar = profile.avatar || AVATARS[0];
 function fillAvatars(){ var g=$("avatarGrid"); g.innerHTML=""; AVATARS.forEach(function(a){ var d=document.createElement("div"); d.className="avatar-box"+(a===selectedAvatar?" on":""); d.textContent=a; d.onclick=function(){ ensureAudio(); sfxClick(); selectedAvatar=a; g.querySelectorAll(".avatar-box").forEach(function(x){x.classList.remove("on");}); d.classList.add("on"); }; g.appendChild(d); }); }
+function paintAuth(){
+  var row=$("authRow"), st=$("authStatus"), txt=$("gBtnTxt");
+  if(!row) return;
+  if(typeof Auth==="undefined" || !Auth.isAuthed() || !Auth.uid()){
+    row.style.display="flex";
+    if(txt) txt.textContent="Continuar con Google (guarda tu progreso)";
+    if(st) st.style.display="none";
+    return;
+  }
+  row.style.display="none";
+  if(st){
+    st.style.display="block";
+    st.innerHTML="\u2705 Sesión de Google conectada · tu progreso se guarda en la nube. <a href='#' id='signOutLink' style='color:var(--gold);'>salir</a>";
+    var so=$("signOutLink");
+    if(so) so.onclick=function(e){ e.preventDefault(); try{ Auth.signOut(); }catch(err){ location.reload(); } };
+  }
+}
+$("googleBtn").addEventListener("click", function(){
+  sfxClick();
+  if(typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){ Auth.signOut(); return; }
+  Auth.googleLogin();
+});
 $("registerBtn").addEventListener("click", function(){
   ensureAudio(); sfxClick();
   var n=$("nameInput").value.trim();
   if(!n){ toast("Escribe tu nombre o apodo primero","\u270B","err"); $("nameInput").focus(); return; }
   profile = {name:n.slice(0,16), avatar:selectedAvatar};
-  saveAll(); refreshMenu(); goMenu(); toast("¡Hola, "+esc(profile.name)+"!","\u{1F44B}");
+  saveAll(); saveArena();
+  refreshMenu(); goMenu(); toast("¡Hola, "+esc(profile.name)+"!","\u{1F44B}");
+  if(typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){ toast("Progreso guardado en tu cuenta Google","\u2601\uFE0F"); }
 });
 $("nameInput").addEventListener("keypress", function(e){ if(e.key==="Enter") $("registerBtn").click(); });</script>
   <script>/* Op-Art Fan - modulo: js/ui/levels.js */
@@ -3264,6 +3560,11 @@ var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily"
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
 function goMenu(){ show("menu"); refreshMenuCoins(); }
 
+function finishBoot(){
+  if(!introDone){ tutSlide=0; showTut(); show("tutorial"); }
+  else if(!profile.name){ selectedAvatar=profile.avatar||AVATARS[0]; $("nameInput").value=""; paintAuth(); show("register"); }
+  else { refreshMenu(); goMenu(); showAuthChip(); }
+}
 function boot(){
   // activos: plan + pantalla de carga + precarga progresiva sin bloquear
   try{
@@ -3283,9 +3584,7 @@ function boot(){
   }catch(e){ try{ afnHide(); }catch(_){} }
   fillAvatars();
   generateDaily();
-  if(!introDone){ tutSlide=0; showTut(); show("tutorial"); }
-  else if(!profile.name){ selectedAvatar=profile.avatar||AVATARS[0]; $("nameInput").value=""; show("register"); }
-  else { refreshMenu(); goMenu(); }
+  Auth.boot(finishBoot);
 }
 window.addEventListener("load", boot);</script>
   <script>
