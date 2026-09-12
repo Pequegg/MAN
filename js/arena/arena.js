@@ -263,6 +263,46 @@ function renderWardrobe(){
   });
 }
 
+/* ---------- Ranking mundial (requiere FIREBASE_URL) ---------- */
+function renderWorldRows(j){
+  var list=$("arenaWorldList"), cnt=$("arenaWorldCount");
+  var arr=Object.keys(j||{}).map(function(u){ return j[u]; }).filter(function(e){ return e && e.score>0; });
+  arr.sort(function(a,b){ return b.score-a.score; });
+  arr=arr.slice(0,25);
+  if(cnt) cnt.textContent=arr.length+" jug.";
+  if(!list) return;
+  if(!arr.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Aún nadie ha jugado el reto de hoy.</div>'; return; }
+  var me=uid();
+  list.innerHTML="";
+  arr.forEach(function(e,i){
+    var isMe=e.uid===me;
+    var med=i<3?(" med"+(i+1)):"";
+    list.innerHTML+='<div class="rank-row'+(isMe?" me":"")+'"><span class="rank-num'+med+'">'+(i+1)+'</span>'+
+      '<span class="rank-av">'+esc(e.avatar||"\u{1F47D}")+'</span>'+
+      '<span class="rank-name">'+(i===0&&arr[0].score>0?'\u{1F451} ':'')+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
+      '<span class="rank-score">'+num(e.score)+'</span></div>';
+  });
+}
+function renderWorldRank(){
+  var list=$("arenaWorldList"); if(!list) return;
+  var cnt=$("arenaWorldCount"), sub=$("arenaWorldSub");
+  if(!FIREBASE_URL){
+    if(cnt) cnt.textContent="local";
+    if(sub) sub.textContent="Conecta Firebase (tools\\firebase-online.ps1) para jugar contra el mundo.";
+    list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">El ranking mundial se activa al conectar la base online.</div>';
+    return;
+  }
+  if(sub) sub.textContent="Puntajes de hoy de todos los jugadores";
+  list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Cargando\u2026</div>';
+  fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/daily/"+todayKey()+".json")
+    .then(function(r){ return r.json(); })
+    .then(function(j){ renderWorldRows(j||{}); })
+    .catch(function(){
+      if(sub) sub.textContent="Sin conexión: ahora mismo se muestra solo tu grupo.";
+      list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">No hay ranking mundial disponible en este momento.</div>';
+    });
+}
+
 /* ---------- Reto diario + temporada (puntos) ---------- */
 function dailyArena(){ var k=todayKey(); if(!arena.days[k]) arena.days[k]={left:ARENA_ATTEMPTS,best:0,played:0,mode:ARENA_MODES[dayNum()%4].id}; return arena.days[k]; }
 function modeWin(m){ var t={calligraphy:400,lanterns:600,coin:800,drum:700}; return t[m]||600; }
@@ -276,7 +316,7 @@ function addSeasonPoints(pts){
   arena.groups.forEach(pushGroupRemote);
 }
 function renderArena(){
-  renderWardrobe(); renderArenaGroups(); renderSeason();
+  renderWardrobe(); renderArenaGroups(); renderSeason(); renderWorldRank();
   $("arenaCoins").textContent=num(coins);
   var day=dailyArena();
   var mode=modeById(day.mode);

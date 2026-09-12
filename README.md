@@ -98,17 +98,36 @@ node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 
 ## Ranking mundial (Arena online)
 
 La Arena y el reto diario funcionan **100% local** (guardan en tu dispositivo).
-Para compartir *grupos* y *temporadas* entre jugadores hay una capa online opcional:
-crea una base en [Firebase Realtime Database](https://console.firebase.google.com)
-(reglas en modo `test` mientras pruebas), copia su URL y pégala en
+Para que **todo el mundo** comparta el reto diario y se vea un **ranking mundial**,
+activa la capa online de Firebase con un solo comando (Windows):
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools\firebase-online.ps1
+```
+
+El script instala `firebase-tools`, te pide entrar con tu cuenta de Google (una
+sola vez, se abre el navegador; plan gratuito Spark), crea el proyecto y la
+Realtime Database, sube las reglas de prueba y deja la URL puesta en
+`js/config/settings.js`. Luego solo hay que subir el cambio:
+
+```bash
+git add js/config/settings.js
+git commit -m "firebase online"
+git push
+```
+
+Si prefieres hacerlo a mano: crea una base en
+[Firebase Realtime Database](https://console.firebase.google.com) y pega su URL en
 `js/config/settings.js`:
 
 ```js
 var FIREBASE_URL = "https://tuproyecto-default-rtdb.europe-west1.firebasedatabase.app/";
 ```
 
-Con eso la Arena sincroniza miembros, puntos de temporada y el marcador del reto
-diario entre todos los jugadores que la usan.
+Reglas de prototipo (archivo `firebase-rules.json`): lectura/escritura abiertas
+solo bajo `/arena/*` (miembros, puntos de temporada y marcador del reto diario).
+Con eso la Arena sincroniza **grupos, temporadas y el ranking mundial** entre todos
+los jugadores.
 
 ## Publicar (alternativas)
 
