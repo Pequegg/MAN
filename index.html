@@ -222,6 +222,36 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
 .toast.out{animation:tout .3s ease-in forwards;}
 @keyframes tout{to{opacity:0; transform:translateY(-14px) scale(.9);}}
 
+/* ---------- arena ---------- */
+.mode-big{width:64px; height:64px; flex:none; border-radius:18px; display:flex; align-items:center; justify-content:center;
+  font-size:34px; background:linear-gradient(135deg,#e8643d,#8f2412); border:1px solid var(--gold);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 6px 16px rgba(0,0,0,.4);}
+.attempt-dots{display:flex; gap:5px; justify-content:center;}
+.attempt-dots i{width:12px; height:12px; border-radius:99px; background:var(--panel2); border:1px solid var(--line);}
+.attempt-dots i.on{background:var(--gold); border-color:var(--gold); box-shadow:0 0 8px rgba(255,214,67,.6);}
+.countdown{font-family:ui-monospace,Consolas,Menlo,monospace; letter-spacing:1px; color:var(--gold); font-weight:800;}
+.grp-row{display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer;}
+.grp-row.me{background:var(--panel2); border:1px solid var(--gold); border-radius:12px;}
+.season-head{display:flex; align-items:center; gap:8px; justify-content:space-between; margin-bottom:6px;}
+.ava-stack{position:relative; width:34px; height:34px; flex:none; display:flex; align-items:flex-end; justify-content:center;
+  border-radius:10px; background:var(--panel2); border:1px solid var(--line);}
+.ava-stack .wbase{font-size:21px; line-height:1.15;}
+.ava-stack.bg-red{background:radial-gradient(circle at 50% 28%,#e8643d,#5c1212); border-color:rgba(232,100,61,.55);}
+.ava-stack.bg-jade{background:radial-gradient(circle at 50% 28%,#2eb0a8,#0e5c3a); border-color:rgba(46,176,168,.55);}
+.ava-stack.bg-gold{background:radial-gradient(circle at 50% 28%,#ffd643,#9a6a1a); border-color:rgba(255,214,67,.55);}
+.ava-stack .wa{position:absolute; font-size:10px; line-height:1; pointer-events:none;}
+.ava-stack .wa-hat{top:-4px; left:50%; transform:translateX(-50%); font-size:12px;}
+.ava-stack .wa-cape{bottom:-3px; left:-3px; font-size:11px;}
+.ava-stack .wa-fan{bottom:-3px; right:-3px; font-size:11px;}
+.wear-box{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px;}
+.wear-item{border:1px solid var(--line); background:var(--panel); border-radius:14px; padding:10px 6px; text-align:center; cursor:pointer;}
+.wear-item .wi-ico{font-size:26px; line-height:1.2;}
+.wear-item .wi-nm{font-size:11px; font-weight:800; margin-top:4px; line-height:1.25;}
+.wear-item .wi-pm{font-size:10px; color:var(--gold); margin-top:2px; line-height:1.3;}
+.wear-item .wi-req{font-size:9px; color:var(--dim); margin-top:2px; line-height:1.3;}
+.wear-item.on{border-color:var(--gold); box-shadow:0 0 0 3px rgba(255,214,67,.22);}
+.wear-item.lock{opacity:.55; filter:grayscale(.6);}
+
 @media (min-width:760px){
   .screen{max-width:560px;}
   .btn{cursor:pointer;}
@@ -336,6 +366,7 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <button class="menu-btn" id="btnShop"><span class="ico">🛒</span><span class="grow"><div>Tienda</div><div class="desc">Consumibles y skins</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnAch"><span class="ico">🏅</span><span class="grow"><div>Logros</div><div class="desc">Medallas y premios</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnRank"><span class="ico">🏆</span><span class="grow"><div>Ranking</div><div class="desc">Top global y local</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -417,6 +448,84 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     </div>
     <h2 class="sub mt8">Ranking de hoy</h2>
     <div class="panel" style="padding:6px;" id="dailyRankList"></div>
+  </section>
+
+  <!-- ARENA -->
+  <section id="screen-arena" class="screen">
+    <div class="topbar">
+      <button class="back" id="arenaBack">←</button>
+      <h1 class="title grow" style="margin:0;">Arena</h1>
+      <div class="coins-pill">🪙 <b id="arenaCoins">0</b></div>
+    </div>
+
+    <div class="panel" id="arenaRetoCard">
+      <div class="row" style="gap:12px; align-items:center;">
+        <div class="mode-big" id="arenaModeIco">🏮</div>
+        <div class="grow">
+          <div class="nm" id="arenaModeName">Reto de hoy</div>
+          <div class="sd" id="arenaModeHint" style="color:var(--dim); font-size:12px;">-</div>
+          <div style="color:var(--dim); font-size:12px; margin-top:2px;" id="arenaModeMeta">-</div>
+        </div>
+      </div>
+      <div class="attempt-dots mt12" id="arenaAttempts"></div>
+      <button class="btn pink mt12" id="arenaPlay">Jugar el reto</button>
+      <div class="center sub mt8" style="font-size:12px; color:var(--dim);" id="arenaNext">-</div>
+    </div>
+
+    <div class="panel" id="arenaGroupsPanel">
+      <h2 class="sub" style="margin-bottom:8px;">👥 Tus grupos</h2>
+      <div class="row" style="gap:6px; margin-bottom:8px;">
+        <input id="arenaJoinIn" class="name-input" style="margin:0; flex:1; text-align:left; font-size:14px; text-transform:uppercase;" maxlength="5" placeholder="Código (ej. AB3F9)">
+        <button class="btn small cyan" id="arenaJoin">Unirme</button>
+      </div>
+      <button class="btn small gold" id="arenaCreate" style="width:100%;">+ Crear grupo nuevo</button>
+      <div class="list mt12" id="arenaGroupList"></div>
+      <div class="note-off mt12" id="arenaOffNote" style="display:none;"></div>
+    </div>
+
+    <div class="panel" id="arenaSeasonPanel">
+      <div class="season-head">
+        <h2 class="sub" style="margin:0;">🏆 Temporada actual</h2>
+        <span class="chip" id="arenaSeasonChip">-</span>
+      </div>
+      <div style="font-size:12px; color:var(--dim); margin-bottom:8px;" id="arenaSeasonSub">-</div>
+      <div class="list" id="arenaSeasonList"></div>
+    </div>
+
+    <h2 class="sub mt8">🪭 Armario</h2>
+    <div class="panel">
+      <div class="row" style="gap:10px; margin-bottom:10px;">
+        <div class="ava-stack" id="wardrobePv" style="width:50px; height:50px; border-radius:14px;"></div>
+        <div class="grow">
+          <div style="font-weight:800;" id="wardrobeName">-</div>
+          <div style="font-size:11px; color:var(--dim);">Tu avatar en grupos y clasificaciones</div>
+        </div>
+      </div>
+      <div style="font-size:12px; font-weight:800; margin:6px 0 4px;">Apariencia base</div>
+      <div class="avatar-grid" id="wardrobeBase" style="grid-template-columns:repeat(5,1fr);"></div>
+      <div class="wear-box" id="wardrobeAcc"></div>
+    </div>
+  </section>
+
+  <!-- RESULTADO ARENA -->
+  <section id="screen-aresult" class="screen">
+    <div class="center mt8">
+      <div class="mode-big" id="aresModeIco" style="margin:0 auto 10px;">🏮</div>
+      <h1 class="title" id="aresHead">Reto completado</h1>
+      <div class="sub" id="aresSub" style="margin-bottom:4px;">-</div>
+      <div class="bigscore" id="aresScore">0</div>
+      <div class="stat-grid">
+        <div class="stat"><span>Puntos de temporada</span><b id="aresPts">-</b></div>
+        <div class="stat"><span>Mejor del día</span><b id="aresBest">-</b></div>
+        <div class="stat"><span>Intentos restantes</span><b id="aresLeft">-</b></div>
+        <div class="stat"><span>Racha dorada</span><b id="aresStreak">-</b></div>
+      </div>
+      <div class="center sub" id="aresAgain" style="font-size:12px; color:var(--gold); font-weight:800; margin-bottom:12px;">-</div>
+      <div class="row wrap" style="gap:8px;">
+        <button class="btn pink grow" id="aresRetry">↻ Reintentar</button>
+        <button class="btn ghost" id="aresMenu">Arena</button>
+      </div>
+    </div>
   </section>
 
   <!-- JUEGO -->
@@ -611,11 +720,14 @@ var ACH = [
  {id:"skin", icon:"\u{1F3A8}", name:"Con Estilo", desc:"Compra tu primera skin"},
  {id:"diario", icon:"\u{1F5D3}", name:"Rutina Diaria", desc:"Juega el desafío diario"},
  {id:"record", icon:"\u2B50", name:"Plusmarquista", desc:"Bate tu récord personal en un nivel"},
- {id:"equipado", icon:"\u{1F392}", name:"Bien Equipado", desc:"Equipa 3 artículos a la vez"}
+ {id:"equipado", icon:"\u{1F392}", name:"Bien Equipado", desc:"Equipa 3 artículos a la vez"},
+  {id:"arena", icon:"\u{1F3EE}", name:"Primer Reto", desc:"Juega tu primer reto de Arena"},
+  {id:"arenastar", icon:"\u2B50", name:"Estrella del Reto", desc:"Completa un reto de Arena"},
+  {id:"arenaday", icon:"\u{1F5D3}", name:"Rutina de Arena", desc:"Juega retos en 3 días distintos"}
 ];
 
 /* ---------- Navegación / pantallas ---------- */
-var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","game","result","end"];
+var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","game","result","end"];
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
 function goMenu(){ show("menu"); refreshMenuCoins(); }
 
@@ -968,6 +1080,729 @@ function renderEnd(lv){
 }
 $("endMenu").addEventListener("click", function(){ ensureAudio(); sfxClick(); goMenu(); });
 
+/* ============================================================
+   ARENA — reto diario, grupos, temporadas, armario y mini-juegos
+   (capa adicional: no toca la Historia ni el ranking existentes)
+   ============================================================ */
+var ARENA_TIME = 60;
+var ARENA_ATTEMPTS = 3;
+var SEASON_DAYS = 14;
+var ARENA_EPOCH = new Date(2026,0,5).getTime(); // lunes de referencia
+var ARENA_MODES = [
+ {id:"calligraphy", icon:"\u{1F58B}\uFE0F", name:"Pincelada Veloz", hint:"Traza la caligrafía al tacto"},
+ {id:"lanterns",    icon:"\u{1F3EE}",        name:"Farolillos",      hint:"Toca faroles dorados y esquiva los rojos"},
+ {id:"coin",        icon:"\u{1FA99}",        name:"Moneda de la Suerte", hint:"Detén la rueda en la zona dorada"},
+ {id:"drum",        icon:"\u{1F941}",        name:"Ritmo del Tambor", hint:"Toca siguiendo el compás visual"}
+];
+function modeById(id){ return ARENA_MODES.find(function(m){return m.id===id;})||ARENA_MODES[0]; }
+
+var arena = ls("arena") || {groups:[], groupData:{}, activeGroup:null, days:{},
+                            wardrobe:{owned:[], hat:"", fan:"", cape:"", bg:""}, retosWon:{}, daysDone:[],
+                            lastMode:"lanterns", lastScore:0, lastWon:false, isNewBest:false, pendingPts:0};
+function saveArena(){ ls("arena", arena); }
+
+function seasonKey(){ return "S"+Math.floor((Date.now()-ARENA_EPOCH)/(SEASON_DAYS*86400000)); }
+function seasonRange(){
+  var d=SEASON_DAYS*86400000;
+  var st=ARENA_EPOCH+Math.floor((Date.now()-ARENA_EPOCH)/d)*d;
+  var en=st+d;
+  return {start:st, end:en, days:Math.max(0,Math.ceil((en-Date.now())/86400000)), prog:Math.max(0,Math.min(SEASON_DAYS,Math.ceil((Date.now()-st)/86400000)))};
+}
+function nextMidnight(){ var d=new Date(); d.setHours(24,0,0,0); return d.getTime(); }
+function dayNum(){ return Number(todayKey().replace(/-/g,"")); }
+function fmtCD(ms){
+  if(ms<0) ms=0;
+  var s=Math.floor(ms/1000); var h=Math.floor(s/3600); s-=h*3600;
+  var m=Math.floor(s/60); s-=m*60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+/* ---------- Grupos ---------- */
+function genCode(){ var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; var c=""; for(var i=0;i<5;i++){ c+=chars.charAt(ri(0,chars.length-1)); } return c; }
+function myWear(){ return {hat:arena.wardrobe.hat, fan:arena.wardrobe.fan, cape:arena.wardrobe.cape, bg:arena.wardrobe.bg}; }
+function ensureGroup(code){
+  if(arena.groups.indexOf(code)===-1) arena.groups.push(code);
+  if(!arena.groupData[code]) arena.groupData[code]={members:{}, pts:{}};
+  var gd=arena.groupData[code]; if(!gd.pts) gd.pts={};
+  var sk=seasonKey(); if(!gd.pts[sk]) gd.pts[sk]={};
+  if(gd.pts[sk][uid()]==null) gd.pts[sk][uid()]=0;
+  return gd;
+}
+function joinGroup(code, silent){
+  var c=String(code||"").trim().toUpperCase();
+  if(!/^[A-Z0-9]{5}$/.test(c)){ toast("El código son 5 letras o números","\u26A0","err"); return 0; }
+  var gd=ensureGroup(c);
+  gd.members[uid()]={name:profile.name, avatar:profile.avatar, wear:myWear(), joined:Date.now()};
+  saveArena(); pushGroupRemote(c);
+  if(arena.activeGroup===null) arena.activeGroup=c;
+  if(!silent){ sfxGold(); toast("¡Unido al grupo "+c+"!","\u{1F465}"); }
+  renderArenaGroups(); renderSeason(); renderWardrobe();
+  return 1;
+}
+function createGroup(){
+  var cand=genCode(), tries=0;
+  while(arena.groups.indexOf(cand)>-1 && tries<50){ cand=genCode(); tries++; }
+  var gd=ensureGroup(cand);
+  gd.members[uid()]={name:profile.name, avatar:profile.avatar, wear:myWear(), joined:Date.now()};
+  arena.activeGroup=cand;
+  saveArena(); pushGroupRemote(cand);
+  sfxGold(); toast("Grupo creado: "+cand+"\u00A0— comparte el código","\u{1F389}",null,2600);
+  renderArenaGroups(); renderSeason(); renderWardrobe();
+}
+function pushGroupRemote(code){
+  if(!FIREBASE_URL) return;
+  var base=FIREBASE_URL.replace(/\/$/,""); var sk=seasonKey();
+  var gd=arena.groupData[code]; if(!gd) return;
+  try{
+    fetch(base+"/arena/groups/"+code+"/members/"+uid()+".json",{method:"PUT",body:JSON.stringify(gd.members[uid()]||{name:profile.name,avatar:profile.avatar,wear:myWear()})}).catch(function(){});
+    fetch(base+"/arena/groups/"+code+"/pts/"+sk+"/"+uid()+".json",{method:"PUT",body:JSON.stringify((gd.pts[sk]&&gd.pts[sk][uid()])||0)}).catch(function(){});
+  }catch(e){}
+}
+function fetchGroupRemote(code){ return new Promise(function(resolve){
+  if(!FIREBASE_URL){ resolve(null); return; }
+  fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/groups/"+code+".json").then(function(r){return r.json();}).then(function(j){ resolve(j); }).catch(function(){ resolve(null); });
+}); }
+
+function renderArenaGroups(){
+  $("arenaOffNote").style.display = FIREBASE_URL ? "none" : "block";
+  $("arenaOffNote").innerHTML = "\u26A0 Modo sin conexi\u00F3n: los grupos se guardan solo en este dispositivo. Configura FIREBASE_URL (cerca del inicio del c\u00F3digo) para compartirlos entre amigos.";
+  var list=$("arenaGroupList"); list.innerHTML="";
+  if(!arena.groups.length){
+    list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Aún no estás en ningún grupo. Crea uno o únete con el código de un amigo.</div>';
+    arena.activeGroup=null; return;
+  }
+  if(arena.groups.indexOf(arena.activeGroup)===-1) arena.activeGroup=arena.groups[0];
+  arena.groups.forEach(function(code){
+    var gd=arena.groupData[code]||{members:{},pts:{}};
+    var nm=Object.keys(gd.members||{}).length;
+    var sk=seasonKey();
+    var myPts=((gd.pts||{})[sk]||{})[uid()]||0;
+    var act=arena.activeGroup===code;
+    var d=document.createElement("div");
+    d.className="grp-row"+(act?" me":"");
+    d.innerHTML='<span class="rank-av">\u{1F465}</span><span class="rank-name"><b>'+code+'</b>'+(act?' <span class="tag rec">ACTIVO</span>':'')+'</span>'+
+      '<span class="rank-name" style="color:var(--dim); font-size:11px; flex:none;">'+nm+' jug.</span>'+
+      '<span class="rank-score">'+num(myPts)+' pts</span>';
+    d.onclick=function(){ ensureAudio(); sfxClick(); arena.activeGroup=code; saveArena(); renderArenaGroups(); renderSeason(); };
+    list.appendChild(d);
+  });
+}
+
+/* ---------- Temporadas ---------- */
+function buildStandings(code, cb){
+  var sk=seasonKey(); var gd=arena.groupData[code]||{members:{},pts:{}};
+  var map={};
+  Object.keys(gd.members||{}).forEach(function(u){
+    var m=gd.members[u];
+    map[u]={uid:u, name:m.name, avatar:m.avatar, wear:m.wear, pts:((gd.pts||{})[sk]||{})[u]||0};
+  });
+  fetchGroupRemote(code).then(function(remote){
+    if(remote){
+      if(remote.members) Object.keys(remote.members).forEach(function(u){
+        if(!map[u]){ var m=remote.members[u]; map[u]={uid:u, name:m.name, avatar:m.avatar, wear:m.wear, pts:0}; }
+      });
+      if(remote.pts && remote.pts[sk]) Object.keys(remote.pts[sk]).forEach(function(u){
+        if(map[u]){ map[u].pts=Math.max(map[u].pts, remote.pts[sk][u]||0); }
+        else { map[u]={uid:u, name:"?", avatar:"\u{1F47D}", pts:remote.pts[sk][u]||0}; }
+      });
+    }
+    var arr=Object.keys(map).map(function(k){return map[k];}).filter(function(e){ return e && e.name; });
+    arr.sort(function(a,b){ return (b.pts||0)-(a.pts||0); });
+    cb(arr);
+  });
+}
+function renderSeason(){
+  var sr=seasonRange(); var sk=seasonKey();
+  $("arenaSeasonChip").textContent="D\u00EDa "+sr.prog+"/"+SEASON_DAYS;
+  var code=arena.activeGroup;
+  var list=$("arenaSeasonList"); list.innerHTML="";
+  if(!code){
+    $("arenaSeasonSub").textContent="Temporada "+sk+" \u00B7 termina en "+sr.days+" d\u00EDas \u00B7 crea o únete a un grupo para clasificar";
+    list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">La clasificación se calcula por grupo.</div>';
+    return;
+  }
+  $("arenaSeasonSub").textContent="Grupo "+code+" \u00B7 Temporada "+sk+" \u00B7 quedan "+sr.days+" d\u00EDas";
+  list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Cargando\u2026</div>';
+  buildStandings(code, function(arr){
+    list.innerHTML="";
+    if(!arr.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Todavía sin puntos.</div>'; return; }
+    var me=uid();
+    var best=arr[0];
+    $("arenaSeasonSub").textContent="Grupo "+code+" \u00B7 Temporada "+sk+" \u00B7 quedan "+sr.days+" d\u00EDas \u00B7 L\u00EDder: "+best.name;
+    arr.slice(0,50).forEach(function(e,i){
+      var isMe=e.uid===me;
+      var med=i<3?(" med"+(i+1)):"";
+      list.innerHTML+='<div class="rank-row'+(isMe?" me":"")+'"><span class="rank-num'+med+'">'+(i+1)+'</span>'+
+        '<span class="ava-stack'+(e.wear&&e.wear.bg?" "+e.wear.bg:"")+'">'+(e.wear?avaWearHtml(e.wear):"")+'<span class="wbase">'+esc(e.avatar||"\u{1F47D}")+'</span></span>'+
+        '<span class="rank-name">'+esc(e.name||"An\u00F3nimo")+(isMe?' <span class="tag rec">T\u00DA</span>':'')+'</span>'+
+        '<span class="rank-score">'+num(e.pts)+' pts</span></div>';
+    });
+  });
+}
+function avaWearHtml(w){
+  if(!w) return "";
+  var s="";
+  if(w.hat) s+='<span class="wa wa-hat">'+esc(w.hat)+'</span>';
+  if(w.cape) s+='<span class="wa wa-cape">'+esc(w.cape)+'</span>';
+  if(w.fan) s+='<span class="wa wa-fan">'+esc(w.fan)+'</span>';
+  return s;
+}
+
+/* ---------- Armario ---------- */
+var WEAR = [
+ {id:"hat-cone",  name:"Sombrero c\u00F3nico", icon:"\u{1F365}",          slot:"hat",  price:120, req:["lanterns",3]},
+ {id:"fan-hand",  name:"Abanico de mano",       icon:"\u{1FAAD}",          slot:"fan",  price:150, req:["calligraphy",3]},
+ {id:"cape-silk", name:"Banda de seda",         icon:"\u{1F9E3}",          slot:"cape", price:180, req:["drum",3]},
+ {id:"bg-red",    name:"Laca roja",             icon:"\u{1F534}",          slot:"bg",   price:80,  req:null},
+ {id:"bg-jade",   name:"Jade",                  icon:"\u{1F7E2}",          slot:"bg",   price:90,  req:null},
+ {id:"bg-gold",   name:"Oro",                   icon:"\u{1F7E1}",          slot:"bg",   price:110, req:null}
+];
+function wearItem(id){ return WEAR.find(function(w){return w.id===id;})||null; }
+function wearOwned(id){ return arena.wardrobe.owned.indexOf(id)>-1; }
+function wearUnlock(id){ var it=wearItem(id); if(!it||!it.req) return false; var m=it.req[0]; return (arena.retosWon[m]||0)>=it.req[1]; }
+function wearUnlocked(id){ return wearOwned(id)||wearUnlock(id); }
+function equipWear(id){
+  if(!wearUnlocked(id)) return;
+  var it=wearItem(id); if(!it) return;
+  if(arena.wardrobe[it.slot]===id){ arena.wardrobe[it.slot]=""; toast("Accesorio quitado","\u{1F47B}"); }
+  else { arena.wardrobe[it.slot]=id; sfxGold(); toast(it.name+" equipado","\u{1F464}"); }
+  saveArena();
+  if(arena.activeGroup && arena.groupData[arena.activeGroup] && arena.groupData[arena.activeGroup].members[uid()]){
+    arena.groupData[arena.activeGroup].members[uid()].wear=myWear();
+    arena.groupData[arena.activeGroup].members[uid()].avatar=profile.avatar;
+    if(FIREBASE_URL){ try{ fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/groups/"+arena.activeGroup+"/members/"+uid()+".json",{method:"PUT",body:JSON.stringify(arena.groupData[arena.activeGroup].members[uid()])}).catch(function(){}); }catch(e){} }
+  }
+  renderWardrobe(); renderArenaGroups(); renderSeason();
+}
+function buyWear(id){
+  var it=wearItem(id); if(!it) return;
+  if(wearOwned(id)){ equipWear(id); return; }
+  if(wearUnlock(id)){ arena.wardrobe.owned.push(id); saveArena(); sfxGold(); toast(it.name+" desbloqueado por retos!","\u2B50"); equipWear(id); return; }
+  if(coins<it.price){ toast("Te faltan monedas","\u{1FA99}","err"); sfxMiss(); return; }
+  coins-=it.price; arena.wardrobe.owned.push(id); saveAll(); saveArena(); sfxGold();
+  toast(it.name+" comprado","\u{1F464}"); equipWear(id);
+}
+function renderWardrobe(){
+  $("wardrobeName").textContent=profile.name+" \u00B7 "+profile.avatar;
+  var pv=$("wardrobePv");
+  pv.className="ava-stack"+(arena.wardrobe.bg?" "+arena.wardrobe.bg:"");
+  pv.innerHTML=avaWearHtml(myWear())+'<span class="wbase" style="font-size:26px;">'+esc(profile.avatar)+'</span>';
+  var bg=$("wardrobeBase"); bg.innerHTML="";
+  AVATARS.forEach(function(a){
+    var d=document.createElement("div"); d.className="avatar-box"+(a===profile.avatar?" on":""); d.textContent=a;
+    d.onclick=function(){ ensureAudio(); sfxClick(); profile.avatar=a; saveAll();
+      if(arena.activeGroup&&arena.groupData[arena.activeGroup]&&arena.groupData[arena.activeGroup].members[uid()]){
+        arena.groupData[arena.activeGroup].members[uid()].avatar=a; saveArena(); pushGroupRemote(arena.activeGroup);
+      }
+      renderWardrobe(); renderSeason(); };
+    bg.appendChild(d);
+  });
+  var acc=$("wardrobeAcc"); acc.innerHTML="";
+  WEAR.forEach(function(it){
+    var owned=wearOwned(it.id), un=wearUnlocked(it.id), on=arena.wardrobe[it.slot]===it.id;
+    var d=document.createElement("div");
+    d.className="wear-item"+(on?" on":"")+(!un?" lock":"");
+    var pm = owned ? (on? "Equipado" : "Usar") : (un ? "Todo tuyo" : "\u{1FA99} "+num(it.price));
+    var req="";
+    if(!un && it.req){ var mo=modeById(it.req[0]); req="Reto "+mo.short+": "+(arena.retosWon[it.req[0]]||0)+"/"+it.req[1]; }
+    d.innerHTML='<div class="wi-ico">'+it.icon+'</div><div class="wi-nm">'+it.name+'</div>'+
+      (req?'<div class="wi-req">'+req+'</div>':'<div class="wi-pm">'+pm+'</div>');
+    d.onclick=function(){ ensureAudio(); sfxClick(); if(!un){ buyWear(it.id); } else { equipWear(it.id); } };
+    acc.appendChild(d);
+  });
+}
+
+/* ---------- Reto diario + temporada (puntos) ---------- */
+function dailyArena(){ var k=todayKey(); if(!arena.days[k]) arena.days[k]={left:ARENA_ATTEMPTS,best:0,played:0,mode:ARENA_MODES[dayNum()%4].id}; return arena.days[k]; }
+function modeWin(m){ var t={calligraphy:400,lanterns:600,coin:800,drum:700}; return t[m]||600; }
+function tierPoints(sc){ if(sc>=2500)return 18; if(sc>=1500)return 12; if(sc>=800)return 8; if(sc>=300)return 4; return 2; }
+function addSeasonPoints(pts){
+  arena.groups.forEach(function(code){
+    var gd=ensureGroup(code); var sk=seasonKey();
+    gd.pts[sk][uid()]=(gd.pts[sk][uid()]||0)+pts;
+  });
+  saveArena();
+  arena.groups.forEach(pushGroupRemote);
+}
+function renderArena(){
+  renderWardrobe(); renderArenaGroups(); renderSeason();
+  $("arenaCoins").textContent=num(coins);
+  var day=dailyArena();
+  var mode=modeById(day.mode);
+  $("arenaModeIco").textContent=mode.icon;
+  $("arenaModeName").textContent="Reto de hoy \u00B7 "+mode.name;
+  $("arenaModeHint").textContent=mode.hint;
+  $("arenaModeMeta").textContent="1 minuto \u00B7 intentos hoy: "+day.left+(day.best>0?" \u00B7 mejor "+num(day.best):"");
+  var ads=$("arenaAttempts"); ads.innerHTML="";
+  for(var i=0;i<ARENA_ATTEMPTS;i++){ var sp=document.createElement("i"); if(i<day.left) sp.className="on"; ads.appendChild(sp); }
+  var btn=$("arenaPlay");
+  btn.disabled = day.left<=0;
+  btn.textContent = day.left>0 ? (mode.short+"  Jugar el reto") : "Sin intentos";
+  var next=$("arenaNext");
+  if(day.left<=0){ next.innerHTML="\u23F0 Cuenta regresiva: <span class='countdown' id='arenaCD'>"+fmtCD(nextMidnight()-Date.now())+"</span>"; }
+  else { next.innerHTML="Se reinicia a medianoche. Solo cuenta tu mejor puntaje de hoy."; }
+}
+var cdInt=null;
+function armCountdown(){
+  if(cdInt) return;
+  cdInt=setInterval(function(){
+    var s=$("screen-arena");
+    if(!s || (!s.classList.contains("on") && !$("screen-aresult").classList.contains("on"))) return;
+    var day=dailyArena();
+    if(day.left<=0){
+      var cd=$("arenaCD");
+      if(cd) cd.textContent=fmtCD(nextMidnight()-Date.now());
+      var lg=$("aresAgain");
+      if(lg && lg.offsetParent) lg.textContent="\u23F0 Sin intentos. EL nuevo reto llega a las 00:00 ("+fmtCD(nextMidnight()-Date.now())+")";
+    }
+  },1000);
+}
+armCountdown();
+
+/* ---------- Entrada Arena ---------- */
+function arenaPointerDown(p){ GS.pressing=true; GS.px=p.x; GS.py=p.y;
+  if(GS.mode==="lanterns") lanternsTap(p);
+  else if(GS.mode==="coin") coinTap();
+  else if(GS.mode==="drum") drumTap(p);
+}
+function arenaPointerMove(ev){
+  if(!GS.pressing||!running) return;
+  var rect=cv.getBoundingClientRect();
+  var x,y;
+  if(rect.width>0){ x=(ev.clientX-rect.left)*(cv.width/rect.width); y=(ev.clientY-rect.top)*(cv.height/rect.height); }
+  else { x=ev.clientX; y=ev.clientY; }
+  GS.px=x; GS.py=y;
+  if(GS.mode==="calligraphy") calliMove({x:x,y:y});
+}
+function arenaPointerUp(){ if(GS) GS.pressing=false; }
+
+/* ---------- Inicio / fin de reto ---------- */
+function startArena(mode){
+  ensureAudio();
+  var day=dailyArena();
+  if(day.left<=0){ toast("Sin intentos hoy; vuelve a medianoche","\u23F0","err"); return; }
+  day.left--; day.mode=mode; saveArena();
+  GS={ mode:mode, id:"arena", lv:{pt:"spark",target:"#ffd643"}, score:0, combo:0, bestCombo:0, fails:0,
+       time:ARENA_TIME, timeMax:ARENA_TIME, parts:[], pressing:false, px:0, py:0, streak:0, flashT:0 };
+  var m=modeById(mode);
+  if(mode==="calligraphy") GS.calli=newCalli();
+  else if(mode==="lanterns") GS.lans={items:[], t:0.3, sp:0.9, missedSt:0};
+  else if(mode==="coin") GS.coin={rot:0, v:5+rnd(0,2.5), stop:null, settle:0, golden:ri(0,11), zone:0, resTxt:""};
+  else if(mode==="drum") GS.drum={t:0, beat:0.38+rnd(0,0.22), notes:[], flashT:0};
+  show("game"); setCvSize();
+  $("hudLevel").textContent="RETO ARENA \u00B7 "+m.name;
+  $("hudGoal").textContent="";
+  cv.addEventListener("pointermove", arenaPointerMove, {passive:true});
+  window.addEventListener("pointerup", arenaPointerUp);
+  window.addEventListener("pointercancel", arenaPointerUp);
+  running=true; lastT=performance.now(); raf=requestAnimationFrame(loop);
+}
+function finishArena(){
+  running=false; cancelAnimationFrame(raf); raf=0;
+  GS.pressing=false;
+  cv.removeEventListener("pointermove", arenaPointerMove);
+  window.removeEventListener("pointerup", arenaPointerUp);
+  window.removeEventListener("pointercancel", arenaPointerUp);
+  var g=GS, score=Math.floor(g.score);
+  var k=todayKey(); var day=dailyArena();
+  var isNewBest=score>day.best;
+  if(isNewBest) day.best=score;
+  day.played=(day.played||0)+1;
+  var won=score>=modeWin(g.mode);
+  if(won) arena.retosWon[g.mode]=(arena.retosWon[g.mode]||0)+1;
+  if(arena.daysDone.indexOf(k)===-1) arena.daysDone.push(k);
+  var pts=tierPoints(score);
+  arena.lastMode=g.mode; arena.lastScore=score; arena.lastWon=won; arena.isNewBest=isNewBest; arena.pendingPts=pts;
+  var cg=Math.max(5,Math.floor(score/60));
+  coins+=cg; totalEarned+=cg;
+  saveArena(); saveAll();
+  unlock("arena");
+  if(won) unlock("arenastar");
+  if(arena.daysDone.length>=3) unlock("arenaday");
+  addSeasonPoints(pts);
+  if(FIREBASE_URL){
+    try{
+      fetch(FIREBASE_URL.replace(/\/$/,"")+"/arena/daily/"+k+"/"+uid()+".json",
+        {method:"PUT",body:JSON.stringify({uid:uid(),name:profile.name,avatar:profile.avatar,score:score,ts:Date.now(),mode:g.mode})}).catch(function(){});
+    }catch(e){}
+  }
+  refreshMenuCoins();
+  showArenaResult();
+}
+function showArenaResult(){
+  var mode=modeById(arena.lastMode);
+  $("aresModeIco").textContent=mode.icon;
+  $("aresHead").textContent = arena.lastWon ? "¡Reto completado!" : (arena.lastScore>0 ? "¡Buen intento!" : "Se acabó el tiempo");
+  $("aresSub").textContent=mode.name;
+  $("aresScore").textContent=num(arena.lastScore);
+  var day=dailyArena();
+  $("aresPts").textContent="+"+arena.pendingPts;
+  $("aresBest").textContent = arena.isNewBest ? ("¡Nuevo récord! "+num(day.best)) : num(day.best);
+  $("aresLeft").textContent = day.left;
+  $("aresStreak").textContent = arena.lastWon ? "+\u{1F525}" : "-";
+  var again=$("aresAgain"); var btn=$("aresRetry");
+  if(day.left>0){ again.textContent="Tienes "+day.left+" "+(day.left===1?"intento más":"intentos más")+" de hoy.";
+    btn.disabled=false; btn.textContent="\u21BB Reintentar ("+day.left+")"; }
+  else { again.textContent="\u23F0 Sin intentos. EL nuevo reto llega a las 00:00 ("+fmtCD(nextMidnight()-Date.now())+")";
+    btn.disabled=true; btn.textContent="\u21BB Reintentar"; }
+  show("aresult");
+}
+
+/* ============================================================
+   MINI-JUEGOS DE ARENA
+   ============================================================ */
+var CALLI = [
+  [
+   {x:.5,y:.08},{x:.5,y:.92},{x:.12,y:.32},{x:.88,y:.32},
+   {x:.1,y:.62},{x:.88,y:.62},{x:.16,y:.8},{x:.84,y:.8},{x:.5,y:.68}
+  ],
+  [
+   {x:.5,y:.08},{x:.5,y:.95},{x:.15,y:.2},{x:.85,y:.2},{x:.15,y:.42},{x:.85,y:.42},
+   {x:.1,y:.62},{x:.9,y:.62},{x:.16,y:.8},{x:.84,y:.8}
+  ],
+  [
+   {x:.3,y:.08},{x:.7,y:.08},{x:.52,y:.18},{x:.8,y:.3},{x:.22,y:.34},{x:.6,y:.44},
+   {x:.32,y:.55},{x:.7,y:.6},{x:.4,y:.74},{x:.62,y:.86},{x:.74,y:.95}
+  ],
+  [
+   {x:.5,y:.08},{x:.3,y:.2},{x:.7,y:.2},{x:.5,y:.34},{x:.25,y:.45},{x:.75,y:.45},
+   {x:.5,y:.58},{x:.15,y:.7},{x:.85,y:.7},{x:.5,y:.84},{x:.5,y:.95}
+  ]
+];
+function newCalli(){
+  var w=cv.width||320, h=cv.height||480;
+  var box={x0:w*0.15, x1:w*0.85, y0:h*0.16, y1:h*0.62};
+  var set=CALLI[ri(0,CALLI.length-1)];
+  var pts=set.map(function(p){ return {x:box.x0+(box.x1-box.x0)*p.x, y:box.y0+(box.y1-box.y0)*p.y}; });
+  return {pts:pts, idx:0, ink:[]};
+}
+function calliMove(p){
+  var c=GS.calli; if(!c) return;
+  c.ink.push({x:p.x,y:p.y}); if(c.ink.length>60) c.ink.shift();
+  var hitR=Math.max(22, Math.min(cv.width,cv.height)*0.045);
+  if(c.idx<c.pts.length){
+    var pt=c.pts[c.idx];
+    var dx=p.x-pt.x, dy=p.y-pt.y;
+    if(dx*dx+dy*dy <= hitR*hitR){
+      c.idx++;
+      GS.combo++; GS.bestCombo=Math.max(GS.bestCombo,GS.combo);
+      var mult=Math.min(GS.combo,20);
+      GS.score+=10*mult;
+      sfxHit(GS.combo); vibrate(18); burst(pt.x,pt.y,"#8a5a00",4);
+      if(c.idx>=c.pts.length){
+        GS.score+=100*Math.min(GS.combo,20);
+        sfxGold(); flash("gold"); vibrate([30,30,60]);
+        var nc=newCalli(); c.pts=nc.pts; c.idx=0; c.ink=[];
+      }
+    }
+  }
+}
+function updateLanterns(dt){
+  var g=GS, l=g.lans, w=cv.width, h=cv.height;
+  l.t+=dt;
+  if(l.t>=l.sp && l.items.length<8){
+    l.t=0;
+    var isGold=Math.random()<0.62;
+    l.items.push({x:20+Math.random()*(w-40), y:h+26, vy:-(120+Math.random()*90),
+      r:16+rnd(0,10), gold:isGold, i:Math.random()*6});
+  }
+  for(var i=l.items.length-1;i>=0;i--){
+    var it=l.items[i]; it.y+=it.vy*dt; it.i+=dt*3;
+    if(it.y<-30){
+      l.items.splice(i,1);
+      if(it.gold){ g.combo=1; g.score=Math.max(0,g.score-60); toast("Se escapó un farol","\u{1F43F}","err",1200); }
+    }
+  }
+}
+function lanternsTap(p){
+  var l=GS.lans; if(!l) return;
+  for(var i=l.items.length-1;i>=0;i--){
+    var it=l.items[i];
+    var dx=p.x-it.x, dy=p.y-it.y;
+    var rr=it.r+16;
+    if(dx*dx+dy*dy<=rr*rr){
+      l.items.splice(i,1);
+      if(it.gold){
+        GS.combo++; GS.bestCombo=Math.max(GS.bestCombo,GS.combo);
+        var mult=Math.min(GS.combo,20);
+        GS.score+=100*mult;
+        sfxGold(); vibrate([30,30,60]); flash("gold"); burst(it.x,it.y,"#ffd643",14);
+      } else {
+        GS.time=Math.max(0,GS.time-3);
+        GS.combo=1;
+        applyPenalty(0,150,"¡Farol trampa! -150 pts"); // applyPenalty suma toast típica del modo fan
+      }
+      return;
+    }
+  }
+  GS.combo=1; sfxMiss(); // tocar vacío: se corta la racha sin castigo de tiempo
+}
+function updateCoin(dt){
+  var c=GS.coin;
+  if(c.settle>0){
+    c.v=0; c.settle-=dt;
+    if(c.settle<=0){ c.v=4+rnd(0,2.6); c.zone=0; c.resTxt=""; }
+  } else if(c.stop){
+    c.v*=Math.pow(0.05,dt);
+    if(c.v<0.04){ resolveCoin(); c.stop=null; }
+  }
+  c.rot+=c.v*dt;
+}
+function coinTap(){
+  var c=GS.coin;
+  if(c.settle>0) return;
+  if(!c.stop){ c.stop=true; sfxClick(); }
+}
+function coinSector(){
+  var c=GS.coin; var sw=TAU/12;
+  var ang=(-Math.PI/2 - c.rot)%TAU; if(ang<0) ang+=TAU;
+  return Math.min(11,Math.floor(ang/sw));
+}
+var COIN_VALS=[20,40,60,80,120,50,30,90,70,40,110,25];
+function resolveCoin(){
+  var c=GS.coin; var k=coinSector();
+  var isGold=k===c.golden;
+  if(isGold){
+    GS.streak++; GS.combo+=1; GS.bestCombo=Math.max(GS.bestCombo,GS.combo);
+    var gold=400+100*Math.min(GS.streak,5);
+    GS.score+=gold;
+    sfxGold(); flash("gold"); vibrate([40,40,80]);
+    c.resTxt="\u{1F3AF} ¡ZONA DORADA! +"+gold;
+  } else {
+    GS.streak=0; GS.combo=Math.max(1,GS.combo);
+    var val=COIN_VALS[k]; GS.score+=val;
+    sfxHit(1);
+    c.resTxt="Sector +"+val;
+  }
+  c.settle=1.1; c.zone=1;
+}
+function updateDrum(dt){
+  var g=GS, d=g.drum;
+  d.t+=dt;
+  if(d.t>=d.beat){
+    d.t=0;
+    var n=Math.random()<0.3?2:1;
+    var lanes=[0.2,0.4,0.6,0.8];
+    var used={};
+    for(var i=0;i<n;i++){
+      var lx=lanes[ri(0,3)];
+      if(used[lx]) continue; used[lx]=1;
+      d.notes.push({x:cv.width*lx, y:-10, vy:(cv.height*0.66+10)/0.7, hit:false, r:18});
+    }
+  }
+  var hitY=cv.height*0.66;
+  for(var j=d.notes.length-1;j>=0;j--){
+    var nt=d.notes[j]; nt.y+=nt.vy*dt;
+    if(nt.y>hitY+50){ d.notes.splice(j,1); GS.combo=GS.combo>2?Math.ceil(GS.combo/2):1; }
+  }
+  if(d.flashT>0) d.flashT-=dt;
+}
+function drumTap(p){
+  var d=GS.drum; if(!d) return;
+  var lanes=[0.2,0.4,0.6,0.8];
+  var lx=lanes[0], best=1e9;
+  for(var i=0;i<4;i++){ var dx=Math.abs(p.x-cv.width*lanes[i]); if(dx<best){ best=dx; lx=lanes[i]; } }
+  var hitY=cv.height*0.66;
+  var idx=-1, dist=1e9;
+  for(var j=0;j<d.notes.length;j++){
+    var nt=d.notes[j];
+    if(Math.abs(nt.x-cv.width*lx)>46) continue;
+    var dd=Math.abs(nt.y-hitY);
+    if(dd<dist && dd<46){ dist=dd; idx=j; }
+  }
+  if(idx<0){ GS.combo=1; sfxMiss(); return; }
+  d.notes.splice(idx,1);
+  if(dist<=15){ GS.combo++; GS.bestCombo=Math.max(GS.bestCombo,GS.combo);
+    GS.score+=100*Math.min(GS.combo,20); d.flashT=0.25; flash("gold"); sfxGold(); vibrate(25);
+  } else { GS.combo=Math.max(1,GS.combo); GS.score+=50*Math.min(Math.max(GS.combo,1),20); sfxHit(GS.combo); }
+}
+function updateArena(dt){
+  var g=GS;
+  g.time-=dt;
+  if(g.time<=0){ finishArena(); return; }
+  if(g.mode==="lanterns") updateLanterns(dt);
+  else if(g.mode==="coin") updateCoin(dt);
+  else if(g.mode==="drum") updateDrum(dt);
+  for(var i=g.parts.length-1;i>=0;i--){ var p=g.parts[i]; p.t-=dt; if(p.t<=0){ g.parts.splice(i,1); continue; } p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.96; p.vy*=0.96; }
+  $("hudScore").textContent=num(g.score);
+  var fill=$("timeFill"); fill.style.width=clamp(g.time/g.timeMax*100,0,100)+"%";
+  var cb=$("comboBadge");
+  if(g.combo>=2){ cb.textContent="x"+Math.min(g.combo,20); cb.style.display="block"; } else { cb.style.display="none"; }
+}
+
+/* ---------- Render Arena ---------- */
+function renderArenaScene(){
+  var g=GS, w=cv.width, h=cv.height;
+  if(g.mode==="calligraphy") renderCalli(w,h);
+  else if(g.mode==="lanterns") renderLans(w,h);
+  else if(g.mode==="coin") renderCoinWheel(w,h);
+  else if(g.mode==="drum") renderDrum(w,h);
+  GS.parts.forEach(drawPart);
+  ctx.globalAlpha=1;
+}
+function drawPaper(){
+  var g=ctx.createLinearGradient(0,0,0,cv.height);
+  g.addColorStop(0,"#f6efe0"); g.addColorStop(0.6,"#e8dcc0"); g.addColorStop(1,"#d6c49b");
+  ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+  var vg=ctx.createRadialGradient(cv.width/2,cv.height*0.3,20,cv.width/2,cv.height*0.4,cv.height*0.9);
+  vg.addColorStop(0,"rgba(255,255,255,0)"); vg.addColorStop(1,"rgba(120,90,40,.18)");
+  ctx.fillStyle=vg; ctx.fillRect(0,0,cv.width,cv.height);
+}
+function renderCalli(w,h){
+  drawPaper();
+  var c=GS.calli; if(!c) return;
+  var hitR=Math.max(22,Math.min(w,h)*0.045);
+  // guía difusa del carácter
+  ctx.save();
+  ctx.strokeStyle="rgba(58,53,44,.18)"; ctx.lineWidth=Math.max(3,w*0.012); ctx.lineCap="round"; ctx.lineJoin="round";
+  ctx.beginPath();
+  c.pts.forEach(function(p,i){ if(i===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+  ctx.stroke(); ctx.restore();
+  // tinta del dedo
+  if(c.ink.length>=2){
+    ctx.strokeStyle="rgba(30,24,16,.85)"; ctx.lineWidth=Math.max(3,w*0.02); ctx.lineCap="round"; ctx.lineJoin="round";
+    ctx.beginPath();
+    c.ink.forEach(function(p,i){ if(i===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+    ctx.stroke();
+  }
+  c.pts.forEach(function(pt,i){
+    var done=i<c.idx;
+    if(done){
+      ctx.fillStyle="rgba(138,90,0,.45)";
+    } else {
+      var pul=0.6+0.4*Math.sin(performance.now()/1000*3+(i*0.7)+10);
+      ctx.fillStyle="rgba(196,120,20,"+(0.85*pul).toFixed(2)+")";
+      ctx.shadowColor="#b8860b"; ctx.shadowBlur=14*pul;
+    }
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,done?hitR*0.5:hitR*0.62,0,TAU); ctx.fill();
+    ctx.shadowBlur=0;
+    if(!done && i===c.idx){
+      ctx.strokeStyle="rgba(58,53,44,.85)"; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(pt.x,pt.y,hitR*0.9,0,TAU); ctx.stroke();
+    }
+  });
+  // número de punto
+  ctx.fillStyle="rgba(58,53,44,.75)"; ctx.font="600 13px 'ZCOOL XiaoWei',serif";
+  ctx.fillText("Trazo: "+c.idx+"/"+c.pts.length+" \u00B7 toca en orden", w*0.16, h*0.10);
+}
+function renderLans(w,h){
+  var bg=ctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,"#1c0a07"); bg.addColorStop(1,"#3a1410");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  var vg=ctx.createRadialGradient(w/2,h*0.4,10,w/2,h*0.5,w*0.8);
+  vg.addColorStop(0,"rgba(255,214,67,.10)"); vg.addColorStop(1,"rgba(0,0,0,.0)");
+  ctx.fillStyle=vg; ctx.fillRect(0,0,w,h);
+  // cuerdas
+  ctx.strokeStyle="rgba(217,164,65,.25)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,h*0.16); ctx.quadraticCurveTo(w/2,h*0.22,w,h*0.12); ctx.stroke();
+  GS.lans.items.forEach(function(it){
+    var pul=0.75+0.25*Math.sin(it.i);
+    var col=it.gold?"#ffd643":"#ff4757";
+    var gr=ctx.createRadialGradient(it.x,it.y,1,it.x,it.y,it.r*2.1);
+    gr.addColorStop(0,"rgba(255,190,60,"+(0.55*pul)+")");
+    gr.addColorStop(1,"rgba(255,190,60,0)");
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(it.x,it.y,it.r*2.1,0,TAU); ctx.fill();
+    ctx.fillStyle=col;
+    ctx.beginPath(); ctx.ellipse(it.x,it.y,it.r,it.r*1.22,0,0,TAU); ctx.fill();
+    ctx.fillStyle="rgba(0,0,0,.25)"; ctx.fillRect(it.x-it.r*0.5,it.y-it.r*1.15,it.r,it.r*0.22);
+    if(it.gold){
+      ctx.fillStyle="#fff3c4"; ctx.fillRect(it.x-it.r*0.35,it.y-it.r*0.9,it.r*0.7,it.r*0.18);
+      ctx.strokeStyle="rgba(255,255,255,.75)"; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(it.x,it.y,it.r*0.45,0,TAU); ctx.stroke();
+    } else {
+      ctx.strokeStyle="rgba(255,255,255,.8)"; ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(it.x-it.r*0.4,it.y-it.r*0.4); ctx.lineTo(it.x+it.r*0.4,it.y+it.r*0.4);
+      ctx.moveTo(it.x+it.r*0.4,it.y-it.r*0.4); ctx.lineTo(it.x-it.r*0.4,it.y+it.r*0.4);
+      ctx.stroke();
+    }
+  });
+  ctx.fillStyle="rgba(255,240,200,.8)"; ctx.font="700 13px 'ZCOOL XiaoWei',serif";
+  ctx.fillText("Toca el dorado \u00B7 esquiva el rojo", w*0.09, h*0.09);
+}
+function renderCoinWheel(w,h){
+  var bg=ctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,"#180b04"); bg.addColorStop(1,"#2a1606");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  var c=GS.coin;
+  var cx2=cx, cy2=h*0.46, rw2=Math.min(w*0.36, h*0.26);
+  var sw=TAU/12;
+  ctx.save(); ctx.translate(cx2,cy2); ctx.rotate(c.rot);
+  for(var i2=0;i2<12;i2++){
+    var gold2=i2===c.golden;
+    var a0=-Math.PI/2+i2*sw, a1=a0+sw;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,rw2,a0,a1); ctx.closePath();
+    var gg2;
+    if(gold2){ gg2=ctx.createRadialGradient(0,0,1,0,0,rw2); gg2.addColorStop(0,"#fff3c4"); gg2.addColorStop(1,"#d9a441"); }
+    else if(i2===7){ gg2="#241a10"; }
+    else { gg2=(i2%2? "#8f2412" : "#6e1a10"); }
+    ctx.fillStyle=gg2; ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,.35)"; ctx.lineWidth=2; ctx.stroke();
+  }
+  // dibujar moneda en sector dorado
+  var ga=(-Math.PI/2+c.golden*sw+sw/2);
+  ctx.fillStyle="#fff3c4"; ctx.font="700 "+Math.floor(rw2*0.22)+"px serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText("\u{1FA99}", Math.cos(ga)*rw2*0.62, Math.sin(ga)*rw2*0.62);
+  ctx.restore();
+  // flecha fija
+  ctx.fillStyle="#e0502a";
+  ctx.beginPath(); ctx.moveTo(cx2-10,Math.max(8,cy2-rw2-16)); ctx.lineTo(cx2+10,Math.max(8,cy2-rw2-16)); ctx.lineTo(cx2,cy2-rw2+8); ctx.closePath(); ctx.fill();
+  // buje
+  var hg=ctx.createRadialGradient(cx2,cy2,1,cx2,cy2,rw2*0.3);
+  hg.addColorStop(0,"#ffe9a8"); hg.addColorStop(0.5,"#e6b23a"); hg.addColorStop(1,"#7a4510");
+  ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(cx2,cy2,rw2*0.26,0,TAU); ctx.fill();
+  ctx.strokeStyle="rgba(255,245,200,.5)"; ctx.lineWidth=3; ctx.stroke();
+  ctx.fillStyle="#3c1f06"; ctx.beginPath(); ctx.arc(cx2,cy2,rw2*0.11,0,TAU); ctx.fill();
+  if(c.resTxt){
+    ctx.fillStyle=c.zone? "#ffd643" : "#f3e9d8"; ctx.strokeStyle="rgba(0,0,0,.55)"; ctx.lineWidth=4;
+    ctx.font="800 20px 'ZCOOL XiaoWei',serif"; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+    ctx.strokeText(c.resTxt, w/2, h*0.84); ctx.fillText(c.resTxt, w/2, h*0.84);
+  }
+  ctx.textAlign="start";
+}
+function renderDrum(w,h){
+  var bg=ctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,"#160805"); bg.addColorStop(1,"#3a1410");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  var lanes=[0.2,0.4,0.6,0.8];
+  var hitY=h*0.66;
+  lanes.forEach(function(lx){
+    ctx.strokeStyle="rgba(217,164,65,.16)"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(w*lx,0); ctx.lineTo(w*lx,hitY+40); ctx.stroke();
+  });
+  ctx.fillStyle="rgba(255,214,67,.85)"; ctx.fillRect(0,hitY-2,w,4);
+  ctx.fillStyle="rgba(255,214,67,.15)"; ctx.fillRect(w*0.08,hitY-30,w*0.84,60);
+  GS.drum.notes.forEach(function(nt){
+    ctx.strokeStyle="rgba(255,226,122,.7)"; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(nt.x,nt.y,nt.r,0,TAU); ctx.stroke();
+    ctx.fillStyle="rgba(255,190,80,.28)"; ctx.beginPath(); ctx.arc(nt.x,nt.y,nt.r-3,0,TAU); ctx.fill();
+  });
+  if(GS.drum.flashT>0){
+    ctx.strokeStyle="rgba(255,214,67,"+(GS.drum.flashT*3).toFixed(2)+")"; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.arc(w*0.5,hitY,40,0,TAU); ctx.stroke();
+  }
+  // tambor
+  var ty=h*0.86, tr=Math.min(w*0.26, h*0.14);
+  var dr=ctx.createRadialGradient(w/2,ty-tr*0.2,tr*0.1,w/2,ty,tr*1.2);
+  dr.addColorStop(0,"#e8643d"); dr.addColorStop(0.7,"#8f2412"); dr.addColorStop(1,"#4a120a");
+  ctx.fillStyle=dr; ctx.beginPath(); ctx.ellipse(w/2,ty,tr,tr*0.62,0,0,TAU); ctx.fill();
+  ctx.strokeStyle="#d9a441"; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.ellipse(w/2,ty,tr,tr*0.62,0,0,TAU); ctx.stroke();
+  ctx.fillStyle="#ffd643"; ctx.fillRect(w/2-tr*0.4,ty-tr*0.12,tr*0.8,4);
+  ctx.fillStyle="rgba(255,240,200,.8)"; ctx.font="700 13px 'ZCOOL XiaoWei',serif";
+  ctx.fillText("Toca cuando el disco cruce la l\u00EDnea dorada", w*0.08, h*0.5);
+}
+
+/* ---------- Handlers UI Arena ---------- */
+$("btnArena").addEventListener("click", function(){ sfxClick(); renderArena(); show("arena"); });
+$("arenaBack").addEventListener("click", function(){ sfxClick(); goMenu(); });
+$("arenaJoin").addEventListener("click", function(){ ensureAudio(); sfxClick(); var v=$("arenaJoinIn").value; if(v){ joinGroup(v,false); $("arenaJoinIn").value=""; } else { toast("Escribe el código del grupo","\u26A0","err"); } });
+$("arenaJoinIn").addEventListener("keypress", function(e){ if(e.key==="Enter") $("arenaJoin").click(); });
+$("arenaCreate").addEventListener("click", function(){ ensureAudio(); sfxClick(); createGroup(); });
+$("arenaPlay").addEventListener("click", function(){ ensureAudio(); sfxClick(); startArena(dailyArena().mode); });
+$("aresRetry").addEventListener("click", function(){ ensureAudio(); sfxClick(); startArena(arena.lastMode); });
+$("aresMenu").addEventListener("click", function(){ ensureAudio(); sfxClick(); renderArena(); show("arena"); });
+
 /* ---------- MOTOR DEL JUEGO ---------- */
 var RINGS=[8,12,16,20,24,30];
 var cx=0, cy=0, R=0, rw=0, osc=0;
@@ -985,7 +1820,7 @@ function runLayout(){
   var w=cv.width, h=cv.height;
   cx=w/2; cy=h-14; R=Math.min(w,h)*0.52; rw=R/6;
 }
-function onResize(){ if(running) { setCvSize(); prerender(); } }
+function onResize(){ if(running){ setCvSize(); if(!GS.mode || GS.mode==="fan") prerender(); } }
 window.addEventListener("resize", onResize);
 
 function hasActive(id){ return session.activeNow.indexOf(id)>-1; }
@@ -1257,7 +2092,7 @@ function startGame(id){
   var lv=levelDef(id) || dailyDef["daily"];
   var addT=0; if(hasActive("time5"))addT+=5; if(hasActive("time10"))addT+=10;
   GS={
-    id:id, lv:lv, score:0, combo:0, bestCombo:0, fails:0, trapsHit:0, hits:0, catches:0, golds:0, missed:0,
+    mode:"fan", id:id, lv:lv, score:0, combo:0, bestCombo:0, fails:0, trapsHit:0, hits:0, catches:0, golds:0, missed:0,
     goal:lv.goal, time:lv.time+addT, timeMax:lv.time+addT, oscAmp:0.14+0.12*0, oscPhase:Math.random()*6, oscW:1.2,
     wind:[], parts:[], targets:[], spirit:null, fx:[], decT:Math.random()*100, fogT:0,
     spawnAcc:lv.boss?999:1.2, ghost:null, windInt:0, diffT:0,
@@ -1281,6 +2116,7 @@ function loop(t){
 
 /* ---------- Lógica ---------- */
 function update(dt){
+  if(GS.mode && GS.mode!=="fan"){ updateArena(dt); return; }
   var g=GS, lv=g.lv;
   g.D = clamp(g.score/g.goal, 0, 1);
   var slow = hasActive("slowswing")?0.5:1;
@@ -1419,6 +2255,7 @@ cv.addEventListener("pointerdown", function(ev){
   if(!running||!GS) return;
   ensureAudio();
   var p=tapXY(ev);
+  if(GS.mode && GS.mode!=="fan"){ arenaPointerDown(p); return; }
   if(GS.lv.boss){ tapBoss(p.x,p.y); }
   else { tapNormal(p.x,p.y); }
 });
@@ -1662,6 +2499,7 @@ function drawFog(){
 
 /* ---------- Render ---------- */
 function render(){
+  if(GS.mode && GS.mode!=="fan"){ renderArenaScene(); return; }
   ctx.drawImage(bgOff,0,0);
   // abanico rotado
   ctx.save();
