@@ -2,7 +2,7 @@
    cache-first para estaticos, cache con red primero para navegacion,
    los assets de musica/fondos se cachean bajo demanda.
    NO EDITAR A MANO: la lista CORE y la VERSION se regeneran en cada build. */
-const VERSION = "opartfan-v2-07979a25";
+const VERSION = "opartfan-v2-b8586dc5";
 const CORE = [
   "./",
   "./index.html",
