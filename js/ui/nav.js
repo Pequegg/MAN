@@ -3,7 +3,7 @@
 "use strict";
 
 /* ---------- Navegación / pantallas ---------- */
-var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","live","notix","admin","game","result","end"];
+var screens = ["tutorial","register","menu","levels","shop","armario","ach","rank","daily","arena","aresult","duel","live","notix","admin","game","result","end"];
 var _mv=null;
 function mvOK(){ if(_mv!==null) return _mv; try{ _mv = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ _mv=true; } return _mv; }
 function show(name){

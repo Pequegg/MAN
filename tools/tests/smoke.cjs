@@ -92,6 +92,13 @@ function click(sel) {
   ok('shop', !!cs('#screen-shop.on'));
   click('#btnAch'); await raf(70);
   ok('ach', !!cs('#screen-ach.on'));
+  click('#btnArmario'); await raf(70);
+  ok('armario visible', !!cs('#screen-armario.on'));
+  ok('armario con mascotas', cs('#armListMascot') && cs('#armListMascot').querySelectorAll('.wear-item').length > 0);
+  click('#armTabFanskin'); await raf(20);
+  ok('armario abanicos visibles', cs('#armListFanskin') && !cs('#armListFanskin').classList.contains('hidden') && cs('#armListFanskin').querySelectorAll('.wear-item').length > 0);
+  click('#armBack'); await raf(40);
+  ok('armario vuelve al menu', !!cs('#screen-menu.on') && !cs('#screen-armario.on'));
   click('#btnRank'); await raf(70);
   ok('rank', !!cs('#screen-rank.on'));
   click('#btnDaily'); await raf(70);
