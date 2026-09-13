@@ -13,7 +13,7 @@ const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m =>
 
 // Ficheros que se precachean (CORE): el índice, el css, el manifest y los
 // scripts split. Los assets de música/fondos siguen bajo demanda en runtime.
-const FEAT = ['./js/feature/features.js', './js/feature/perfil.js'];
+const FEAT = ['./js/feature/features.js', './js/feature/perfil.js', './js/feature/spirit.js', './js/feature/poems.js'];
 const CORE = ['./', './index.html', './css/style.css', './manifest.webmanifest',
   './assets/images/icon-192.png', './assets/images/icon-512.png',
   './assets/images/icon-maskable-512.png', './assets/images/apple-touch-icon.png']

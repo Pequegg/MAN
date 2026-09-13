@@ -14,7 +14,9 @@ html = html.replace(/<script src="([^"]+)"><\/script>/g, (all, src) => {
 });
 const feat = fs.readFileSync(ROOT + 'js/feature/features.js', 'utf8');
 const perfil = fs.readFileSync(ROOT + 'js/feature/perfil.js', 'utf8');
-html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt></body>');
+const spirit = fs.readFileSync(ROOT + 'js/feature/spirit.js', 'utf8');
+const poems = fs.readFileSync(ROOT + 'js/feature/poems.js', 'utf8');
+html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt></body>');
 
 const vc = new VirtualConsole();
 const jsdomErrs = [];
@@ -84,6 +86,10 @@ function click(sel) {
   click('#perfBack');
   await raf(60);
   ok('vuelve al menu', !!cs('#screen-menu.on') && !cs('#screen-perfil.on'));
+  ok('espiritu carga', typeof w.Spirit !== 'undefined' && typeof w.Spirit.atStart === 'function');
+  ok('poemas carga', typeof w.Poems !== 'undefined' && typeof w.Poems.sRank === 'function');
+  ok('espiritu anuncia a Nian', !!w.Spirit.atStart(18, { boss: true, name: 'Nian' }, 'epic'));
+  ok('espiritu callado si misma familia', !w.Spirit.atStart(1, { bd: 'calli' }, 'calm'));
   click('#btnPlay');
   await raf(80);
   const cards = w.document.querySelectorAll('#levelList .cell-card');
@@ -109,6 +115,12 @@ function click(sel) {
   click('#perfSave');
   await raf(80);
   ok('estado guardado', (w.profile.status || '') === 'La tinta fluye');
+  click('#perfBack');
+  await raf(40);
+  w.showResult({ won: true, bestCombo: 16, score: 200, goal: 100, fails: 0, catches: 8, coinsGained: 5, levelObj: null, levelId: 1, newRecord: false, firstTime: false, unlockedNext: false, nextId: null, isDaily: false, reviveUsed: false });
+  await raf(40);
+  ok('poema descubierto con S-rank', (w.ls('poems') || []).length >= 1);
+  ok('biblioteca rinde en perfil', !!w.Poems && (function () { var c = { innerHTML: '' }; w.Poems.into(c, true); return c.innerHTML.length > 4; })());
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
   process.exit(failed ? 1 : 0);

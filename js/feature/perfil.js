@@ -27,7 +27,12 @@
       ".chart-box{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;margin-bottom:10px;text-align:center;}"+
       ".chart-t{font-size:12px;font-weight:900;color:var(--dim);margin-bottom:6px;text-align:left;}"+
       "#chartDonut{width:140px;height:140px;}"+
-      "#chartWeek,#chartLine{width:100%;max-width:300px;height:96px;}";
+      "#chartWeek,#chartLine{width:100%;max-width:300px;height:96px;}"+
+      ".poem-head{font-size:12px;font-weight:900;color:var(--gold);margin-bottom:6px;}"+
+      ".poem-item{border-bottom:1px dashed var(--line);padding:6px 0;}"+
+      ".poem-item:last-child{border-bottom:none;}"+
+      ".poem-item .ph{font-family:'Ma Shan Zheng',cursive;font-size:15px;color:var(--txt);}"+
+      ".poem-item .pe{font-size:11px;color:var(--dim);line-height:1.4;}";
     document.head.appendChild(css);
   }
 
@@ -175,6 +180,10 @@
         c.innerHTML = '<div class="d">'+d.l+'</div><div class="p">'+(days[d.k]||0)+'</div><div class="s">'+(bests[d.k]?num(bests[d.k]):"\u00B7")+'</div>';
         wc.appendChild(c);
       });
+    }
+    if(typeof window.Poems!=="undefined"){
+      var pw = el("perfPoems");
+      if(pw){ try{ Poems.into(pw, true); }catch(e){} }
     }
     drawDonut(); drawWeek(); drawLine();
   }

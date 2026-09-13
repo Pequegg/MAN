@@ -20,15 +20,28 @@
       s.bests = s.bests||{}; s.bests[k] = Math.max(s.bests[k]||0, (res && res.score)?res.score:0);
       if(window._featRunStart){ s.secs = (s.secs||0)+Math.max(0,Math.round((Date.now()-window._featRunStart)/1000)); }
       ls("ft", s);
+      if(res && res.won && res.bestCombo>=15 && window.Poems){ try{ Poems.sRank(); }catch(e){} }
     }catch(e){}
     return _show.apply(null, arguments);
   };
 
   /* ---------- inicio de partida (para medir tiempo) ---------- */
+  var _lastFam = null;
   var _sg = window.startGame;
   window.startGame = function(id){
     try{ window._featRunStart = Date.now(); }catch(e){}
-    return _sg.apply(null, arguments);
+    var r = _sg.apply(null, arguments);
+    try{
+      var lv = window.GS && GS.lv;
+      if(lv && window.Spirit){
+        var ln = Spirit.atStart(id, lv, _lastFam);
+        if(ln) toast(ln, "\u{1F432}", "spirit", 4200);
+        _lastFam = Spirit.famOf(lv);
+      } else if(lv){
+        _lastFam = (function(){ try{ return famOf(lv); }catch(e){ return "epic"; } })();
+      }
+    }catch(e){}
+    return r;
   };
 
   /* ---------- fecha de registro / nickname ---------- */
@@ -59,6 +72,7 @@
         '<div style="font-size:12px; color:var(--dim); margin-top:6px;" id="perfReg"></div>'+
         '<div id="perfStatus" style="font-size:13px; font-style:italic; color:var(--cream); margin-top:4px;"></div>'+
       '</div>'+
+      '<div id="perfPoemsWrap"><div id="perfPoems" class="panel" style="padding:12px;"></div></div>'+
       '<div class="panel">'+
         '<div style="font-weight:900; font-size:15px; margin-bottom:8px;">Editar jugador</div>'+
         '<input id="perfNick" class="name-input" type="text" maxlength="16" placeholder="Cambiar nombre">'+
@@ -121,6 +135,18 @@
     }catch(e){}
   }
 
+  /* ---------- narrativa (carga eager, modulos externos: no tocan budget) ---------- */
+  function featNarr(){
+    ["spirit","poems"].forEach(function(n){
+      if(!window[n.charAt(0).toUpperCase()+n.slice(1)] && !document.querySelector('script[src="js/feature/'+n+'.js"]')){
+        var s = document.createElement("script");
+        s.src = "js/feature/"+n+".js";
+        s.async = true;
+        document.body.appendChild(s);
+      }
+    });
+  }
+
   /* resumen compartible (lo usa perfil.js) */
   function featShareText(){
     var s = ls("ft") || {};
@@ -147,4 +173,5 @@
   };
 
   featInjectUI();
+  featNarr();
 })();
