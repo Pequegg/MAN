@@ -5,9 +5,10 @@
 
 ## Important Details
 - **URL en vivo**: `https://pequegg.github.io/MAN/` — auto-deploy desde `main`.
-- **Git**: commits con `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `00c2eb4`.
+- **Git**: commits con `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `d0a9334`.
 - **Supabase**: `https://yrrgyunksjnzinhcedqv.supabase.co`, anon key en `js/config/supabase.js`, `SUPABASE_SITE_URL = https://pequegg.github.io/MAN/`. PAT en `C:\Users\1903c\AppData\Local\Temp\opencode\sbpat.txt`.
-- **Confirmado por API (verificado)**: el endpoint público `/auth/v1/settings` devuelve `"google": false` (proveedor Google APAGADO en Supabase) — causa #1 del auditor, bloqueada en dashboard.
+- **Login Google FUNCIONANDO (verificado)**: `google:true` en `/auth/v1/settings`; authorize 302 al consent con Client ID `1069421375978-s7hgl0mgn0mdmdqipn618ia028ae25k7.apps.googleusercontent.com`; callback ya redirige a `https://pequegg.github.io/MAN/...` (antes apuntaba a `http://localhost:3000` → usuario corrigió la Site URL en el dashboard de Supabase; quedó como `https://pequegg.github.io/MAN/**`, glob — funciona, se puede limpiar a `.../MAN/` si se quiere). El usuario confirmó login OK. Nota: el fallback de error de GoTrue usa la Site URL; el return real usa el `redirect_to` del state.
+- Confirmado por API: `/auth/v1/settings` devuelve `"google": true` (prov. activado por usuario siguiendo la guía). Causa #1 de la auditoría RESUELTA en dashboard.
 - **Management API**: `/v1/projects/.../database/query` funciona (SELECT), pero `config/auth` da 403 por scope — no se pueden consultar URL config / redirects por API.
 - **Patrón doble-encoding de sesión**: `auth.js` guarda la sesión ya pre-stringificada con `ls(SK, JSON.stringify(obj))` y `ls` (util.js) vuelve a stringificar → almacenado doble-encoded. `session()` hace `JSON.parse(JSON.parse(raw))`. Los tests que re-mockean `global.ls` deben ESCRIBIR la sesión con `global.ls('sb-session', JSON.stringify(obj))` para replicar el patrón; escribir el objeto directo genera un único encode y hace que `JSON.parse` del auth reviente (null). Ya está corregido en `online.cjs` (4b/4c verdes).
 - **Presupuesto**: `budget.cjs` mide el HTML/CSS/scripts FUENTE (no dist); personalola suma y el umbral es 265 KB → **271,360 bytes**. Total fuente actual 271,069 bytes → margen 291 bytes (SVG de mascota colapsado mecánicamente en index.html: solo whitespace entre tags; sangría de scripts eliminada).
@@ -17,6 +18,8 @@
 
 ## Work State
 ### Completed
+- **Fix visual mejoras en partida** (commit `d0a9334`): `#badgesRow` (mejoras activadas) anclada al borde inferior tapaba el abanico (`cy=h-14`); movida arriba bajo el HUD (`top:calc(max(8px,env(safe-area-inset-top))+54px)`). Regenerados dist+sw (VERSION `opartfan-v2-b8586dc5`); suites verdes.
+- **Login Google desbloqueado (dashboard)**: la pieza final era la **Site URL en Supabase = `http://localhost:3000`**, que hacía que el callback redirigiera ahí → "No se puede acceder al sitio web" en el móvil. El usuario fijó la URL en el dashboard. Login confirmado funcionando.
 - **Fix armario vacío** (commit `00c2eb4`): la pantalla `armario` faltaba en `screens` de `nav.js:6` (solo 17 de 18 pantallas). `show("armario")` nunca asignaba `.on` (quedaba oculta aunque los ítems se renderizaban) y tampoco la apagaría al salir. Añadida al orden de ruteo. Cobertura smoke nueva (armario visible/mascotas/abanicos/vuelta a menu). Regenerados dist+sw (VERSION `opartfan-v2-07979a25`). 5 suites verdes.
 - **Fix visual nivel 9** (commit `3380c95`):... (ver histórico). `gen-assets.cjs` caso `wall` rediseñado (2 pasadas de piedra, bloques, almenas, 3 torres vigía con luz cálida `#ffce7a`, montañas en silueta, resplandor frío); filtro CLI `node tools/gen-assets.cjs wall`; fallback `engine.js` armonizado. Regenerados `dist/` y `sw.js`.
 - **Fix velocidad abanico nivel 9** (commit `7196f14`): causa `bhv:"tremor"` (cada frame suma salto aleatorio en `game.js:57`) → `bhv:"swing"` en `js/levels/levels.js:15`. Regenerados `dist/` y `sw.js`.
@@ -29,16 +32,16 @@
 - **Commit + push**: `05110ad` "fix login google: refresh..." con `dist/` y `sw.js` regenerados (VERSION `opartfan-v2-072217a2`). Desplegado en vivo.
 
 ### Active
-- **Esperar prueba del usuario** del flujo Google en vivo desde `https://pequegg.github.io/MAN/` con su cuenta de test (consent screen en modo Testing → pantalla "app no verificada" → Avanzado → continuar).
+- **Confirmar con el usuario**: que el Armario ya muestre contenido tras el fix `00c2eb4` (dijo "te digo lo del armario" — recordárselo) y que las mejoras ya se vean arriba tras `d0a9334` (2 refrescos/pestaña privada por el SW).
 
 ### Blocked
-- **2SV/MFA obligatorio en la cuenta Google del usuario**: Google Cloud bloquea el acceso si la cuenta no tiene verificación en 2 pasos activada (requisito desde 24-jul-2026). Pasos: https://myaccount.google.com/security → Verificación en 2 pasos → activar; esperar 2-5 min; recargar console.cloud.google.com.
 - Si el usuario demuestra de nuevo el bloqueo de Google Cloud: asegurar que eligió consent screen **Público/Externo** (Interno solo sirve para cuentas del mismo Workspace de Google).
 - No hay visor de imágenes; la validación fue por análisis de píxeles con scripts en `$env:TEMP\opencode\`.
 
 ## Next Move
-1. **Verificado por API (ciclo anterior)**: `/auth/v1/settings` → `"google": true`; authorize → 302 al consent de Google. Probar el login en vivo.
-2. **Confirmar con el usuario que el Armario ya se ve** en https://pequegg.github.io/MAN/ (F5/Ctrl+F5) — root cause era `screens` de nav.js sin `armario`; desplegado en `00c2eb4`.
+1. **Confirmar Armario** con el usuario en vivo (`d0a9334` desplegado; doble refresh).
+2. **Opcional limpieza**: Site URL en Supabase quedó como `https://pequegg.github.io/MAN/**` (glob echado por GoTrue en el fallback); cambiarlo a `https://pequegg.github.io/MAN/` en Auth → URL Configuration y mantener `https://pequegg.github.io/MAN/**` solo en Redirect URLs.
+3. **Opcional**: publicar la app en el consent screen de Google para quitar la advertencia "app no verificada".
 
 ## Relevant Files
 - `js/core/auth.js`: `refresh()` + `boot()` con refresh de sesión vencida (≈líneas 165-190), export `refresh:refresh`, toast de error en `oauthReturn`.
