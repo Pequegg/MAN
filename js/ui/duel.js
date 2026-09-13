@@ -45,7 +45,7 @@ function renderDuel(){
 
 function loadDuelFriends(){
   var listEl=$("duelFriendsList"); if(!listEl) return;
-  listEl.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  listEl.innerHTML=skel(3);
   Duel.friends().then(function(fr){
     var cnt=$("duelFriendsCount"); if(cnt) cnt.textContent=fr.length;
     if(!fr.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">Aún no tienes amigos. Agrega su código arriba.</div>'; return; }
@@ -85,7 +85,7 @@ function duelPlay(id){
 
 function loadDuelList(){
   var listEl=$("duelList"); if(!listEl) return;
-  listEl.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  listEl.innerHTML=skel(3);
   Duel.list().then(function(ds){
     _duels=ds||[];
     var badge=$("duelBadge");

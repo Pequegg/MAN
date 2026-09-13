@@ -30,7 +30,7 @@ function renderAdmin(){
 }
 function loadAdminStats(){
   var el=$("adminStats"); if(!el) return;
-  el.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  el.innerHTML=skel(4);
   SupRemote.rpc("admin_stats",{}).then(function(st){
     if(st.error){ el.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(st.error)+'</div>'; return; }
     var stats=[

@@ -13,5 +13,11 @@ function sfxTrap(){ tone(150,.25,"sawtooth",.18,60); tone(90,.3,"square",.14,50)
 function sfxWin(){ [523,659,784,1046].forEach(function(f,i){ setTimeout(function(){ tone(f,.14,"triangle",.16); }, i*110); }); sndPlay("ach"); }
 function sfxLose(){ [330,262,196].forEach(function(f,i){ setTimeout(function(){ tone(f,.18,"sawtooth",.14); }, i*130); }); sndPlay("miss"); }
 function sfxClick(){ tone(700,.05,"square",.07); }
-function vibrate(p){ if(navigator.vibrate) { try{ navigator.vibrate(p); }catch(e){} } }
-document.addEventListener("pointerdown", function(){ ensureAudio(); }, {passive:true});
+var _mr=null;
+function _reduceMotion(){ if(_mr===null){ try{ _mr = typeof matchMedia!=="undefined" && !!matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ _mr=false; } } return _mr; }
+function vibrate(p){ if(_reduceMotion() || !navigator.vibrate) return; try{ navigator.vibrate(p); }catch(e){} }
+function hapticTick(){ vibrate(6); }
+document.addEventListener("pointerdown", function(ev){
+  ensureAudio();
+  if(ev && ev.target && ev.target.closest){ var t=ev.target.closest(".btn,.menu-btn,.tab,.fil,.back"); if(t) hapticTick(); }
+}, {passive:true});

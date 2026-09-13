@@ -185,7 +185,7 @@ function renderSeason(){
     return;
   }
   $("arenaSeasonSub").textContent="Grupo "+code+" \u00B7 Temporada "+sk+" \u00B7 quedan "+sr.days+" d\u00EDas";
-  list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Cargando\u2026</div>';
+  list.innerHTML=skel(6);
   buildStandings(code, function(arr){
     list.innerHTML="";
     if(!arr.length){ list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Todavía sin puntos.</div>'; return; }
@@ -308,7 +308,7 @@ function renderWorldRank(){
     return;
   }
   if(sub) sub.textContent="Puntajes de hoy de todos los jugadores";
-  list.innerHTML='<div class="center sub" style="padding:14px; color:var(--dim); font-size:12px;">Cargando\u2026</div>';
+  list.innerHTML=skel(6);
   SupRemote.get("arena_daily","date=eq."+SupRemote.enc(todayKey())+"&order=score.desc.nullslast&limit=25")
     .then(function(rows){ renderWorldRows(rows||[]); })
     .catch(function(){

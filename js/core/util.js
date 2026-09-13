@@ -15,3 +15,4 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.im
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function $(id){ return document.getElementById(id); }
 function num(n){ return Math.floor(n).toLocaleString("es-ES"); }
+function skel(n){ var h='<div class="skels">'; for(var i=0;i<n;i++) h+='<div class="skel"></div>'; return h+'</div>'; }

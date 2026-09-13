@@ -52,6 +52,7 @@ function paintRt(ok){
 
 function loadLiveRooms(){
   var listEl=$("liveRoomsList"); if(!listEl) return;
+  listEl.innerHTML=skel(3);
   Live.rooms().then(function(rows){
     _liveRooms=rows||[];
     listEl.innerHTML="";
@@ -87,6 +88,7 @@ function renderRoomRow(r){
 }
 function loadLiveMine(){
   var listEl=$("liveMineList"); if(!listEl) return;
+  listEl.innerHTML=skel(3);
   Live.mine().then(function(rows){
     _liveMine=rows||[];
     listEl.innerHTML="";

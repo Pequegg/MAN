@@ -4,7 +4,21 @@
 
 /* ---------- Navegación / pantallas ---------- */
 var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","live","notix","admin","game","result","end"];
-function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
+var _mv=null;
+function mvOK(){ if(_mv!==null) return _mv; try{ _mv = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){ _mv=true; } return _mv; }
+function show(name){
+  var prev=null;
+  screens.forEach(function(s){ var el=$("screen-"+s); if(!el) return; var on=el.classList.contains("on"); if(on) prev=s; el.classList.toggle("on", s===name); });
+  var el=$("screen-"+name);
+  if(!el) return;
+  el.scrollTop=0;
+  if(prev && prev!==name){
+    if(mvOK()){
+      el.dataset["dir"] = screens.indexOf(name) > screens.indexOf(prev) ? "in" : "back";
+      el.classList.remove("ent"); void el.offsetWidth; el.classList.add("ent");
+    } else { el.classList.remove("ent"); }
+  }
+}
 function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); if(typeof Nx!=="undefined"&&Nx.renderNxBadge){ try{ Nx.renderNxBadge(); }catch(e){} } }
 function refreshDuelBadge(){
   var badge=$("duelBadge");

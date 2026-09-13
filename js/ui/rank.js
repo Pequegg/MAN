@@ -50,7 +50,7 @@ document.querySelectorAll("#screen-rank .fil").forEach(function(x){
   x.addEventListener("click", function(){ sfxClick(); var f=x.dataset.f; openRanking.filter=f; paintRankFilters(f); loadRanking(f); });
 });
 function loadRanking(f){
-  $("rankList").innerHTML='<div class="center sub" style="padding:20px; color:var(--dim);">Cargando\u2026</div>';
+  $("rankList").innerHTML=skel(6);
   var all=localScores();
   fetchRemote().then(function(remote){
     all=all.concat(remote);
