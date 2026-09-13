@@ -72,6 +72,7 @@
         '<div style="font-size:12px; color:var(--dim); margin-top:6px;" id="perfReg"></div>'+
         '<div id="perfStatus" style="font-size:13px; font-style:italic; color:var(--cream); margin-top:4px;"></div>'+
       '</div>'+
+      '<div id="perfPales" class="panel" style="padding:12px;"></div>'+
       '<div id="perfPoemsWrap"><div id="perfPoems" class="panel" style="padding:12px;"></div></div>'+
       '<div class="panel">'+
         '<div style="font-weight:900; font-size:15px; margin-bottom:8px;">Editar jugador</div>'+
@@ -117,6 +118,7 @@
     }
     featLoadPerfil(function(){
       try{ renderPerfil(); }catch(e){ toast("Perfil listo","\u{1F464}"); }
+      try{ if(window.Pale) Pale.into($("perfPales")); }catch(e){}
       show("perfil");
     });
   }
@@ -135,10 +137,11 @@
     }catch(e){}
   }
 
-  /* ---------- narrativa (carga eager, modulos externos: no tocan budget) ---------- */
-  function featNarr(){
-    ["spirit","poems"].forEach(function(n){
-      if(!window[n.charAt(0).toUpperCase()+n.slice(1)] && !document.querySelector('script[src="js/feature/'+n+'.js"]')){
+  /* ---------- narrativa + paletas (modulos externos: no tocan budget) ---------- */
+  function featExtras(){
+    ["spirit","poems","palettes"].forEach(function(n){
+      var cls = n.charAt(0).toUpperCase()+n.slice(1);
+      if(!window[cls] && !document.querySelector('script[src="js/feature/'+n+'.js"]')){
         var s = document.createElement("script");
         s.src = "js/feature/"+n+".js";
         s.async = true;
@@ -173,5 +176,5 @@
   };
 
   featInjectUI();
-  featNarr();
+  featExtras();
 })();

@@ -16,7 +16,8 @@ const feat = fs.readFileSync(ROOT + 'js/feature/features.js', 'utf8');
 const perfil = fs.readFileSync(ROOT + 'js/feature/perfil.js', 'utf8');
 const spirit = fs.readFileSync(ROOT + 'js/feature/spirit.js', 'utf8');
 const poems = fs.readFileSync(ROOT + 'js/feature/poems.js', 'utf8');
-html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt></body>');
+const palettes = fs.readFileSync(ROOT + 'js/feature/palettes.js', 'utf8');
+html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt></body>');
 
 const vc = new VirtualConsole();
 const jsdomErrs = [];
@@ -83,6 +84,9 @@ function click(sel) {
   ok('resumen renderizado', !!cs('#stGrid') && cs('#stGrid').children.length === 8);
   ok('cripto tarjetas semana', cs('#weekCells') && cs('#weekCells').children.length === 7);
   ok('fecha registro puesta', (text('#perfReg') || '').indexOf('Jugador desde') === 0);
+  ok('paletas renderizan', !!(cs('#perfPales') && cs('#perfPales').children.length));
+  ok('paleta base activa', !!w.Pale && w.Pale.current() === 'laca');
+  ok('manto del dragon bloqueado', !!w.Pale && !w.Pale.unlocked(w.Pale.list.filter(function (p) { return p.id === 'dragon'; })[0]));
   click('#perfBack');
   await raf(60);
   ok('vuelve al menu', !!cs('#screen-menu.on') && !cs('#screen-perfil.on'));
@@ -121,6 +125,11 @@ function click(sel) {
   await raf(40);
   ok('poema descubierto con S-rank', (w.ls('poems') || []).length >= 1);
   ok('biblioteca rinde en perfil', !!w.Poems && (function () { var c = { innerHTML: '' }; w.Poems.into(c, true); return c.innerHTML.length > 4; })());
+  w.totalEarned = 600;
+  ok('tinta desbloqueada por hito', w.Pale.unlocked(w.Pale.list.filter(function (p) { return p.id === 'tinta'; })[0]));
+  w.Pale.apply('tinta'); 
+  ok('paleta aplicada y persistida', w.Pale.current() === 'tinta' && w.ls('palette') === 'tinta');
+  w.Pale.apply('laca');
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
   process.exit(failed ? 1 : 0);
