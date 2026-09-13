@@ -44,13 +44,32 @@ var Auth = (function(){
     }
   }
 
+  function refresh(){
+    var s=session();
+    if(!s||!s.refresh_token) return Promise.resolve(false);
+    return fetch(authBase()+"/token?grant_type=refresh_token",{method:"POST",
+      headers:{"apikey":apikey(),"Content-Type":"application/json"},
+      body:JSON.stringify({refresh_token:s.refresh_token})})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){ saveSession(j); return true; })
+      .catch(function(){ return false; });
+  }
+
   function boot(cb){
     cb=cb||function(){};
-    var chain=Promise.resolve();
-    var mustPull=false;
-    if(new URL(location.href).searchParams.get("code")){ mustPull=true; chain=oauthReturn(); }
+    var p0=Promise.resolve(false), p=new URL(location.href).searchParams;
+    var chain=p.get("code")?oauthReturn():p0;
+    if(!p.get("code")){
+      var err=p.get("error_description")||p.get("error");
+      if(err){ try{ if(window.toast) toast("No se pudo iniciar sesión: "+err,"\u26A0","err"); }catch(e){} }
+    }
     chain.then(function(){
-      if(isAuthed() && mustPull) return Db.pull().catch(function(){});
+      var s=session();
+      if(!isAuthed()){ return (s&&s.refresh_token)?refresh():p0; }
+      if(s&&s.expires_at&&s.expires_at*1000-Date.now()<6e5){ refresh(); }
+      return p0;
+    }).then(function(){
+      if(isAuthed()) return Db.pull().catch(function(){});
       return null;
     }).then(function(){ cleanUrl(); try{ cb(); }catch(e){} });
   }
@@ -65,7 +84,7 @@ var Auth = (function(){
       if(!s) return;
       Db.remapUid(oldUid);  // mueve el progreso de invitado a la cuenta
       try{ if(window.sfxGold) sfxGold(); }catch(e){}
-    }).catch(function(){});
+}).catch(function(){ if(window.toast) toast("No se pudo iniciar sesión con Google","\u26A0","err"); });
   }
 
   function exchange(code, verifier){
@@ -108,6 +127,6 @@ var Auth = (function(){
     location.reload();
   }
 
-  return {boot:boot, googleLogin:googleLogin, signOut:signOut, refresh:null,
+  return {boot:boot, googleLogin:googleLogin, signOut:signOut, refresh:refresh,
     isAuthed:isAuthed, uid:uid, userName:userName, email:email, session:session};
 })();

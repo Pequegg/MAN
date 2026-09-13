@@ -68,6 +68,9 @@ global.fetch = (url, opts) => {
     if (/\/token\?grant_type=pkce/.test(u)) {
       return Promise.resolve(jsonResp({ access_token: 'tok-123', refresh_token: 'ref-1', expires_in: 3600, user: { id: 'u-google-1', email: 'gus@test.dev', user_metadata: { full_name: 'Gustavo' } } }, 200));
     }
+    if (/\/token\?grant_type=refresh_token/.test(u)) {
+      return Promise.resolve(jsonResp({ access_token: 'tok-456', refresh_token: 'ref-2', expires_in: 3600, user: { id: 'u-google-1', email: 'gus@test.dev', user_metadata: { full_name: 'Gustavo' } } }, 200));
+    }
     if (/\/rest\/v1\/rpc\/save_profile/.test(u)) return Promise.resolve(jsonResp({ name: 'CloudEditado', avatar: 'X', coins: 999, _saved: Date.now() }, 200));
     if (/\/rest\/v1\/rpc\/redeem_item/.test(u)) return Promise.resolve(jsonResp({ coins: 999, ownedCosmetics: ['fan-lotus'], inventory: { time5: 1 } }, 200));
     if (/\/rest\/v1\/rpc\/my_friend_code/.test(u)) return Promise.resolve(jsonResp({ code: 'F1A2B3' }, 200));
@@ -196,6 +199,20 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   ok('sesion creada tras el flujo Google', Auth.isAuthed());
   ok('uid = id de la cuenta Google', Auth.uid() === 'u-google-1');
   ok('nombre tomado de Google', Auth.userName() === 'Gustavo');
+
+  // 4b) refresh renueva la sesion vencida por GoTrue (grant refresh_token)
+  const sExp = Auth.session(); sExp.expires_at = (Date.now() / 1000) - 60; global.ls('sb-session', JSON.stringify(sExp));
+  ok('sesion expirada no autentica', !Auth.isAuthed());
+  network.posts.length = 0;
+  const revived = await Auth.refresh();
+  ok('refresh llama a /token grant_type=refresh_token', network.posts.some(p => /\/token\?grant_type=refresh_token/.test(p.url) && p.body.refresh_token === 'ref-1'));
+  ok('refresh renueva la sesion', revived && Auth.isAuthed() && Auth.session().refresh_token === 'ref-2');
+
+  // 4c) boot revive automaticamente una sesion vencida guardada
+  const sExp2 = Auth.session(); sExp2.expires_at = (Date.now() / 1000) - 60; global.ls('sb-session', JSON.stringify(sExp2));
+  global.location = { href: 'https://op-art-fan.test/', origin: 'https://op-art-fan.test', pathname: '/' };
+  await new Promise(res => Auth.boot(res));
+  ok('boot revive la sesion vencida', Auth.isAuthed() && Auth.uid() === 'u-google-1');
 
   // 5) Db.pull aplica el perfil de la nube (los mas reciente gana)
   ok('perfil de la nube aplicado', profile.name === 'Cloud' && coins === 999);
