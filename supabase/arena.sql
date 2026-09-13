@@ -485,8 +485,6 @@ as $$
 $$;
 grant execute on function public.add_friend(text) to anon;
 -- ============================================================
--- (Anexo: contenido de supabase/live3.sql - Fase 3)
--- ============================================================
 -- ============================================================
 -- Op-Art Fan · Fase 3 (spec v2.1): tiempo real + producción
 --  - Salas 1v1 con Supabase Realtime (postgres_changes + broadcast)

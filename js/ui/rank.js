@@ -11,8 +11,10 @@ function pushScore(entry){
   if(SupRemote.on()) postRemote(entry);
 }
 function postRemote(entry){
+  // Solo con sesión real: el server valida y conserva tu mejor puntaje.
+  if(typeof Auth==="undefined" || !Auth.isAuthed()) return;
   try{
-    SupRemote.upsert("scores",[{uid:uid(), name:entry.name, avatar:entry.avatar, score:entry.score, ts:entry.ts}]).catch(function(){});
+    SupRemote.rpc("submit_score",{p_score:Math.max(0,Math.floor(entry.score||0)), p_ts:entry.ts||Date.now()}).catch(function(){});
   }catch(e){}
 }
 function fetchRemote(){ return new Promise(function(resolve){

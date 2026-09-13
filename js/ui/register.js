@@ -31,9 +31,21 @@ $("registerBtn").addEventListener("click", function(){
   ensureAudio(); sfxClick();
   var n=$("nameInput").value.trim();
   if(!n){ toast("Escribe tu nombre o apodo primero","\u270B","err"); $("nameInput").focus(); return; }
-  profile = {name:n.slice(0,16), avatar:selectedAvatar};
+  var finalName=n.slice(0,16);
+  profile = {name:finalName, avatar:selectedAvatar};
   saveAll(); saveArena();
+  if(typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){
+    try{
+      // Nick único y filtrado server-side (set_nickname); si lo rechaza,
+      // seguimos en local y avisamos.
+      SupRemote.rpc("set_nickname",{p_name:finalName}).then(function(res){
+        if(res && res.error){ toast(String(res.error).replace("slv: ",""),"\u26A0","err",3200); return; }
+        toast("Progreso guardado en tu cuenta Google","\u2601\uFE0F");
+      }).catch(function(){
+        toast("El server no aceptó tu nombre: prueba otro","\u26A0","err",3200);
+      });
+    }catch(e){}
+  }
   refreshMenu(); goMenu(); toast("¡Hola, "+esc(profile.name)+"!","\u{1F44B}");
-  if(typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){ toast("Progreso guardado en tu cuenta Google","\u2601\uFE0F"); }
 });
 $("nameInput").addEventListener("keypress", function(e){ if(e.key==="Enter") $("registerBtn").click(); });

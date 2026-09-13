@@ -661,11 +661,9 @@ function finishGame(won){
   } else {
     var db=ls("dailyBest")||{}; var k=todayKey();
     if(!db[k] || score>(db[k].score||0)){ db[k]={score:score, ts:Date.now()}; ls("dailyBest",db); }
-    if(SupRemote.on()){
+    if(SupRemote.on() && typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){
       try{
-        SupRemote.bestScore("daily",
-          "date=eq."+SupRemote.enc(k)+"&uid=eq."+SupRemote.enc(uid()),
-          {date:k, uid:uid(), name:profile.name, avatar:profile.avatar, score:score, ts:Date.now()}).catch(function(){});
+        SupRemote.rpc("submit_daily",{p_date:k, p_score:score, p_ts:Date.now()}).catch(function(){});
       }catch(e){}
     }
   }

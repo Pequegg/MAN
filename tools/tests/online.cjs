@@ -68,7 +68,7 @@ global.fetch = (url, opts) => {
     if (/\/token\?grant_type=pkce/.test(u)) {
       return Promise.resolve(jsonResp({ access_token: 'tok-123', refresh_token: 'ref-1', expires_in: 3600, user: { id: 'u-google-1', email: 'gus@test.dev', user_metadata: { full_name: 'Gustavo' } } }, 200));
     }
-    if (/\/rest\/v1\/users/.test(u)) return Promise.resolve(jsonResp([], 200));
+    if (/\/rest\/v1\/rpc\/save_profile/.test(u)) return Promise.resolve(jsonResp({ name: 'CloudEditado', avatar: 'X', coins: 999, _saved: Date.now() }, 200));
     if (/\/rest\/v1\/rpc\/redeem_item/.test(u)) return Promise.resolve(jsonResp({ coins: 999, ownedCosmetics: ['fan-lotus'], inventory: { time5: 1 } }, 200));
     if (/\/rest\/v1\/rpc\/my_friend_code/.test(u)) return Promise.resolve(jsonResp({ code: 'F1A2B3' }, 200));
     if (/\/rest\/v1\/rpc\/add_friend/.test(u)) return Promise.resolve(jsonResp({ ok: true, uid: 'u-friend-2', name: 'Bob' }, 200));
@@ -87,8 +87,25 @@ global.fetch = (url, opts) => {
     if (/\/rest\/v1\/rpc\/admin_grant/.test(u)) return Promise.resolve(jsonResp({ ok: true, coins: 500 }, 200));
     if (/\/rest\/v1\/rpc\/admin_notice/.test(u)) return Promise.resolve(jsonResp({ ok: true }, 200));
     if (/\/rest\/v1\/rpc\/notice/.test(u)) return Promise.resolve(jsonResp({ text: 'Mantenimiento', active: 1, updated: '2026-01-01' }, 200));
-    if (/\/rest\/v1\/duels/.test(u)) return Promise.resolve(jsonResp([], 200));
-    if (/\/rest\/v1\/live_rooms/.test(u)) return Promise.resolve(jsonResp([Object.assign({}, ROOM_ROW, { status: 'playing', h_score: 1200, g_score: 800, g_done: 1 })], 200));
+    // ---- RPCs Fase A2 (endurecimiento): todas las escrituras pasan por aquí ----
+    if (/\/rest\/v1\/rpc\/set_nickname/.test(u)) {
+      const nb = JSON.parse(opts.body);
+      if (nb.p_name === 'Tomado') return Promise.resolve(jsonResp({ error: 'slv: ese nombre ya esta en uso, prueba otro' }, 200));
+      return Promise.resolve(jsonResp({ ok: true, name: nb.p_name }, 200));
+    }
+    if (/\/rest\/v1\/rpc\/submit_score/.test(u)) return Promise.resolve(jsonResp({ ok: true, best: 50 }, 200));
+    if (/\/rest\/v1\/rpc\/submit_daily/.test(u)) return Promise.resolve(jsonResp({ ok: true, best: 50 }, 200));
+    if (/\/rest\/v1\/rpc\/submit_arena_daily/.test(u)) return Promise.resolve(jsonResp({ ok: true, best: 50 }, 200));
+    if (/\/rest\/v1\/rpc\/group_submit/.test(u)) return Promise.resolve(jsonResp({ ok: true, pts: 12, season: 'S5' }, 200));
+    if (/\/rest\/v1\/rpc\/create_duel/.test(u)) return Promise.resolve(jsonResp({ ok: true, id: 'd1' }, 200));
+    if (/\/rest\/v1\/rpc\/live_create/.test(u)) return Promise.resolve(jsonResp({ ok: true, id: 'room2' }, 200));
+    if (/\/rest\/v1\/rpc\/live_start/.test(u)) return Promise.resolve(jsonResp(Object.assign({}, ROOM_ROW, { status: 'playing', started: Date.now() }), 200));
+    if (/\/rest\/v1\/rpc\/live_score/.test(u)) return Promise.resolve(jsonResp({ ok: true }, 200));
+    if (/\/rest\/v1\/rpc\/live_leave/.test(u)) return Promise.resolve(jsonResp({ ok: true, left: true }, 200));
+    // ---- Escrituras DIRECTAS a tablas: PROHIBIDAS (RLS with check (false)) ----
+    if (/\/rest\/v1\/(users|scores|daily|arena_daily|group_members|group_pts|duels|live_rooms|friends|purchases)(\?|$)/.test(u)) {
+      return Promise.resolve(jsonResp({ code: '42501', message: 'new row violates row-level security policy' }, 403));
+    }
     return Promise.resolve(jsonResp([], 200));
   }
   network.gets.push(u);
@@ -113,6 +130,16 @@ gload('js/arena/duels.js');
 global.SUPABASE_ANON_KEY = '';
 gload('js/arena/realtime.js');
 gload('js/arena/live.js');
+
+// shims minimos para cargar rank.js (postRemote / submit_score)
+global.document = { getElementById: () => null, querySelectorAll: () => [] };
+global.$ = (id) => null;
+global.esc = (s) => String(s == null ? '' : s);
+global.num = (n) => String(n | 0);
+global.todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+global.sfxClick = () => {};
+global.uid = () => (typeof Auth !== 'undefined' && Auth.isAuthed && Auth.isAuthed()) ? Auth.uid() : null;
+gload('js/ui/rank.js');
 
 // ---- WebSocket falso (servidor Phoenix v2) para probar Realtime ----
 class FakeWS {
@@ -153,12 +180,13 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   ok('get() devuelve filas del mock', Array.isArray(rows) && rows[0].uid === 'x1');
   ok('get() consulta la tabla correcta', network.gets.some(u => u.includes('/rest/v1/daily?date=eq.2026-01-01')));
 
-  // 3) bestScore solo sube puntajes mejores
+  // 3) los puntajes ya no se suben con bestScore: el write directo que hacía
+  //    está PROHIBIDO por el endurecimiento (403 RLS); el cliente usa RPCs.
   network.posts.length = 0;
-  await SupRemote.bestScore('daily', 'date=eq.2026-01-01&uid=eq.x1', { date: '2026-01-01', uid: 'x1', score: 5 });
-  ok('bestScore no sobreescribe puntaje menor', network.posts.length === 0);
-  await SupRemote.bestScore('daily', 'date=eq.2026-01-01&uid=eq.x1', { date: '2026-01-01', uid: 'x1', score: 15 });
-  ok('bestScore sube puntaje mayor', network.posts.length === 1);
+  let bestRejected = false;
+  try { await SupRemote.bestScore('daily', 'date=eq.2026-01-01&uid=eq.x1', { date: '2026-01-01', uid: 'x1', score: 15 }); }
+  catch (e) { bestRejected = true; }
+  ok('bestScore ya no puede escribir directo en daily (403 RLS)', bestRejected);
 
   // 4) login Google: PKCE + intercambio de codigo
   global.location = { href: 'https://op-art-fan.test/?code=abc123', origin: 'https://op-art-fan.test', pathname: '/' };
@@ -172,13 +200,14 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   // 5) Db.pull aplica el perfil de la nube (los mas reciente gana)
   ok('perfil de la nube aplicado', profile.name === 'Cloud' && coins === 999);
 
-  // 6) Db.push sube el perfil local
+  // 6) Db.push sube el perfil local por RPC (nunca escritura directa)
   network.posts.length = 0;
   profile.name = 'CloudEditado';
   Db.push();
   await new Promise(r => setTimeout(r, 30));
-  const pu = network.posts.find(p => /\/rest\/v1\/users/.test(p.url) && p.body && p.body[0] && p.body[0].uid === 'u-google-1');
-  ok('Db.push sincroniza users/{uid}', !!pu && pu.body[0].profile.name === 'CloudEditado' && pu.body[0].profile._saved > 0);
+  const psp = network.posts.find(p => /\/rest\/v1\/rpc\/save_profile/.test(p.url));
+  ok('Db.push sincroniza por RPC save_profile', !!psp && psp.body.p_profile && psp.body.p_profile.name === 'CloudEditado' && psp.body.p_profile._saved > 0);
+  ok('Db.push no escribe directo en users', !network.posts.some(p => /\/rest\/v1\/users(\?|$)/.test(p.url)));
 
   // 7) remap de invitado -> cuenta
   global.ls('uid', 'u-local-old');
@@ -247,8 +276,8 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   ok('add_friend envia p_code', fr.ok && network.posts.some(p => /rpc\/add_friend/.test(p.url) && p.body.p_code === 'F1A2B3'));
   network.posts.length = 0;
   const did = await Duel.create({ uid: 'u-friend-2', name: 'Bob' }, 5);
-  ok('crear duelo inserta con p1=p2=uids y level', network.posts.some(p => /\/rest\/v1\/duels/.test(p.url) &&
-    p.body[0].p1 === 'u-google-1' && p.body[0].p2 === 'u-friend-2' && p.body[0].level_id === 5 && p.body[0].status === 'pending') && !!did);
+  ok('crear duelo llama al RPC create_duel (el server decide seed/id)', did === 'd1' &&
+    network.posts.some(p => /rpc\/create_duel/.test(p.url) && p.body.p_opp === 'u-friend-2' && p.body.p_level === 5));
   network.gets.length = 0;
   const dl = await Duel.list();
   ok('list() consulta mis duelos (p1 o p2)', Array.isArray(dl) && network.gets.some(u => u.includes('/rest/v1/duels?or=')));
@@ -295,15 +324,15 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   ok('mySide() = guest (no host)', Live.mySide() === 'guest');
   ok('opScore() lee el marcador del rival', Live.opScore() === 1500);
 
-  // sendScore: primer envio inmediato (PATCH al lado propio), throttle el resto
-  network.patches.length = 0;
+  // sendScore: primer envio inmediato (RPC live_score), throttle el resto
+  network.posts.length = 0;
   await Live.sendScore(2500);
   await new Promise(r => setTimeout(r, 10));
-  ok('sendScore envia PATCH g_score', network.patches.length === 1 && /\/rest\/v1\/live_rooms\?/.test(network.patches[0].url) &&
-    network.patches[0].body.g_score === 2500);
+  ok('sendScore envia RPC live_score con mi marcador', network.posts.length === 1 &&
+    /\/rest\/v1\/rpc\/live_score/.test(network.posts[0].url) && network.posts[0].body.p_room === 'room1' && network.posts[0].body.p_score === 2500);
   await Live.sendScore(2600);
   await new Promise(r => setTimeout(r, 30));
-  ok('sendScore throttled (no revuelve en 30ms)', network.patches.length === 1);
+  ok('sendScore throttled (no revuelve en 30ms)', network.posts.length === 1);
 
   // guards: solo el host empieza
   let started = null; try { started = await Live.start(); } catch (e) { started = e; }
@@ -318,7 +347,7 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   ok('finishFromGame resuelve evento con huella y cierra la sala', !!out && out.won === true && out.reward === 15 && !!Live.current() === false);
   ok('lastOutcome guarda el resultado', Live.lastOutcome() && Live.lastOutcome().won === true);
   const noRoom = await Live.sendScore(99);
-  ok('sendScore sin sala no emite', noRoom === undefined && network.patches.length === 1);
+  ok('sendScore sin sala no emite', noRoom === undefined && network.posts.length === 1);
 
   // 13) Admin (RPCs)
   let s2 = await SupRemote.rpc('admin_stats', {});
@@ -330,6 +359,37 @@ FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', 
   s2 = await SupRemote.rpc('admin_notice', { p_text: 'Mantenimiento' });
   ok('admin_notice publica el aviso', s2 && s2.ok && network.posts.some(p => /rpc\/admin_notice/.test(p.url) && p.body.p_text === 'Mantenimiento'));
   RT.unjoin('realtime:public');
+
+  // 14) Fase A2/A3 — endurecimiento: cero escrituras directas, todo por RPC
+  network.posts.length = 0;
+  network.patches.length = 0;
+  profile.name = 'CloudEditado';
+  Db.push();
+  pushScore({ uid: 'u-google-1', name: 'Cloud', avatar: 'X', score: 42, ts: Date.now() });
+  await new Promise(r => setTimeout(r, 30));
+  const directWrites = network.posts.filter(p => /\/rest\/v1\/(users|scores|daily|arena_daily|group_members|group_pts|duels|live_rooms)(\?|$)/.test(p.url));
+  const directPatches = network.patches.filter(p => /\/rest\/v1\/(scores|daily|arena_daily|group_members|group_pts|duels|live_rooms|users)/.test(p.url));
+  ok('cada guardado usa su RPC (sin POST directo a tablas)', network.posts.some(p => /rpc\/save_profile/.test(p.url)) &&
+    network.posts.some(p => /rpc\/submit_score/.test(p.url)) && directWrites.length === 0 && directPatches.length === 0);
+  ok('submit_score manda p_score/p_ts (el uid sale del JWT)',
+    network.posts.some(p => /rpc\/submit_score/.test(p.url) && p.body.p_score === 42 && !!p.body.p_ts));
+
+  // intento malicioso directo: el server lo rechaza (RLS with check (false))
+  let rejected = false;
+  try { await SupRemote.upsert('scores', [{ uid: 'u-google-1', name: 'X', avatar: '', score: 99999999, ts: 1 }]); }
+  catch (e) { rejected = true; }
+  ok('escritura directa a scores rechazada (403 / RLS)', rejected);
+  rejected = false;
+  try { await SupRemote.upsert('users', [{ uid: 'u-google-1', profile: { coins: 999999999 } }]); }
+  catch (e) { rejected = true; }
+  ok('escritura directa a users rechazada (403 / RLS)', rejected);
+
+  // set_nickname: único + tomado (A3)
+  network.posts.length = 0;
+  const nickOk = await SupRemote.rpc('set_nickname', { p_name: 'Gus' });
+  ok('set_nickname registra el nick por RPC', nickOk && nickOk.ok && nickOk.name === 'Gus');
+  const nickTaken = await SupRemote.rpc('set_nickname', { p_name: 'Tomado' });
+  ok('set_nickname rechaza un nick ya en uso', !!nickTaken.error && /ya esta/.test(nickTaken.error));
 
   console.log(fail ? ('FALLOS: ' + fail) : 'ONLINE OK');
   process.exit(fail ? 1 : 0);

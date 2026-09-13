@@ -32,7 +32,7 @@ var Db = (function(){
   function push(){
     if(!ready()) return;
     var s=snapshot(); s._saved=Date.now();
-    try{ SupRemote.upsert("users",[{uid:Auth.uid(), profile:s}]).catch(function(){}); }catch(e){}
+    try{ SupRemote.rpc("save_profile",{p_profile:s}).catch(function(){}); }catch(e){}
   }
 
   function queueSync(){

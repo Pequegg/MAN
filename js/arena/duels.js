@@ -30,15 +30,14 @@ var Duel = (function(){
     return SupRemote.get("duels", or);
   }
 
-  // Crear reto contra un amigo en un nivel concreto
+  // Crear reto contra un amigo en un nivel concreto (el seed y el id los
+  // decide el server; el cliente nunca elige su propia huella).
   function create(opp, level){
     if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
-    var row={
-      id:"d"+Date.now()+"-"+Math.floor(Math.random()*1e6),
-      p1:myUid(), p2:(opp&&opp.uid)||opp,
-      level_id:level, seed:code(), status:"pending", scores:{}, created:Date.now()
-    };
-    return SupRemote.upsert("duels",[row],false).then(function(){ return row.id; });
+    return SupRemote.rpc("create_duel",{p_opp:(opp&&opp.uid)||opp, p_level:level}).then(function(r){
+      if(r && r.error) throw new Error(r.error);
+      return r.id;
+    });
   }
 
   function friends(){

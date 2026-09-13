@@ -102,14 +102,12 @@ function createGroup(){
 }
 function pushGroupRemote(code){
   if(!SupRemote.on()) return;
+  if(typeof Auth==="undefined" || !Auth.isAuthed() || !Auth.uid()) return;
   var gd=arena.groupData[code]; if(!gd) return;
-  var sk=seasonKey(); var me=gd.members[uid()];
   try{
-    SupRemote.upsert("group_members",[{group_code:code, uid:uid(),
-      name:(me&&me.name)||profile.name, avatar:(me&&me.avatar)||profile.avatar,
-      wear:(me&&me.wear)||myWear(), joined:(me&&me.joined)||Date.now()}]).catch(function(){});
-    SupRemote.upsert("group_pts",[{group_code:code, season:sk, uid:uid(),
-      pts:(gd.pts&&gd.pts[sk]&&gd.pts[sk][uid()])||0}]).catch(function(){});
+    // El server registra al miembro y RECALCULA los pts de temporada
+    // desde arena_daily (el cliente nunca decide sus puntos).
+    SupRemote.rpc("group_submit",{p_group:code, p_wear:myWear()}).catch(function(){});
   }catch(e){}
 }
 function fetchGroupRemote(code){ return new Promise(function(resolve){
@@ -429,11 +427,9 @@ function finishArena(){
   if(won) unlock("arenastar");
   if(arena.daysDone.length>=3) unlock("arenaday");
   addSeasonPoints(pts);
-  if(SupRemote.on()){
+  if(SupRemote.on() && typeof Auth!=="undefined" && Auth.isAuthed() && Auth.uid()){
     try{
-      SupRemote.bestScore("arena_daily",
-        "date=eq."+SupRemote.enc(k)+"&uid=eq."+SupRemote.enc(uid()),
-        {date:k, uid:uid(), name:profile.name, avatar:profile.avatar, score:score, ts:Date.now(), mode:g.mode}).catch(function(){});
+      SupRemote.rpc("submit_arena_daily",{p_date:k, p_mode:g.mode, p_score:score}).catch(function(){});
     }catch(e){}
   }
   refreshMenuCoins();

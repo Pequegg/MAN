@@ -44,9 +44,10 @@ var Live = (function(){
 
   function create(level){
     if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
-    var id="l"+Date.now()+"-"+Math.floor(Math.random()*1e4);
-    var row={id:id, host:myUid(), level_id:level, status:"open", seed:code(), created:Date.now()};
-    return SupRemote.upsert(TBL,[row],false).then(function(){ attach(id); return id; });
+    return SupRemote.rpc("live_create",{p_level:level}).then(function(r){
+      if(r && r.error) throw new Error(r.error);
+      attach(r.id); return r.id;
+    });
   }
   function join(id){
     if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
@@ -60,14 +61,17 @@ var Live = (function(){
     if(!cur||!authed()) return Promise.reject(new Error("no room"));
     if(mySide()!=="host") return Promise.reject(new Error("solo el anfitrion empieza"));
     if(cur.status!== "ready") return Promise.reject(new Error("falta rival"));
-    return SupRemote.patch(TBL, "id=eq."+SupRemote.enc(cur.id), {status:"playing", started:Date.now()})
-      .then(function(){ return cur; });
+    return SupRemote.rpc("live_start",{p_room:cur.id}).then(function(r){
+      if(r && r.error) throw new Error(r.error);
+      cur=merge(r); fire();
+      return cur;
+    });
   }
   function leave(){
     if(!cur||!authed()) return Promise.reject(new Error("no room"));
     var id=cur.id;
     if(cur.status!=="finished"){
-      return SupRemote.patch(TBL, "id=eq."+SupRemote.enc(id), {status:"finished"}).then(function(){
+      return SupRemote.rpc("live_leave",{p_room:id}).then(function(r){
         detach(); return {left:true};
       });
     }
@@ -135,14 +139,13 @@ var Live = (function(){
   }
   function subscribe(fn){ cb=fn; if(cur) fire(); }
 
-  // Enviar mi marcador en vivo (limitado a ~2/s; el update dispara Realtime)
+  // Enviar mi marcador en vivo (limitado a ~2/s; el RPC dispara Realtime).
   function sendScore(score){
     if(!cur||cur.status!=="playing"||!authed()) return;
     var now=Date.now();
     if(now-lastPush<500) return;
     lastPush=now;
-    var body={}; body[mySide()==="host"?"h_score":"g_score"]=Math.max(0,Math.floor(score||0));
-    SupRemote.patch(TBL, "id=eq."+SupRemote.enc(cur.id), body).catch(function(){});
+    SupRemote.rpc("live_score",{p_room:cur.id, p_score:Math.max(0,Math.floor(score||0))}).catch(function(){});
   }
 
   // ---- helpers de la sala actual ----
