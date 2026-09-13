@@ -1,56 +1,50 @@
 # Persistent Agent State — "Default Project" (Op-Art-Fan)
 
 ## Objective
-- Resolver el reporte del usuario sobre el nivel 9 "Gran Muralla" (primero "se ve raro", luego "el abanico se mueve muy rápido") y después su auditoría del login con Google (causas #1–#4), aplicando los parches de código, respetando las 5 suites verdes y sin poder tocar el dashboard de Supabase.
+- Fase previa (resuelta): reportes del nivel 9 "Gran Muralla" (visual + velocidad) y auditoría del login con Google (causas #1–#4). Todo corregido, suites verdes, desplegado.
+- Fase ACTUAL: expandir "Op-Art Fan" a gran escala (narrativa china, modos, coleccionables, eventos, personalización, social, maestría, minijuegos, easter eggs) + profundizar el perfil con estadísticas/gráficos. **Restricción clave: el presupuesto de primera carga (budget.cjs, 265 KB / 271,360 B) casi no tiene margen (~140 B) → toda feature nueva va como MÓDULO LAZY** bajo `js/feature/`, cargado en runtime, sin entrar en los `<script src>` de index.html.
 
 ## Important Details
 - **URL en vivo**: `https://pequegg.github.io/MAN/` — auto-deploy desde `main`.
-- **Git**: commits con `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `d0a9334`.
+- **Git**: `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `285c557`.
 - **Supabase**: `https://yrrgyunksjnzinhcedqv.supabase.co`, anon key en `js/config/supabase.js`, `SUPABASE_SITE_URL = https://pequegg.github.io/MAN/`. PAT en `C:\Users\1903c\AppData\Local\Temp\opencode\sbpat.txt`.
-- **Login Google FUNCIONANDO (verificado)**: `google:true` en `/auth/v1/settings`; authorize 302 al consent con Client ID `1069421375978-s7hgl0mgn0mdmdqipn618ia028ae25k7.apps.googleusercontent.com`; callback ya redirige a `https://pequegg.github.io/MAN/...` (antes apuntaba a `http://localhost:3000` → usuario corrigió la Site URL en el dashboard de Supabase; quedó como `https://pequegg.github.io/MAN/**`, glob — funciona, se puede limpiar a `.../MAN/` si se quiere). El usuario confirmó login OK. Nota: el fallback de error de GoTrue usa la Site URL; el return real usa el `redirect_to` del state.
-- Confirmado por API: `/auth/v1/settings` devuelve `"google": true` (prov. activado por usuario siguiendo la guía). Causa #1 de la auditoría RESUELTA en dashboard.
-- **Management API**: `/v1/projects/.../database/query` funciona (SELECT), pero `config/auth` da 403 por scope — no se pueden consultar URL config / redirects por API.
-- **Patrón doble-encoding de sesión**: `auth.js` guarda la sesión ya pre-stringificada con `ls(SK, JSON.stringify(obj))` y `ls` (util.js) vuelve a stringificar → almacenado doble-encoded. `session()` hace `JSON.parse(JSON.parse(raw))`. Los tests que re-mockean `global.ls` deben ESCRIBIR la sesión con `global.ls('sb-session', JSON.stringify(obj))` para replicar el patrón; escribir el objeto directo genera un único encode y hace que `JSON.parse` del auth reviente (null). Ya está corregido en `online.cjs` (4b/4c verdes).
-- **Presupuesto**: `budget.cjs` mide el HTML/CSS/scripts FUENTE (no dist); personalola suma y el umbral es 265 KB → **271,360 bytes**. Total fuente actual 271,069 bytes → margen 291 bytes (SVG de mascota colapsado mecánicamente en index.html: solo whitespace entre tags; sangría de scripts eliminada).
-- **Problema del SVG**: el harness de `smoke.cjs` colapsa whitespace de tags (booleano `wrap` true de prettier) pero replica el render real conservando texto intacto; el SVG está en una línea ensanchada por el formateador con `<circle>...</circle>` colapsado a `<circle/>`.
-- **Harness de render de logros**: `JSDOM` + `node-canvas` con el SU-8 grabber (línea `SU-8 <script src` ≈ 4110 en el smoke original) inyectado tras `app.innerHTML` inicial; logra arrancar y llegar a `menu`.
-- **PowerShell**: execution policy bloquea `npx.ps1`; usar `npx.cmd`. One-liners largos con `node -e` fallan por quoting de PowerShell → usar archivos script en `$env:TEMP\opencode\`.
+- **Login Google FUNCIONANDO**: `google:true`; Site URL corregida por el usuario a `https://pequegg.github.io/MAN/**` (glob — funciona; limpieza opcional a `.../MAN/`).
+- **Presupuesto** (`tools/tests/budget.cjs`): mide SOLO `index.html`+`css`+suma de `<script src>`. Total fuente ~271,220 B → margen ~140 B. **Verificado: `js/feature/*.js` NO cuenta** (no están referenciados). El inyector está en el bloque inline al final de index.html (~134 B).
+- **Arquitectura lazy**:
+  - `index.html` (inline final): `(function(){var s=document.createElement('script');s.src='js/feature/features.js';...})()` — único cambio in-budget del Bloque 1.
+  - `js/feature/features.js`: carga eager (auto-inyectado). Parchea por monkeypatch SIN tocar core: wrapper de `showResult` (captura stats en `ls("ft")`: plays/wins/lose/cat/miss/best/earned/secs/days/bests), wrapper de `startGame` (mide tiempo), wrapper de `saveAll` (fija `profile.reg` fecha registro). Inyecta botón `#btnPerfil` en el menú + HTML de `#screen-perfil` + push "perfil" en `screens`. Expone `window.Feat = {open, share}`.
+  - `js/feature/perfil.js`: lazy en el primer click. Pantalla de perfil: avatar/marco, nick, estado, tier, racha, fecha registro, resumen 8 tarjetas, "Tu semana" (7 celdas), gráficos canvas (dona victorias, barras semana, línea puntajes), editar nick/estado (RPC `set_nickname` si Google), compartir resumen (`navigator.share`/clipboard).
+  - **Regla para features futuras**: TODO bajo `js/feature/`, auto-registrarse vía monkeypatch o hooks en el loader de features.js; no tocar archivos in-budget (margen ~140 B).
+- **Build**: `tools/build.cjs` ahora copia `js/` entero a `dist/js/` (modulos lazy incluidos). `tools/gen-sw.cjs` añade `js/feature/features.js`+`perfil.js` al CORE del SW y al hash VERSION (cambios en features cambian la versión).
+- **Suites**: `tools/tests/{smoke,bg,mobile,online,budget,perfil}.cjs`. La nueva `perfil.cjs` (jsdom) inlinea los scripts de index.html + inyecta `features.js`/`perfil.js` al final, simula registro→menú→partida (win forzado con `GS.time=30; GS.score=GS.goal+100`; ojo: `time=0.01` produce DERROTA) y valida captura+UI. Umbrales: smoke 26, mobile ≥7, online 54, perfil 16.
+- **Patrón doble-encoding de sesión**: auth.js guarda pre-stringificado → los tests de auth deben escribir `JSON.stringify(obj)` a través del mock de `ls`.
+- **PowerShell**: usar `grep` tool, `npx.cmd`, y scripts en `$env:TEMP\opencode\` para node (los `node -e` conive fallan por quoting).
 
 ## Work State
-### Completed
-- **Fix visual mejoras en partida** (commit `d0a9334`): `#badgesRow` (mejoras activadas) anclada al borde inferior tapaba el abanico (`cy=h-14`); movida arriba bajo el HUD (`top:calc(max(8px,env(safe-area-inset-top))+54px)`). Regenerados dist+sw (VERSION `opartfan-v2-b8586dc5`); suites verdes.
-- **Login Google desbloqueado (dashboard)**: la pieza final era la **Site URL en Supabase = `http://localhost:3000`**, que hacía que el callback redirigiera ahí → "No se puede acceder al sitio web" en el móvil. El usuario fijó la URL en el dashboard. Login confirmado funcionando.
-- **Fix armario vacío** (commit `00c2eb4`): la pantalla `armario` faltaba en `screens` de `nav.js:6` (solo 17 de 18 pantallas). `show("armario")` nunca asignaba `.on` (quedaba oculta aunque los ítems se renderizaban) y tampoco la apagaría al salir. Añadida al orden de ruteo. Cobertura smoke nueva (armario visible/mascotas/abanicos/vuelta a menu). Regenerados dist+sw (VERSION `opartfan-v2-07979a25`). 5 suites verdes.
-- **Fix visual nivel 9** (commit `3380c95`):... (ver histórico). `gen-assets.cjs` caso `wall` rediseñado (2 pasadas de piedra, bloques, almenas, 3 torres vigía con luz cálida `#ffce7a`, montañas en silueta, resplandor frío); filtro CLI `node tools/gen-assets.cjs wall`; fallback `engine.js` armonizado. Regenerados `dist/` y `sw.js`.
-- **Fix velocidad abanico nivel 9** (commit `7196f14`): causa `bhv:"tremor"` (cada frame suma salto aleatorio en `game.js:57`) → `bhv:"swing"` en `js/levels/levels.js:15`. Regenerados `dist/` y `sw.js`.
-- **Parche login #2 (refresh) en `js/core/auth.js`**: `refresh()` con grant `refresh_token`; `boot()` revienta sesión vencida con refresh y refresca en segundo plano si expira en <10 min; exporta `refresh:refresh`; vuelta de Google con `?error` muestra toast `"No se pudo iniciar sesión..."`; catch de `oauthReturn` muestra toast de error en vez de vacío.
-- **Parche login #3 (Logros) en `js/ui/ach.js`**: `renderAch` defensivo con `typeof ACH/achievements!==undefined` para no romper si falta una dependencia.
-- **Sesión** Cobertura refresh en `tools/tests/online.cjs` (mock fetch `/token?grant_type=refresh_token`, asserts de sesión vencida, refresh revive, boot revive) — **verde tras escribir la sesión con double-encoding** (patrón real de auth).
-- **Presupuesto**: index.html 29.928→29.406 bytes (SVG colapsado + sangría scripts), CSS −1 byte. Total fuente 271,069 bytes, margen 291.
-- **Suites verdes (todas)**: smoke 22 OK + winErrors 0, bg OK 18/18, mobile OK, online 54 OK, budget OK.
-- **Causa #4 (sw.js)**: ya estaba en `opartfan-v2` con CORE completo (45 módulos, incluye supabase/auth/db/armario/duel/notix/admin), `skipWaiting()` + `clients.claim()` + navegación network-first — ya resuelta en código.
-- **Commit + push**: `05110ad` "fix login google: refresh..." con `dist/` y `sw.js` regenerados (VERSION `opartfan-v2-072217a2`). Desplegado en vivo.
+### Completed (fase actual)
+- **Bloque 1 — Perfil + estadísticas lazy** (commit `285c557`): arquitectura de módulos lazy estrenada; botón Perfil en menú; captura end-to-end de stats; pantalla con gráficos canvas; edición nick/estado; compartir. dist+sw regenerados (CORE 47 ficheros, VERSION `opartfan-v2-9159822a`). Suite `perfil.cjs` nueva (16 checks verdes). Margen del budget intacto (140 B).
+- Desplegado en vivo (auto-deploy de `main`).
 
 ### Active
-- **Confirmar con el usuario**: que el Armario ya muestre contenido tras el fix `00c2eb4` (dijo "te digo lo del armario" — recordárselo) y que las mejoras ya se vean arriba tras `d0a9334` (2 refrescos/pestaña privada por el SW).
+- **Bloque 2 — Narrativa**: `js/feature/spirit.js` (espíritu guardián con frases por familia de niveles + transición antes de niveles jefe/dragón final) y `js/feature/poems.js` (fragmento de poema por S-rank + Biblioteca de Poemas). Hooks: wrapper de `showResult`/`startGame` en features.js ya existentes; añadir invocaciones desde ahí.
 
 ### Blocked
-- Si el usuario demuestra de nuevo el bloqueo de Google Cloud: asegurar que eligió consent screen **Público/Externo** (Interno solo sirve para cuentas del mismo Workspace de Google).
-- No hay visor de imágenes; la validación fue por análisis de píxeles con scripts en `$env:TEMP\opencode\`.
+- Sin acceso al dashboard de Supabase (management `config/auth` 403). Limpieza de Site URL glob = opcional, la hace el usuario.
+- No hay visor de imágenes; validación visual por análisis de píxeles con scripts en `$env:TEMP\opencode\`.
 
 ## Next Move
-1. **Confirmar Armario** con el usuario en vivo (`d0a9334` desplegado; doble refresh).
-2. **Opcional limpieza**: Site URL en Supabase quedó como `https://pequegg.github.io/MAN/**` (glob echado por GoTrue en el fallback); cambiarlo a `https://pequegg.github.io/MAN/` en Auth → URL Configuration y mantener `https://pequegg.github.io/MAN/**` solo en Redirect URLs.
-3. **Opcional**: publicar la app en el consent screen de Google para quitar la advertencia "app no verificada".
+1. **Bloque 2** (spirit + poems) y **Bloque 3** (paletas desbloqueables vía CSS runtime): implementar como módulos lazy, verificando con las 6 suites, build dist+sw, commit+push por bloque; reportar cada bloque al usuario.
+2. Después: modos de juego nuevos, coleccionables/eventos, minijuegos, easter eggs — siempre lazy.
 
 ## Relevant Files
-- `js/core/auth.js`: `refresh()` + `boot()` con refresh de sesión vencida (≈líneas 165-190), export `refresh:refresh`, toast de error en `oauthReturn`.
-- `js/ui/ach.js`: `renderAch` defensivo.
-- `index.html`: SVG colapsado, sangría de scripts quitada (29,406 bytes fuente).
-- `tools/tests/online.cjs`: cobertura refresh 4b/4c (mock fetch `/token?grant_type=refresh_token`, escritura de sesión con `JSON.stringify` para replicar el doble-encode).
-- `tools/gen-assets.cjs`: filtro CLI `wall`, bloque `bd==='wall'` rediseñado.
-- `js/core/engine.js`: fallback `bd==="wall"` armonizado.
-- `js/levels/levels.js`: nivel 9 con `bhv:"swing"`.
-- `tools/build.cjs` / `tools/gen-sw.cjs` / `tools/tests/{smoke,bg,mobile,online,budget}.cjs`: build y suites verdes.
-- `js/config/supabase.js`: `SUPABASE_URL` y anon key.
-- `dist/` y `sw.js`: regenerados en `05110ad` (VERSION `opartfan-v2-072217a2`).
+- `index.html`: bloque inline final con el inyector de `js/feature/features.js` (~134 B) junto al registro del SW.
+- `js/feature/features.js`: loader eager + wrappers (showResult/startGame/saveAll) + inyección de UI del Perfil + `window.Feat`.
+- `js/feature/perfil.js`: UI Perfil, gráficos canvas, editar perfil, compartir.
+- `tools/tests/perfil.cjs`: suite nueva (16 checks) del Bloque 1.
+- `tools/build.cjs` / `tools/gen-sw.cjs`: copian `js/` al dist y precachean los 2 módulos feature.
+- `js/core/state.js`: `saveAll` (wrapper externo), `profile{name,avatar}`, `session{}` (extensible), `pb{}`, `completed[]`, `achievements[]`.
+- `js/core/game.js`: `startGame`, `finishGame(won)` construye `res` (won, score, bestCombo, fails, catches, coinsGained, newRecord, firstTime, isDaily...). `tick()`: win vía `g.score>=g.goal`; `g.time<=0` → derrota.
+- `js/ui/results.js`: `showResult(res)` (punto captura de stats + poemas S-rank).
+- `js/arena/arena.js`: `seasonTier()`, `dayStreak()`, `dateKeyOf`, `arena.daysDone`.
+- `js/levels/{levels,daily,cosmetics}.js`: `famOf`, `LEVELS`, `ACH`, FANSKINS/FRAMES/TITLES/MASCOTS.
+- `.opencode/state.md`: este archivo (último commit reflejado: `285c557`).
