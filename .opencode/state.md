@@ -5,7 +5,7 @@
 
 ## Important Details
 - **URL en vivo**: `https://pequegg.github.io/MAN/` — auto-deploy desde `main`.
-- **Git**: commits con `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `05110ad`.
+- **Git**: commits con `-c user.name="Refrimar Dev" -c user.email="dev@refrimar.com"`, push a `origin` = `https://github.com/Pequegg/MAN.git`. Último push: `00c2eb4`.
 - **Supabase**: `https://yrrgyunksjnzinhcedqv.supabase.co`, anon key en `js/config/supabase.js`, `SUPABASE_SITE_URL = https://pequegg.github.io/MAN/`. PAT en `C:\Users\1903c\AppData\Local\Temp\opencode\sbpat.txt`.
 - **Confirmado por API (verificado)**: el endpoint público `/auth/v1/settings` devuelve `"google": false` (proveedor Google APAGADO en Supabase) — causa #1 del auditor, bloqueada en dashboard.
 - **Management API**: `/v1/projects/.../database/query` funciona (SELECT), pero `config/auth` da 403 por scope — no se pueden consultar URL config / redirects por API.
@@ -17,7 +17,8 @@
 
 ## Work State
 ### Completed
-- **Fix visual nivel 9** (commit `3380c95`): `gen-assets.cjs` caso `wall` rediseñado (2 pasadas de piedra, bloques, almenas, 3 torres vigía con luz cálida `#ffce7a`, montañas en silueta, resplandor frío); filtro CLI `node tools/gen-assets.cjs wall`; fallback `engine.js` armonizado. Regenerados `dist/` y `sw.js`.
+- **Fix armario vacío** (commit `00c2eb4`): la pantalla `armario` faltaba en `screens` de `nav.js:6` (solo 17 de 18 pantallas). `show("armario")` nunca asignaba `.on` (quedaba oculta aunque los ítems se renderizaban) y tampoco la apagaría al salir. Añadida al orden de ruteo. Cobertura smoke nueva (armario visible/mascotas/abanicos/vuelta a menu). Regenerados dist+sw (VERSION `opartfan-v2-07979a25`). 5 suites verdes.
+- **Fix visual nivel 9** (commit `3380c95`):... (ver histórico). `gen-assets.cjs` caso `wall` rediseñado (2 pasadas de piedra, bloques, almenas, 3 torres vigía con luz cálida `#ffce7a`, montañas en silueta, resplandor frío); filtro CLI `node tools/gen-assets.cjs wall`; fallback `engine.js` armonizado. Regenerados `dist/` y `sw.js`.
 - **Fix velocidad abanico nivel 9** (commit `7196f14`): causa `bhv:"tremor"` (cada frame suma salto aleatorio en `game.js:57`) → `bhv:"swing"` en `js/levels/levels.js:15`. Regenerados `dist/` y `sw.js`.
 - **Parche login #2 (refresh) en `js/core/auth.js`**: `refresh()` con grant `refresh_token`; `boot()` revienta sesión vencida con refresh y refresca en segundo plano si expira en <10 min; exporta `refresh:refresh`; vuelta de Google con `?error` muestra toast `"No se pudo iniciar sesión..."`; catch de `oauthReturn` muestra toast de error en vez de vacío.
 - **Parche login #3 (Logros) en `js/ui/ach.js`**: `renderAch` defensivo con `typeof ACH/achievements!==undefined` para no romper si falta una dependencia.
@@ -36,9 +37,8 @@
 - No hay visor de imágenes; la validación fue por análisis de píxeles con scripts en `$env:TEMP\opencode\`.
 
 ## Next Move
-1. **Verificado por API (este ciclo)**: `/auth/v1/settings` → `"google": true`. El authorize con `provider=google&redirect_to=https://pequegg.github.io/MAN/` devuelve 302 al consent de Google con el Client ID correcto (`1069421375978-s7hgl0mgn0mdmdqipn618ia028ae25k7.apps.googleusercontent.com`) y redirect_uri `https://yrrgyunksjnzinhcedqv.supabase.co/auth/v1/callback`. `js/core/auth.js:116` construye el authorize PKCE correctamente.
-2. Cuando el usuario pruebe el login en vivo: si falla, depurar (pantalla/mensaje); si entra, marcar la auditoría como cerrada (causas #1 resuelta en dashboard).
-3. Opcional: si el usuario quiere quitar la pantalla "app no verificada" → publicar la app en OAuth consent screen de Google.
+1. **Verificado por API (ciclo anterior)**: `/auth/v1/settings` → `"google": true`; authorize → 302 al consent de Google. Probar el login en vivo.
+2. **Confirmar con el usuario que el Armario ya se ve** en https://pequegg.github.io/MAN/ (F5/Ctrl+F5) — root cause era `screens` de nav.js sin `armario`; desplegado en `00c2eb4`.
 
 ## Relevant Files
 - `js/core/auth.js`: `refresh()` + `boot()` con refresh de sesión vencida (≈líneas 165-190), export `refresh:refresh`, toast de error en `oauthReturn`.
