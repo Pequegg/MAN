@@ -307,3 +307,15 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
 .chip.c-ok{background:rgba(60,210,140,.16); border-color:rgba(60,210,140,.5); color:#8fffc9;}
 .chip.c-go{background:var(--gold); border-color:rgba(255,255,255,.35); color:#221405; font-weight:900;}
 .chip.c-no{background:rgba(255,107,125,.16); border-color:rgba(255,107,125,.5); color:#ffc9cf;}
+
+/* ---------- salas en vivo (Fase 3) ---------- */
+#liveChip{position:absolute; top:56px; left:50%; transform:translateX(-50%); z-index:6;
+  display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:99px;
+  background:rgba(20,12,4,.72); border:1px solid var(--gold); color:var(--gold);
+  font-size:12px; font-weight:900; letter-spacing:.5px; white-space:nowrap;}
+.live-vs{display:flex; align-items:stretch; gap:10px; margin:10px 0 4px;}
+.live-side{flex:1; text-align:center; padding:10px 8px; border-radius:14px;
+  background:rgba(255,255,255,.05); border:1px solid var(--line);}
+.live-side.win{background:rgba(60,210,140,.14); border-color:rgba(60,210,140,.55);}
+.live-score{font-size:26px; font-weight:900; color:var(--gold); margin:4px 0;}
+.live-ico{align-self:center; font-weight:900; color:var(--dim); font-size:13px;}

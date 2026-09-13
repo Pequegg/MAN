@@ -124,6 +124,14 @@ function update(dt){
   var fill=$("timeFill"); fill.style.width = clamp(g.time/g.timeMax*100,0,100)+"%";
   var cb=$("comboBadge");
   if(g.combo>1){ cb.textContent="x"+Math.min(g.combo,20); cb.style.display="block"; } else { cb.style.display="none"; }
+  // sala en vivo: envio mi marcador (limitado) y pinto el del rival
+  if(typeof Live!=="undefined" && Live.current && Live.current() && Live.authed() && Live.current().status==="playing"){
+    Live.sendScore(g.score);
+    var chip=$("liveChip");
+    if(chip){ chip.style.display="flex"; chip.innerHTML="\u26A1 <b>"+num(g.score)+"</b> vs <b>"+num(Live.opScore())+"</b>"; }
+  } else {
+    var lc2=$("liveChip"); if(lc2) lc2.style.display="none";
+  }
 }
 var lastT=0;
 function maxSimulNow(){ return Math.min(6, (GS.lv.simul||1) + Math.floor(GS.D*2.5)); }
@@ -687,5 +695,9 @@ function finishGame(won){
   if(session && session.duel && typeof Duel!=="undefined" && Duel && Duel.authed()){
     try{ Duel.submitFromGame(g); }catch(e){}
   }
+  if(typeof Live!=="undefined" && Live && Live.authed && Live.authed() && Live.current && Live.current()){
+    try{ Live.finishFromGame(g); }catch(e){}
+  }
+  var lc=$("liveChip"); if(lc) lc.style.display="none";
   refreshMenuCoins();
 }

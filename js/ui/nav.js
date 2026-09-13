@@ -3,9 +3,9 @@
 "use strict";
 
 /* ---------- Navegación / pantallas ---------- */
-var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","game","result","end"];
+var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","live","notix","admin","game","result","end"];
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
-function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); }
+function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); if(typeof Nx!=="undefined"&&Nx.renderNxBadge){ try{ Nx.renderNxBadge(); }catch(e){} } }
 function refreshDuelBadge(){
   var badge=$("duelBadge");
   if(!badge) return;
@@ -41,6 +41,17 @@ function boot(){
   }catch(e){ try{ afnHide(); }catch(_){} }
   fillAvatars();
   generateDaily();
+  // Realtime: socket + canal publico (avisos globales) en segundo plano
+  try{
+    if(typeof RT!=="undefined"){
+      if(RT.boot) RT.boot();
+      if(RT.sub) RT.sub("realtime:public", function(m){
+        if(m && m.broadcast && m.event==="notice" && m.payload && m.payload.text
+           && typeof Nx!=="undefined" && Nx.push){ Nx.push("notice", m.payload.text, "\u{1F4E2}"); }
+      });
+    }
+    if(typeof Nx!=="undefined" && Nx.renderNxBadge) Nx.renderNxBadge();
+  }catch(e){}
   Auth.boot(finishBoot);
 }
 window.addEventListener("load", boot);

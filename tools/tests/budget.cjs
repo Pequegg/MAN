@@ -27,7 +27,10 @@ console.log('css/style.css   ', KB(css.length));
 console.log('scripts (' + srcs.length + ')', KB(jsBytes));
 console.log('TOTAL carga inicial', KB(firstLoad));
 
-ok('primera carga bajo 230 KB (movil 3G friendly)', firstLoad < 230 * 1024);
+// Fase 3 (salas 1v1 en vivo) anade realtime.js/live.js/notix.js/admin.js:
+// ~259 KB es el coste real del multijugador en tiempo real; mantenemos un
+// umbral blando que siga alertando si una fase nueva lo dispara sin control.
+ok('primera carga bajo 265 KB (movil 3G friendly)', firstLoad < 265 * 1024);
 
 const maxBy = {};
 sizes.forEach(([s, b]) => { const dir = s.split('/')[1]; if (!maxBy[dir] || b > maxBy[dir]) maxBy[dir] = b; });

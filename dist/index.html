@@ -324,7 +324,19 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
 .big-avatar.sm{width:34px; height:34px; font-size:19px; flex:none;}
 .chip.c-ok{background:rgba(60,210,140,.16); border-color:rgba(60,210,140,.5); color:#8fffc9;}
 .chip.c-go{background:var(--gold); border-color:rgba(255,255,255,.35); color:#221405; font-weight:900;}
-.chip.c-no{background:rgba(255,107,125,.16); border-color:rgba(255,107,125,.5); color:#ffc9cf;}</style>
+.chip.c-no{background:rgba(255,107,125,.16); border-color:rgba(255,107,125,.5); color:#ffc9cf;}
+
+/* ---------- salas en vivo (Fase 3) ---------- */
+#liveChip{position:absolute; top:56px; left:50%; transform:translateX(-50%); z-index:6;
+  display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:99px;
+  background:rgba(20,12,4,.72); border:1px solid var(--gold); color:var(--gold);
+  font-size:12px; font-weight:900; letter-spacing:.5px; white-space:nowrap;}
+.live-vs{display:flex; align-items:stretch; gap:10px; margin:10px 0 4px;}
+.live-side{flex:1; text-align:center; padding:10px 8px; border-radius:14px;
+  background:rgba(255,255,255,.05); border:1px solid var(--line);}
+.live-side.win{background:rgba(60,210,140,.14); border-color:rgba(60,210,140,.55);}
+.live-score{font-size:26px; font-weight:900; color:var(--gold); margin:4px 0;}
+.live-ico{align-self:center; font-weight:900; color:var(--dim); font-size:13px;}</style>
 <noscript><p style="padding:20px;color:#fff;text-align:center;">Op-Art Fan necesita JavaScript. Activalo para jugar.</p></noscript>
 </head>
 <body>
@@ -449,6 +461,9 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArmario"><span class="ico">🪭</span><span class="grow"><div>Armario</div><div class="desc">Mascota, abanico, marco y título</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnDuel"><span class="ico">⚔️</span><span class="grow"><div>Duelos</div><div class="desc">Retos asíncronos contra amigos</div></span><span class="badge-chip" id="duelBadge" style="display:none;">0</span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnLive"><span class="ico">🔴</span><span class="grow"><div>En vivo</div><div class="desc">Salas 1v1 en tiempo real</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnNotix"><span class="ico">🔔</span><span class="grow"><div>Avisos</div><div class="desc">Retos, salas y novedades</div></span><span class="badge-chip" id="notixBadge" style="display:none;">0</span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnAdmin" style="display:none;"><span class="ico">🛠️</span><span class="grow"><div>Admin</div><div class="desc">Producción del proyecto</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -687,6 +702,71 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <div class="panel" style="padding:6px;" id="duelList"></div>
   </section>
 
+  <!-- EN VIVO (Fase 3) -->
+  <section id="screen-live" class="screen">
+    <div class="topbar">
+      <button class="back" id="liveBack">←</button>
+      <h1 class="title grow" style="margin:0;">🔴 En vivo</h1>
+      <div class="coins-pill">🪙 <b id="liveCoins">0</b></div>
+    </div>
+    <div class="note-off" id="liveOffNote" style="display:none;"></div>
+    <div style="font-size:12px; color:var(--dim); margin-bottom:8px; display:flex; align-items:center; gap:6px;"><span class="chip" id="liveRtChip">realtime …</span><span>Salas 1v1: el marcador se ve en vivo</span></div>
+    <div id="liveRoomPanel"></div>
+    <div id="liveLobbyPanel">
+      <div class="panel">
+        <div class="row" style="align-items:center; margin-bottom:8px; gap:6px;">
+          <h2 class="sub" style="margin:0;">🎮 Crear sala</h2>
+        </div>
+        <div class="row" style="gap:6px;">
+          <select id="liveLevel" class="name-input" style="margin:0; text-align:left; font-size:14px;"></select>
+          <button class="btn small pink" id="liveCreate">Crear</button>
+        </div>
+      </div>
+      <h2 class="sub mt8">🕹️ Salas abiertas</h2>
+      <div class="panel" style="padding:6px;" id="liveRoomsList"></div>
+      <h2 class="sub mt8">⭐ Mis salas</h2>
+      <div class="panel" style="padding:6px;" id="liveMineList"></div>
+    </div>
+    <div id="liveResultLine" class="panel" style="font-size:13px; display:none; font-weight:800;"></div>
+  </section>
+
+  <!-- AVISOS (Fase 3) -->
+  <section id="screen-notix" class="screen">
+    <div class="topbar">
+      <button class="back" id="notixBack">←</button>
+      <h1 class="title grow" style="margin:0;">🔔 Avisos</h1>
+      <button class="btn small ghost" id="notixClear">Limpiar</button>
+    </div>
+    <div class="panel" style="padding:6px;" id="notixList"></div>
+  </section>
+
+  <!-- ADMIN (Fase 3) -->
+  <section id="screen-admin" class="screen">
+    <div class="topbar">
+      <button class="back" id="adminBack">←</button>
+      <h1 class="title grow" style="margin:0;">🛠️ Admin</h1>
+      <span class="chip" id="adminRt">-</span>
+    </div>
+    <div class="note-off" id="adminOffNote" style="display:none;"></div>
+    <div class="panel" id="adminStats"></div>
+    <div class="panel">
+      <div style="font-weight:800; margin-bottom:6px;">Otorgar monedas</div>
+      <div class="row" style="gap:6px;">
+        <input id="adminGrantCode" class="name-input" style="margin:0; flex:1; text-align:left; font-size:14px;" maxlength="6" placeholder="Código amigo (F1X47)">
+        <input id="adminGrantAmt" class="name-input" type="number" value="100" style="margin:0; width:78px;">
+        <button class="btn small gold" id="adminGrantBtn">Otorgar</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div style="font-weight:800; margin-bottom:6px;">Aviso global (lo ven todos)</div>
+      <textarea id="adminNoticeIn" class="name-input" style="width:100%; box-sizing:border-box; min-height:52px;" placeholder="Mensaje para todos los jugadores…"></textarea>
+      <div class="row" style="gap:6px; margin-top:8px;">
+        <button class="btn small cyan" id="adminNoticeBtn">Publicar</button>
+        <button class="btn small ghost" id="adminNoticeClear">Borrar</button>
+      </div>
+    </div>
+  </section>
+
   <!-- JUEGO -->
   <section id="screen-game" class="screen">
     <div id="gameWrap">
@@ -699,6 +779,7 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
         </div>
         <div id="timeBar"><div id="timeFill"></div></div>
       </div>
+      <div id="liveChip" style="display:none;"></div>
       <div id="comboBadge"></div>
       <div id="badgesRow"></div>
       <div id="detectorHint"></div>
@@ -818,6 +899,9 @@ var SupRemote = (function(){
       body:JSON.stringify(rows)
     }).then(ok);
   }
+  function patch(table, q, body){
+    return fetch(base()+"/"+table+"?"+q,{method:"PATCH",headers:head(),body:JSON.stringify(body||{})}).then(ok);
+  }
   function bestScore(table, filterQs, body){
     return get(table, filterQs+"&order=score.desc&limit=1").then(function(rows){
       var cur=rows&&rows[0];
@@ -839,7 +923,7 @@ var SupRemote = (function(){
         return j.data;
       });
   }
-  return {on:on, base:base, enc:enc, get:get, upsert:upsert, bestScore:bestScore, rpc:rpc};
+  return {on:on, base:base, enc:enc, get:get, patch:patch, upsert:upsert, bestScore:bestScore, rpc:rpc};
 })();</script>
   <script>/* Op-Art Fan - modulo: js/core/db.js */
 
@@ -2664,6 +2748,333 @@ var Duel = (function(){
     played:played, canPlay:canPlay, waitingOther:waitingOther, iWon:iWon
   };
 })();</script>
+  <script>/* Op-Art Fan - modulo: js/arena/realtime.js */
+
+"use strict";
+
+/* ---------- Supabase Realtime (protocolo Phoenix v2) sin SDK ----------
+   Socket WebSocket minimal: heartbeat, join de canales, programáticos
+   postgres_changes (fila completa) y broadcast de la app. Si el WebSocket
+   no esta disponible o no conecta, Live cae a polling REST (offline-first). */
+var RT = (function(){
+  var ws=null, refN=1, jrN=1, topics={}, subs=[], hb=null, retryT=null, attempts=0;
+  var connected=false, woken=false, statusCb=null;
+
+  function on(){
+    return typeof WebSocket!=="undefined" &&
+      typeof SUPABASE_URL!=="undefined" && SUPABASE_URL &&
+      typeof SUPABASE_ANON_KEY!=="undefined" && SUPABASE_ANON_KEY;
+  }
+  function wsUrl(){
+    return SUPABASE_URL.replace(/^https?/, "wss") +
+      "/realtime/v1/websocket?apikey="+encodeURIComponent(SUPABASE_ANON_KEY)+"&vsn=1.0.0";
+  }
+  function nextRef(){ return "rt-"+(refN++); }
+
+  function connect(){
+    if(ws || !on()) return false;
+    try{ ws=new WebSocket(wsUrl()); }catch(e){ ws=null; return false; }
+    ws.onopen=function(){
+      connected=true; attempts=0;
+      startHeartbeat();
+      try{ (statusCb||noop)(true); }catch(e){}
+      joinAll();
+    };
+    ws.onmessage=function(ev){ parse(ev.data); };
+    ws.onclose=function(){ teardown(); scheduleReconnect(); };
+    ws.onerror=function(){ try{ ws.close(); }catch(e){ } };
+    return true;
+  }
+  function teardown(){
+    connected=false;
+    stopHeartbeat();
+    ws=null;
+    try{ (statusCb||noop)(false); }catch(e){}
+  }
+  function scheduleReconnect(){
+    if(retryT) return;
+    if(!woken) return;               // no reconectar si nunca se uso
+    attempts++;
+    var delay=Math.min(15000, 1000*Math.pow(1.8, attempts));
+    retryT=setTimeout(function(){ retryT=null; connect(); }, delay);
+  }
+  function joinAll(){ for(var t in topics){ if(topics[t]) sendJoin(t, topics[t]); } }
+  function join(topic, cfg){
+    topics[topic]=cfg||{};
+    if(!ws){ connect(); }
+    if(connected){ sendJoin(topic, topics[topic]); }
+  }
+  function unjoin(topic){ delete topics[topic]; sendLeave(topic); }
+  function sendJoin(topic, cfg){
+    if(!ws||!connected) return;
+    var payload={config:cfg, timeout:10000};
+    ws.send(JSON.stringify([null, nextRef(), topic, "phx_join", payload]));
+  }
+  function sendLeave(topic){
+    if(!ws||!connected) return;
+    ws.send(JSON.stringify([String(jrN++), nextRef(), topic, "phx_leave", {}]));
+  }
+  function broadcast(topic, event, payload){
+    if(!ws||!connected||!topics[topic]) return false;
+    ws.send(JSON.stringify([topic, nextRef(), topic, "broadcast", {event:event, payload:payload||{}}]));
+    return true;
+  }
+  function startHeartbeat(){
+    stopHeartbeat();
+    hb=setInterval(function(){
+      if(ws&&connected) ws.send(JSON.stringify([null, nextRef(), "phoenix", "heartbeat", {}]));
+    }, 25000);
+  }
+  function stopHeartbeat(){ if(hb){ clearInterval(hb); hb=null; } }
+
+  function parse(data){
+    var m;
+    try{ m=JSON.parse(data); }catch(e){ return; }
+    if(!Array.isArray(m)||m.length<5) return;
+    var topic=m[2], event=m[3], payload=m[4]||{};
+    if(event==="phx_reply"){
+      try{ (statusCb||noop)(true); }catch(e){}
+      fire(topic, {replied:true, status:payload.status, response:payload.response||{}});
+      return;
+    }
+    if(event==="postgres_changes"){
+      var row=rowOf(payload);
+      if(row!==null) fire(topic, row);
+      return;
+    }
+    if(event==="broadcast"){
+      fire(topic, {broadcast:true, event:payload.event, payload:payload.payload||{}});
+      return;
+    }
+  }
+  // Versiones: la nueva deja payload.data con {record,...}; las viejas dejan payload.data=la fila
+  function rowOf(payload){
+    var d=payload&&payload.data;
+    if(!d) return null;
+    if(typeof d==="object" && d.record && d.record instanceof Object) return d.record;
+    if(typeof d==="object" && d.type && (d.data&&d.data instanceof Object)) return d.data;
+    return d;
+  }
+
+  function sub(topic, cb){ subs.push({topic:topic, cb:cb}); }
+  function unsub(topic){ subs=subs.filter(function(s){ return s.topic!==topic; }); }
+  function fire(topic, data){
+    subs.forEach(function(s){ if(s.topic===topic){ try{ s.cb(data); }catch(e){} } });
+  }
+
+  function status(cb){ statusCb=cb; return connected; }
+  function kiss(){ woken=true; }
+  function noop(){}
+
+  // Boot: socket + canal broadcast publico para avisos globales
+  function boot(){
+    if(!on()) return false;
+    woken=true;
+    join("realtime:public", {
+      broadcast:{ack:false, self:false}, presence:{key:""}, postgres_changes:[], private:false
+    });
+    return true;
+  }
+
+  return {
+    on:on, boot:boot, connect:connect, join:join, unjoin:unjoin,
+    broadcast:broadcast, sub:sub, unsub:unsub, status:status, connected:function(){ return connected; }
+  };
+})();</script>
+  <script>/* Op-Art Fan - modulo: js/arena/live.js */
+
+"use strict";
+
+/* ---------- Salas 1v1 EN VIVO (Fase 3) ----------
+   Dos jugadores juegan el MISMO nivel a la vez; el marcador se ve
+   en tiempo real (Supabase Realtime via RT) con fallback a polling
+   REST cada 2s. Al terminar, cada lado envia su huella y el RPC
+   live_submit resuelve (con desempate por tiempo). Recompensas:
+   victoria +15, derrota +5.
+   Flujo de pantalla: #screen-live crea/une, cuando status cambia a
+   'playing' ambos arrancan el nivel, y finishGame llama a
+   Live.finishFromGame (igual que los duelos).
+*/
+var Live = (function(){
+  var cur=null, cb=null, pollT=null, lastPush=0, lastSig="", outcome=null;
+  var TBL="live_rooms", TOPIC="realtime:public:live_rooms";
+
+  function on(){ return typeof SupRemote!=="undefined" && SupRemote.on(); }
+  function authed(){
+    return on() && typeof Auth!=="undefined" && Auth.isAuthed && Auth.isAuthed() && !!Auth.uid();
+  }
+  function myUid(){ return (typeof Auth!=="undefined" && Auth.uid) ? Auth.uid() : null; }
+  function code(){
+    var c="", chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    for(var i=0;i<6;i++) c+=chars[(Math.random()*chars.length)|0];
+    return c;
+  }
+
+  // Lobby: salas abiertas/listas recientes (cualquiera las ve)
+  function rooms(){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    var cut=Date.now()-600000;
+    return SupRemote.get(TBL, "status=in.(open,ready)&created.gt."+cut+"&order=created.desc&limit=20")
+      .then(function(rows){ return rows||[]; });
+  }
+  // Mis salas activas
+  function mine(){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    var or="or=(host.eq."+SupRemote.enc(myUid())+",guest.eq."+SupRemote.enc(myUid())+")";
+    return SupRemote.get(TBL, or+"&status=neq.finished&order=created.desc&limit=10")
+      .then(function(rows){ return rows||[]; });
+  }
+
+  function create(level){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    var id="l"+Date.now()+"-"+Math.floor(Math.random()*1e4);
+    var row={id:id, host:myUid(), level_id:level, status:"open", seed:code(), created:Date.now()};
+    return SupRemote.upsert(TBL,[row],false).then(function(){ attach(id); return id; });
+  }
+  function join(id){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    return SupRemote.rpc("live_join",{p_room:id}).then(function(r){
+      if(r.error) throw new Error(r.error);
+      attach(id);
+      return r;
+    });
+  }
+  function start(){
+    if(!cur||!authed()) return Promise.reject(new Error("no room"));
+    if(mySide()!=="host") return Promise.reject(new Error("solo el anfitrion empieza"));
+    if(cur.status!== "ready") return Promise.reject(new Error("falta rival"));
+    return SupRemote.patch(TBL, "id=eq."+SupRemote.enc(cur.id), {status:"playing", started:Date.now()})
+      .then(function(){ return cur; });
+  }
+  function leave(){
+    if(!cur||!authed()) return Promise.reject(new Error("no room"));
+    var id=cur.id;
+    if(cur.status!=="finished"){
+      return SupRemote.patch(TBL, "id=eq."+SupRemote.enc(id), {status:"finished"}).then(function(){
+        detach(); return {left:true};
+      });
+    }
+    detach(); return Promise.resolve({left:true});
+  }
+
+  function attach(id){
+    if(cur&&cur.id===id) return;
+    detach();
+    outcome=null;
+    cur={id:id, status:"open", level_id:1, h_score:0, g_score:0, h_done:0, g_done:0};
+    sync().then(function(row){
+      if(row){ cur=merge(row); fire(); }
+    }).catch(function(){});
+    RT.join(TOPIC, {
+      broadcast:{ack:false, self:false}, presence:{key:""}, private:false,
+      postgres_changes:[{event:"*", schema:"public", table:TBL, filter:"id=eq."+id}]
+    });
+    RT.sub(TOPIC, onRT);
+    if(!pollT) pollT=setInterval(poll, 2000);
+  }
+  function detach(){
+    if(pollT){ clearInterval(pollT); pollT=null; }
+    RT.unsub(TOPIC);
+    RT.unjoin(TOPIC);
+    cur=null; cb=null; lastSig=""; lastPush=0;
+  }
+  function lastOutcome(){ return outcome; }
+  function onRT(msg){
+    if(msg&&msg.broadcast){ fire(); return; }
+    if(msg&&msg.children) return;
+    var row=msg;
+    if(row&&row.id&&cur&&row.id===cur.id){ cur=merge(row); fire(); }
+  }
+  function poll(){
+    if(!cur||cur.status==="finished") return;
+    sync().then(function(row){
+      if(!row){ return; }
+      if(!cur||cur.id!==row.id) return;
+      cur=merge(row); fire();
+    }).catch(function(){});
+  }
+  function sync(){
+    return SupRemote.get(TBL, "id=eq."+SupRemote.enc(cur.id)).then(function(rows){
+      return rows&&rows[0]||null;
+    });
+  }
+  function merge(row){
+    var n={};
+    ["id","host","guest","level_id","status","seed","h_score","g_score","h_combo","g_combo",
+     "h_hits","g_hits","h_fails","g_fails","h_ms","g_ms","h_done","g_done","winner","started","created"].forEach(function(k){
+      n[k]=row[k]!==undefined&&row[k]!==null?row[k]:n[k];
+    });
+    return n;
+  }
+  function sig(r){
+    return [r.status,r.h_score,r.g_score,r.h_done,r.g_done,r.winner||""].join("|");
+  }
+  function fire(){
+    if(!cur) return;
+    var s=sig(cur);
+    if(s===lastSig) return;
+    lastSig=s;
+    if(cb){ try{ cb(cur); }catch(e){} }
+  }
+  function subscribe(fn){ cb=fn; if(cur) fire(); }
+
+  // Enviar mi marcador en vivo (limitado a ~2/s; el update dispara Realtime)
+  function sendScore(score){
+    if(!cur||cur.status!=="playing"||!authed()) return;
+    var now=Date.now();
+    if(now-lastPush<500) return;
+    lastPush=now;
+    var body={}; body[mySide()==="host"?"h_score":"g_score"]=Math.max(0,Math.floor(score||0));
+    SupRemote.patch(TBL, "id=eq."+SupRemote.enc(cur.id), body).catch(function(){});
+  }
+
+  // ---- helpers de la sala actual ----
+  function mySide(){ return cur&&myUid()? (cur.host===myUid()?"host":"guest") : null; }
+  function myScore(){ return cur? (mySide()==="host"?cur.h_score:cur.g_score) : 0; }
+  function opScore(){ return cur? (mySide()==="host"?cur.g_score:cur.h_score) : 0; }
+  function opReady(){ return cur? mySide()==="host" ? !!cur.guest : !!cur.host : false; }
+  function myDone(){ return cur? (mySide()==="host"?cur.h_done:cur.g_done)>0 : false; }
+  function opDone(){ return cur? (mySide()==="host"?cur.g_done:cur.h_done)>0 : false; }
+  function iWon(){ return cur&&cur.winner? cur.winner===myUid() : false; }
+
+  // Al terminar mi partida (hook de finishGame)
+  function finishFromGame(g){
+    if(!authed()||!cur) return Promise.resolve(null);
+    var startedAt=cur.started||g.startedAt||0;
+    var ms=(typeof performance!=="undefined"?performance.now():Date.now())-startedAt;
+    var h = (typeof Duel!=="undefined"&&Duel.huella)? Duel.huella(g, ms) : {
+      score:Math.max(0,Math.floor(g.score||0)),
+      combo:Math.max(1,Math.min(20,g.bestCombo||1)),
+      hits:(g.hits||0)+(g.catches||0), fails:g.fails||0, ms:Math.floor(ms||0)
+    };
+    var id=cur.id;
+    return SupRemote.rpc("live_submit",{
+      p_room:id, p_score:h.score, p_combo:h.combo, p_hits:h.hits, p_fails:h.fails, p_ms:h.ms
+    }).then(function(r){
+      if(r.error) throw new Error(r.error);
+      outcome=mergeOutcome(r);
+      detach();
+      if(typeof refreshMenuCoins==="function") refreshMenuCoins();
+      return r;
+    }).catch(function(e){
+      outcome={error:(e&&e.message?e.message:"live")};
+      detach();
+      if(typeof toast==="function") toast("En vivo: "+(e&&e.message?e.message:e),"","err",3000);
+      return null;
+    });
+  }
+  function mergeOutcome(r){
+    return {won:!!r.won, reward:r.reward||0, my:r.my, op:r.op, winner:r.winner||null};
+  }
+
+  return {
+    on:on, authed:authed, myUid:myUid,
+    rooms:rooms, mine:mine, create:create, join:join, start:start, leave:leave,
+    attach:attach, detach:detach, subscribe:subscribe, sendScore:sendScore,
+    current:function(){ return cur; }, lastOutcome:lastOutcome, mySide:mySide, myScore:myScore, opScore:opScore,
+    opReady:opReady, myDone:myDone, opDone:opDone, iWon:iWon, finishFromGame:finishFromGame
+  };
+})();</script>
   <script>/* Op-Art Fan - modulo: js/core/game.js */
 
 "use strict";
@@ -2790,6 +3201,14 @@ function update(dt){
   var fill=$("timeFill"); fill.style.width = clamp(g.time/g.timeMax*100,0,100)+"%";
   var cb=$("comboBadge");
   if(g.combo>1){ cb.textContent="x"+Math.min(g.combo,20); cb.style.display="block"; } else { cb.style.display="none"; }
+  // sala en vivo: envio mi marcador (limitado) y pinto el del rival
+  if(typeof Live!=="undefined" && Live.current && Live.current() && Live.authed() && Live.current().status==="playing"){
+    Live.sendScore(g.score);
+    var chip=$("liveChip");
+    if(chip){ chip.style.display="flex"; chip.innerHTML="\u26A1 <b>"+num(g.score)+"</b> vs <b>"+num(Live.opScore())+"</b>"; }
+  } else {
+    var lc2=$("liveChip"); if(lc2) lc2.style.display="none";
+  }
 }
 var lastT=0;
 function maxSimulNow(){ return Math.min(6, (GS.lv.simul||1) + Math.floor(GS.D*2.5)); }
@@ -3353,6 +3772,10 @@ function finishGame(won){
   if(session && session.duel && typeof Duel!=="undefined" && Duel && Duel.authed()){
     try{ Duel.submitFromGame(g); }catch(e){}
   }
+  if(typeof Live!=="undefined" && Live && Live.authed && Live.authed() && Live.current && Live.current()){
+    try{ Live.finishFromGame(g); }catch(e){}
+  }
+  var lc=$("liveChip"); if(lc) lc.style.display="none";
   refreshMenuCoins();
 }</script>
   <script>/* Op-Art Fan - modulo: js/ui/settings.js */
@@ -3383,6 +3806,7 @@ function refreshMenu(){
   $("menuTitle").textContent=titleById(activeTitle).name;
   var mm=$("menuMascot"); if(mm){ mm.style.display=activeMascot?"inline-flex":"none"; mm.textContent=(mascotById(activeMascot)||{}).icon||""; }
   $("menuCoins").textContent=num(coins); paintToggle(); renderMenuStatus(); showAuthChip();
+  if(typeof adminCheck==="function"){ try{ adminCheck(); }catch(e){} }
 }
 $("menuMascot").addEventListener("click", function(){ ensureAudio(); sfxClick(); var f=mascotPhrase(activeMascot); if(f) toast(f, mascotById(activeMascot).icon); });
 function showAuthChip(){
@@ -3394,7 +3818,7 @@ function renderMenuStatus(){
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
   if(stEl){ try{ var s=dayStreak(); if(s>0){ stEl.style.display="inline-flex"; stEl.innerHTML="\u{1F525} <b>"+s+"</b> "+(s===1?"día":"días"); } else { stEl.style.display="none"; } }catch(e){} }
 }
-function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); }
+function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); var lc=$("liveCoins"); if(lc) lc.textContent=num(coins); }
 $("btnPlay").addEventListener("click", function(){ sfxClick(); renderLevels(); refreshMenuCoins(); show("levels"); });
 $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); unlock("diario"); generateDaily(); renderDaily(); show("daily"); });
 $("btnShop").addEventListener("click", function(){ sfxClick(); renderShop(); show("shop"); });
@@ -3402,6 +3826,9 @@ $("btnAch").addEventListener("click", function(){ sfxClick(); renderAch(); show(
 $("btnRank").addEventListener("click", function(){ sfxClick(); openRanking(); show("rank"); });
 $("btnArmario").addEventListener("click", function(){ sfxClick(); renderArmario(); refreshMenuCoins(); show("armario"); });
 $("btnDuel").addEventListener("click", function(){ sfxClick(); renderDuel(); show("duel"); });
+$("btnLive").addEventListener("click", function(){ sfxClick(); renderLive(); show("live"); });
+$("btnNotix").addEventListener("click", function(){ sfxClick(); renderNotix(); show("notix"); });
+$("btnAdmin").addEventListener("click", function(){ sfxClick(); renderAdmin(); show("admin"); });
 $("btnCredits").addEventListener("click", function(){ sfxClick(); show("end"); });
 $("levelsBack").onclick = $("shopBack").onclick = $("achBack").onclick = $("rankBack").onclick = $("dailyBack").onclick = function(){ sfxClick(); goMenu(); };
 
@@ -4312,14 +4739,351 @@ $("duelCodeCopy").addEventListener("click", function(){
   if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(c).then(function(){ toast("Código copiado: "+c,"\u{1F4CB}"); });
   else toast("Tu código: "+c,"\u{1F4CB}");
 });</script>
+  <script>/* Op-Art Fan - modulo: js/ui/live.js */
+
+"use strict";
+
+/* ---------- Pantalla de salas en vivo (Fase 3) ---------- */
+var _liveRooms=null, _liveMine=null, _oppWas=false;
+
+function renderLiveLevels(){
+  var sel=$("liveLevel");
+  if(!sel) return;
+  var opts=LEVELS.filter(function(l){ return !l.boss; });
+  if(sel.options.length===opts.length) return;
+  sel.innerHTML="";
+  opts.forEach(function(l){
+    var o=document.createElement("option");
+    o.value=l.id; o.textContent="Nivel "+l.id+" – "+l.name;
+    sel.appendChild(o);
+  });
+}
+
+function renderLive(){
+  renderLiveLevels();
+  refreshMenuCoins();
+  var off=$("liveOffNote");
+  Live.subscribe(roomView);
+  if(typeof window.RT!=="undefined" && RT.status) RT.status(function(c){ paintRt(c); });
+  paintRt(typeof window.RT!=="undefined" ? RT.connected() : false);
+  if(!Live.authed()){
+    off.style.display="block";
+    off.innerHTML="Para las salas <b>en vivo</b> necesitas <b>cuenta Google</b> (botón del registro). Dos jugadores, el mismo nivel, marcador a tiempo real."+
+      "<br><button class='btn small gold' id='liveGoGoogle' style='margin-top:8px;'>Iniciar sesión</button>";
+    var g=$("liveGoGoogle"); if(g){ g.onclick=function(){ if(window.Auth&&Auth.login) Auth.login(); }; }
+    $("liveRoomPanel").innerHTML="";
+    $("liveLobbyPanel").style.display="none";
+    $("liveResultLine").style.display="none";
+    return;
+  }
+  off.style.display="none";
+  $("liveLobbyPanel").style.display="block";
+  loadLiveRooms();
+  loadLiveMine();
+  renderRoom();
+}
+
+function paintRt(ok){
+  var chip=$("liveRtChip");
+  if(!chip) return;
+  chip.textContent=ok?"realtime ●":"realtime ○ (polling 2s)";
+  chip.className="chip "+(ok?"c-ok":"");
+  var a=$("adminRt"); if(a) a.textContent=ok?"conectado ●":"sin websocket (polling)";
+}
+
+function loadLiveRooms(){
+  var listEl=$("liveRoomsList"); if(!listEl) return;
+  Live.rooms().then(function(rows){
+    _liveRooms=rows||[];
+    listEl.innerHTML="";
+    if(!rows||!rows.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">No hay salas abiertas. ¡Crea una y espera rival!</div>'; return; }
+    rows.forEach(renderRoomRow);
+  }).catch(function(e){
+    listEl.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(e.message)+'</div>';
+  });
+}
+function renderRoomRow(r){
+  var listEl=$("liveRoomsList"); if(!listEl) return;
+  var lv=levelDef(r.level_id);
+  var row=document.createElement("div");
+  row.className="duel-row";
+  var hasG=r.guest?"1 jugador":"esperando rival…";
+  row.innerHTML=
+    '<div class="row" style="gap:10px; align-items:center; padding:8px 6px;">'+
+      '<span class="big-avatar sm">🕹️</span>'+
+      '<div class="grow">'+
+        '<div style="font-weight:800;">Sala de '+esc(lv?lv.name:"")+'</div>'+
+        '<div class="sd" style="font-size:11px; color:var(--dim);">Nivel '+r.level_id+' · '+hasG+'</div>'+
+      '</div>'+
+      (r.host!==Live.myUid()?'<button class="btn small cyan" data-join="1">Unirme</button>':
+        '<button class="btn small ghost" data-mine="1">Tu sala</button>')+
+    '</div>';
+  row.querySelectorAll("[data-join]").forEach(function(b){
+    b.onclick=function(){ liveJoin(r.id); };
+  });
+  row.querySelectorAll("[data-mine]").forEach(function(b){
+    b.onclick=function(){ liveGoRoom(r.id); };
+  });
+  listEl.appendChild(row);
+}
+function loadLiveMine(){
+  var listEl=$("liveMineList"); if(!listEl) return;
+  Live.mine().then(function(rows){
+    _liveMine=rows||[];
+    listEl.innerHTML="";
+    if(!rows||!rows.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">No tienes salas activas.</div>'; return; }
+    rows.forEach(function(r){
+      var lv=levelDef(r.level_id);
+      var row=document.createElement("div");
+      row.className="duel-row";
+      row.innerHTML=
+        '<div class="row" style="gap:10px; align-items:center; padding:8px 6px;">'+
+          '<span class="big-avatar sm">⚡</span>'+
+          '<div class="grow">'+
+            '<div style="font-weight:800;">Sala '+(r.status==="playing"?"en juego":esc(lv?lv.name:""))+'</div>'+
+            '<div class="sd" style="font-size:11px; color:var(--dim);">'+(r.status==="playing"?(r.h_score+" — "+r.g_score)+" · ":"")+esc(lv?lv.name:"")+'</div>'+
+          '</div>'+
+          '<button class="btn small gold" data-go="1">Entrar</button>'+
+        '</div>';
+      row.querySelectorAll("[data-go]").forEach(function(b){ b.onclick=function(){ liveGoRoom(r.id); }; });
+      listEl.appendChild(row);
+    });
+  }).catch(function(e){});
+}
+
+function liveGoRoom(id){ Live.attach(id); renderRoom(); }
+
+function liveJoin(id){
+  Live.join(id).then(function(){
+    toast("¡Estás en la sala! Espera al anfitrión","\u{1F3AE}");
+    renderRoom(); loadLiveRooms();
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+function liveCreate(){
+  var sel=$("liveLevel"); var lv=parseInt(sel?sel.value:"1",10)||1;
+  Live.create(lv).then(function(){
+    toast("Sala creada. Espera rival y pulsa ▶ Empezar","\u{1F3AE}");
+    renderRoom(); loadLiveRooms();
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+function liveStart(){
+  Live.start().then(function(){ toast("¡Comenzando…!","\u{1F3AE}"); })
+    .catch(function(e){ toast(e.message,"","err"); });
+}
+function liveLeave(){
+  Live.leave().then(function(){
+    $("liveResultLine").style.display="none";
+    renderRoom(); loadLiveRooms(); loadLiveMine();
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+
+/* Vista de la sala actual (se repinta con cada update de Realtime/polling) */
+function roomView(r){
+  if(!r) return;
+  renderRoom();
+  var started = r.status==="playing" && !Live.myDone() && !(typeof running!=="undefined"&&running);
+  if(started){
+    var liveOn=!!$("screen-live").classList.contains("on")||!!$("screen-game").classList.contains("on");
+    if(liveOn){ startGame(r.level_id); }
+    else if(typeof Nx!=="undefined"&&Nx.push){ Nx.push("live","Tu rival ha empezado la sala de nivel "+r.level_id,"\u{1F3AE}"); }
+  }
+}
+function renderRoom(){
+  var box=$("liveRoomPanel"); if(!box) return;
+  var r=Live.current();
+  if(!r){
+    var last=Live.lastOutcome();
+    if(last){
+      $("liveResultLine").style.display="block";
+      $("liveResultLine").textContent= last.won? "\u{1F3C6} ¡Ganaste la sala! +"+last.reward+" monedas"
+        : (last.owner==="cancel"?"Sala cerrada por el rival": "\u{1F614} Perdiste (+"+last.reward+" monedas)");
+    }
+    box.innerHTML='<div class="panel center sub" style="color:var(--dim);">Estás fuera de sala. Crea una nueva o únete arriba.</div>';
+    return;
+  }
+  $("liveResultLine").style.display="none";
+  var lv=levelDef(r.level_id);
+  var isHost=Live.mySide()==="host";
+  var your=Live.myScore(), opp=Live.opScore();
+  var st="";
+  if(r.status==="open") st='<span class="chip c-go">abierta</span>';
+  else if(r.status==="ready") st='<span class="chip c-go">lista · esperando a '+ (isHost?"entrar a juego":"el anfitrión")+'</span>';
+  else if(r.status==="playing") st='<span class="chip c-ok">🔴 en juego</span>';
+  else if(r.status==="finished") st='<span class="chip '+(Live.iWon()?"c-ok":"c-no")+'">'+(!r.winner?"cerrada":(Live.iWon()?"¡ganaste!":"perdiste"))+'</span>';
+  var canStart=isHost&&r.status==="ready"&&!!r.guest;
+  var act='';
+  if(canStart) act+='<button class="btn pink grow" id="liveGoStart">▶ Empezar nivel</button>';
+  if(r.status!=="playing") act+='<button class="btn ghost grow" id="liveGoLeave">Salir</button>';
+  var rname=r.guest?(isHost?"Rival":"Anfitrión"):"Esperando rival…";
+  box.innerHTML=
+    '<div class="panel">'+
+      '<div class="row" style="gap:10px; align-items:center; margin-bottom:8px;">'+
+        '<span class="big-avatar sm">🔴</span><div class="grow"><div style="font-weight:900;">Sala '+esc(lv?lv.name:"")+'</div>'+
+        '<div class="sd" style="font-size:11px; color:var(--dim);">Nivel '+r.level_id+(r.started?" · empezó":'')+'</div></div>'+st+
+      '</div>'+
+      '<div class="live-vs">'+
+        '<div class="live-side '+(r.status==="finished"&&Live.iWon()?'win':'')+'"><b>Tú</b><div class="live-score">'+num(your)+'</div>'+(Live.myDone()?'<span class="chip c-ok">hecho</span>':'')+'</div>'+
+        '<div class="live-ico">VS</div>'+
+        '<div class="live-side '+(r.status==="finished"&&!Live.iWon()&&r.winner?'win':'')+'"><b>'+esc(rname)+'</b><div class="live-score">'+num(opp)+'</div>'+(Live.opDone()?'<span class="chip c-ok">jugó</span>':'')+'</div>'+
+      '</div>'+
+      (r.status==="playing"?'<div class="sub center" style="font-size:12px; color:var(--dim); margin-top:8px;">Juega el nivel: tu acierto suma en vivo.\u2003</div>':'')+
+      '<div class="row wrap" style="gap:8px; margin-top:10px;">'+act+'</div>'+
+    '</div>';
+  var gs=$("liveGoStart"); if(gs) gs.onclick=function(){ liveStart(); };
+  var gl=$("liveGoLeave"); if(gl) gl.onclick=function(){ liveLeave(); };
+}
+
+$("liveBack").addEventListener("click", function(){ sfxClick(); goMenu(); });
+$("liveCreate").addEventListener("click", function(){ ensureAudio(); sfxClick(); liveCreate(); });</script>
+  <script>/* Op-Art Fan - modulo: js/ui/notix.js */
+
+"use strict";
+
+/* ---------- Avisos in-app (campana) ---------- */
+var Nx=(function(){
+  var KEY="nxlist";
+  function all(){ try{ var v=ls(KEY); return v?JSON.parse(v):[]; }catch(e){ return []; } }
+  function save(a){ ls(KEY, JSON.stringify(a.slice(0,80))); }
+  function push(type, text, ico, data){
+    var a=all();
+    a.unshift({type:type||"info", text:String(text||""), ico:ico||"", at:Date.now(), read:false, data:data||{}});
+    save(a);
+    try{ renderNxBadge(); }catch(e){}
+    try{ if(window.sfxClick) sfxClick(); }catch(e){}
+    return a[0];
+  }
+  function unread(){ return all().filter(function(n){ return !n.read; }).length; }
+  function renderNxBadge(){
+    var b=$("notixBadge"); if(!b) return;
+    var n=unread();
+    b.textContent=n||0;
+    b.style.display=n>0?"inline-flex":"none";
+  }
+  function clear(){
+    ls(KEY,"");
+    renderNxBadge();
+  }
+  function render(){
+    renderNxBadge();
+    var listEl=$("notixList"); if(!listEl) return;
+    var a=all();
+    a.forEach(function(n){ n.read=true; });
+    save(a); renderNxBadge();
+    if(!a.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">Sin avisos por ahora.</div>'; return; }
+    listEl.innerHTML="";
+    a.forEach(function(n){
+      var row=document.createElement("div");
+      row.className="duel-row";
+      row.innerHTML='<div class="row" style="gap:10px; align-items:center; padding:8px 6px;">'+
+        '<span class="big-avatar sm">'+(n.ico||"\u{1F4DD}")+'</span>'+
+        '<div class="grow">'+
+          '<div style="font-weight:700; font-size:13px;">'+esc(n.text)+'</div>'+
+          '<div class="sd" style="font-size:11px; color:var(--dim);">'+fmtTime(n.at)+'</div>'+
+        '</div></div>';
+      listEl.appendChild(row);
+    });
+    renderLiveWs();
+  }
+  function renderLiveWs(){ /* place holder para el estado RT */ }
+  function fmtTime(ts){
+    var d=new Date(ts), h=d.getHours(), m=d.getMinutes();
+    return ("0"+h).slice(-2)+":"+("0"+m).slice(-2);
+  }
+  return {all:all, push:push, unread:unread, renderNxBadge:renderNxBadge, render:render, clear:clear};
+})();
+
+function renderNotix(){ Nx.render(); refreshMenuCoins(); }
+
+$("notixBack").addEventListener("click", function(){ sfxClick(); goMenu(); });
+$("notixClear").addEventListener("click", function(){ sfxClick(); Nx.clear(); Nx.render(); });</script>
+  <script>/* Op-Art Fan - modulo: js/ui/admin.js */
+
+"use strict";
+
+/* ---------- Panel de admin (produccion) ----------
+   Solo visible si la sesion es admin (RPC is_admin server-side).
+   Estadisticas del proyecto + otorgar monedas + aviso global. */
+var AdminT=false;
+
+function adminCheck(){
+  var b=$("btnAdmin"); if(b) b.style.display="none";
+  if(typeof Live==="undefined"||!Live.authed()) return;
+  SupRemote.rpc("is_admin",{}).then(function(r){
+    AdminT = r===true;
+    if(b) b.style.display=AdminT?"flex":"none";
+  }).catch(function(){});
+}
+
+function renderAdmin(){
+  refreshMenuCoins();
+  var off=$("adminOffNote");
+  if(!Live.authed()){
+    off.style.display="block";
+    off.innerHTML="Para el panel admin necesitas <b>cuenta Google</b> y estar dado de alta en la tabla <code>admins</code> del proyecto Supabase.";
+    return;
+  }
+  off.style.display="none";
+  loadAdminStats();
+  if(typeof window.RT!=="undefined" && RT.status) RT.status(function(c){ var a=$("adminRt"); if(a) a.textContent=c?"conectado ●":"sin websocket (polling)"; });
+}
+function loadAdminStats(){
+  var el=$("adminStats"); if(!el) return;
+  el.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  SupRemote.rpc("admin_stats",{}).then(function(st){
+    if(st.error){ el.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(st.error)+'</div>'; return; }
+    var stats=[
+      ["👥 Usuarios", st.users||0],
+      ["⚔️ Duelos (activos)", (st.duels||0)+" / abiertos "+(st.duelsOpen||0)],
+      ["🔴 Salas (abiertas)", (st.rooms||0)+" / "+(st.roomsOpen||0)],
+      ["🤝 Amistades", st.friends||0],
+      ["🛒 Compras", st.purchases||0]
+    ];
+    var h='<div class="stat-grid">';
+    stats.forEach(function(s){ h+='<div class="stat"><span>'+s[0]+'</span><b>'+s[1]+'</b></div>'; });
+    h+='</div>';
+    h+='<div style="font-weight:800; margin:10px 0 4px;">Top puntajes</div>';
+    h+='<div style="font-size:12px; color:var(--dim);">'+(Array.isArray(st.topScores)&&st.topScores.length
+      ? st.topScores.map(function(t,i){ return (i+1)+". <b>"+esc(t.n||"-")+"</b> · "+num(t.s||0); }).join('<br>')
+      : "sin datos")+'</div>';
+    if(st.notice){ h+='<div class="chip c-go" style="margin-top:8px;">Aviso activo: '+esc(st.notice)+'</div>'; }
+    el.innerHTML=h;
+  }).catch(function(e){ el.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(e.message)+'</div>'; });
+}
+
+function adminGrant(){
+  var code=($("adminGrantCode").value||"").trim().toUpperCase();
+  var amt=parseInt($("adminGrantAmt").value,10);
+  if(!code){ toast("Escribe un código amigo","\u{1F4AC}"); return; }
+  if(!amt||isNaN(amt)){ toast("Cantidad inválida","","err"); return; }
+  SupRemote.rpc("admin_grant",{p_code:code, p_amount:amt}).then(function(r){
+    if(r.error) throw new Error(r.error);
+    toast("OK: +"+amt+" a "+code+" => "+r.coins+" monedas","\u{1F4B0}");
+    loadAdminStats();
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+function adminPublishNotice(){
+  var txt=($("adminNoticeIn").value||"").trim();
+  SupRemote.rpc("admin_notice",{p_text:txt}).then(function(r){
+    if(r.error) throw new Error(r.error);
+    toast("Aviso "+(txt?"publicado":"borrado"),"\u{1F4E2}");
+    if(window.RT&&RT.broadcast) RT.broadcast("realtime:public","notice",{text:txt});
+    $("adminNoticeIn").value="";
+    loadAdminStats();
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+
+$("adminBack").addEventListener("click", function(){ sfxClick(); goMenu(); });
+$("adminGrantBtn").addEventListener("click", function(){ ensureAudio(); sfxClick(); adminGrant(); });
+$("adminNoticeBtn").addEventListener("click", function(){ ensureAudio(); sfxClick(); adminPublishNotice(); });
+$("adminNoticeClear").addEventListener("click", function(){ ensureAudio(); $("adminNoticeIn").value=""; adminPublishNotice(); });</script>
   <script>/* Op-Art Fan - modulo: js/ui/nav.js */
 
 "use strict";
 
 /* ---------- Navegación / pantallas ---------- */
-var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","game","result","end"];
+var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","live","notix","admin","game","result","end"];
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
-function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); }
+function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); if(typeof Nx!=="undefined"&&Nx.renderNxBadge){ try{ Nx.renderNxBadge(); }catch(e){} } }
 function refreshDuelBadge(){
   var badge=$("duelBadge");
   if(!badge) return;
@@ -4355,6 +5119,17 @@ function boot(){
   }catch(e){ try{ afnHide(); }catch(_){} }
   fillAvatars();
   generateDaily();
+  // Realtime: socket + canal publico (avisos globales) en segundo plano
+  try{
+    if(typeof RT!=="undefined"){
+      if(RT.boot) RT.boot();
+      if(RT.sub) RT.sub("realtime:public", function(m){
+        if(m && m.broadcast && m.event==="notice" && m.payload && m.payload.text
+           && typeof Nx!=="undefined" && Nx.push){ Nx.push("notice", m.payload.text, "\u{1F4E2}"); }
+      });
+    }
+    if(typeof Nx!=="undefined" && Nx.renderNxBadge) Nx.renderNxBadge();
+  }catch(e){}
   Auth.boot(finishBoot);
 }
 window.addEventListener("load", boot);</script>

@@ -34,10 +34,12 @@ js/
   arena/
     arena.js            Entrada/salida de arena, grupos, temporadas, armario
     duels.js            Duelos (Fase 2): retos por código, huella de partida, submit, badge
+    realtime.js         Realtime (Fase 3): cliente WebSocket Phoenix v2 sin SDK
+    live.js             Salas 1v1 en vivo (Fase 3): crear/entrar/empezar, marcador, submit
     minigames.js        4 mini-juegos de arena (caligrafía, faroles, rueda, tambor)
   ui/                   Render y eventos de cada pantalla (settings, menu,
                         tutorial, register, levels, shop, armario, ach, rank,
-                        daily, duel, results, end, nav)
+                        daily, duel, live, notix, admin, results, end, nav)
   loader/
     assets.js           Mapa de assets + carga inteligente + música + fallbacks
 assets/
@@ -46,13 +48,14 @@ assets/
                         compra, logro, jefe)
   audio/music/          3 pistas ambientales en loop (calma, fiesta, épica)
 supabase/
-  arena.sql             Esquema SQL (tablas + RLS + RPCs de economía/duelos)
-                        para ejecutar en Supabase
+  arena.sql             Esquema SQL (tablas + RLS + RPCs de economía, duelos y
+                        salas en vivo) para ejecutar en Supabase
 tools/
   gen-assets.cjs        Regenera PNG + WAV (requiere node-canvas)
   split.cjs / build.cjs Regeneran el split y la estructura a partir del monolito
   supabase-setup.ps1    Guía para conectar el proyecto Supabase
   e2e-duel.cjs          E2E real de duelos/amigos contra Supabase (26 checkpoints)
+  e2e-live.cjs          E2E real de salas en vivo/admin contra Supabase (22 checkpoints)
   tests/                Suite de validación (jsdom + node-canvas + red simulada)
 ```
 
@@ -88,9 +91,10 @@ tools/
 Herramientas en `tools/tests/` (necesitan `jsdom` y `canvas` en `node_modules`):
 
 ```bash
-node tools/tests/smoke.cjs     # flujo completo: tutorial→registro→menú→nivel→resultado→tienda→logros→ranking→diario→arena→duelos(offline)
+node tools/tests/smoke.cjs     # flujo completo: tutorial→registro→menú→nivel→resultado→tienda→logros→ranking→diario→arena→duelos→salas→avisos→admin (offline)
+node tools/tests/online.cjs    # red simulada: SupRemote, login Google, economía RPC, duelos, Realtime Phoenix mock, salas, admin
 node tools/tests/mobile.cjs    # simulación móvil (viewport 375x667, puntero)
-node tools/tests/budget.cjs    # presupuesto de primera carga (<230 KB) y que todos los assets existen
+node tools/tests/budget.cjs    # presupuesto de primera carga (<265 KB) y que todos los assets existen
 node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 niveles (pixeles)
 ```
 
@@ -103,6 +107,9 @@ node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 
 - **Duelos y amigos son 100 % online real** (Supabase): código de amigo, reto por
   nivel, huella validada en servidor, recompensas y rachas. Funcionan con tu cuenta
   Google (sesión) o con la cuenta de administrador de prueba.
+- **Salas 1v1 en vivo** (Fase 3): crea o entra en una sala, y el marcador del rival
+  llega en tiempo real por websocket (con fallback a polling). Las **notificaciones**
+  in-app y el **panel admin** (dar monedas, publicar avisos) también son online.
 - Es una **PWA instalable**: en móvil abre la URL y usa *Añadir a pantalla de inicio*
   (Android) o *Agregar a pantalla de inicio* (iOS). Se abre a pantalla completa y
   sigue jugable **offline** gracias al service worker (`sw.js`), que precachea el
@@ -198,7 +205,26 @@ abierto, sin SDK) y el esquema/RLS vive en un solo archivo versionable.
   (`tools/e2e-duel.cjs`, 26 validaciones). El duelo usa el mismo nivel para ambos
   (la semilla de disposición exacta queda como mejora futura).
   Módulos: `js/arena/duels.js`, `js/ui/duel.js`.
-- ⬜ **Fase 3 — Tiempo real y producción**: salas 1v1 (realtime), push, admin.
+- ✅ **Fase 3 — Tiempo real y producción**: **salas 1v1 en vivo** (`#screen-live`):
+  dos jugadores entran a la misma sala (host/guest, cualquier nivel 1-16), el
+  anfitrión la abre (`live_join`) y al pulsar *Empezar* ambos arrancan el nivel a
+  la vez y ven el **marcador del rival en tiempo real** (Supabase Realtime con un
+  cliente WebSocket Phoenix v2 propio `js/arena/realtime.js`, sin SDK; si el
+  websocket no conecta, fallback automático a polling REST cada 2 s con el mismo
+  API de sala). Al terminar cada lado envía su **huella** por el RPC
+  `live_submit`, que valida server-side exactamente igual que los duelos y
+  resuelve la sala solo: victoria +15 monedas (+15 pts), derrota +5; el empate lo
+  desempata el tiempo. Además: **panel de administrador** (`is_admin`/`admin_stats`/
+  `admin_grant` — dar monedas por código), **avisos globales** (`admin_notice` en
+  la tabla `notices`, se muestran como notificaciones in-app `#screen-notix` y se
+  propagan por broadcast de Realtime), y la tabla `admins`.
+  *Criterio cumplido*: RPCs y flujo probados contra la base real
+  (`tools/e2e-live.cjs`, 22 validaciones), incluido rechazo de huella inválida,
+  empate por tiempo y recompensas; Realtime y la capa de salas cubiertos en
+  `tools/tests/online.cjs` con un mock del protocolo Phoenix. La sala en vivo usa
+  el mismo nivel para ambos con la misma semilla de disposición.
+  Módulos: `js/arena/realtime.js`, `js/arena/live.js`, `js/ui/live.js`,
+  `js/ui/notix.js`, `js/ui/admin.js`.
 
 Criterios de aceptación de la Fase 0 (verificables): el juego funciona igual con y
 sin red; al loguear con Google, el progreso local aparece en la nube y en otro

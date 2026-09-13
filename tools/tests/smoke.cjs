@@ -113,6 +113,14 @@ function click(sel) {
   click('#btnDuel'); await raf(120);
   ok('duel visible (offline: aviso de cuenta)', !!cs('#screen-duel.on') && !!cs('#duelOffNote'));
   ok('duelos sin sesion: sin listados', cs('#duelList') && cs('#duelList').children.length === 0);
+  click('#btnLive'); await raf(120);
+  ok('live visible (offline: aviso)', !!cs('#screen-live.on') && !!cs('#liveOffNote'));
+  ok('lobby oculto sin sesion', cs('#liveLobbyPanel') && cs('#liveLobbyPanel').style.display === 'none');
+  click('#btnNotix'); await raf(120);
+  ok('notix visible', !!cs('#screen-notix.on') && !!cs('#notixList'));
+  click('#btnAdmin'); await raf(120);
+  ok('admin visible (offline: aviso)', !!cs('#screen-admin.on') && !!cs('#adminOffNote'));
+  ok('boton admin oculto sin admin', !cs('#btnAdmin') || cs('#btnAdmin').style.display === 'none');
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
   process.exit(failed ? 1 : 0);

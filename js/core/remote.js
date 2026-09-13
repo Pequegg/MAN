@@ -28,6 +28,9 @@ var SupRemote = (function(){
       body:JSON.stringify(rows)
     }).then(ok);
   }
+  function patch(table, q, body){
+    return fetch(base()+"/"+table+"?"+q,{method:"PATCH",headers:head(),body:JSON.stringify(body||{})}).then(ok);
+  }
   function bestScore(table, filterQs, body){
     return get(table, filterQs+"&order=score.desc&limit=1").then(function(rows){
       var cur=rows&&rows[0];
@@ -49,5 +52,5 @@ var SupRemote = (function(){
         return j.data;
       });
   }
-  return {on:on, base:base, enc:enc, get:get, upsert:upsert, bestScore:bestScore, rpc:rpc};
+  return {on:on, base:base, enc:enc, get:get, patch:patch, upsert:upsert, bestScore:bestScore, rpc:rpc};
 })();

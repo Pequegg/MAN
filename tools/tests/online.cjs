@@ -51,12 +51,18 @@ global.mulberry32 = a => { return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math
 function uidLocal() { let u = global.ls('uid'); if (!u) { u = 'u' + Date.now().toString(36); global.ls('uid', u); } return u; }
 
 // ---- fetch falso ----
-const network = { gets: [], posts: [] };
+const network = { gets: [], posts: [], patches: [] };
 let duelSubmitCalls = 0;
+let liveSubmitCalls = 0;
+const ROOM_ROW = { id: 'room1', host: 'other', guest: 'u-google-1', level_id: 5, status: 'ready', seed: 's1', h_score: 0, h_combo: 0, h_hits: 0, h_fails: 0, h_ms: 0, h_done: 0, g_score: 0, g_combo: 0, g_hits: 0, g_fails: 0, g_ms: 0, g_done: 0, winner: null, reward_h: 0, reward_g: 0, created: '2026-01-01', started: null, resolved: null };
 function jsonResp(obj, status) { return { ok: status < 400, status: status || 200, json: () => Promise.resolve(obj) }; }
 global.fetch = (url, opts) => {
   opts = opts || {};
   const u = String(url);
+  if (opts.method === 'PATCH') {
+    network.patches.push({ url: u, body: opts.body ? JSON.parse(opts.body) : null });
+    return Promise.resolve(jsonResp({}, 200));
+  }
   if (opts.method === 'POST') {
     network.posts.push({ url: u, body: opts.body ? JSON.parse(opts.body) : null });
     if (/\/token\?grant_type=pkce/.test(u)) {
@@ -71,13 +77,25 @@ global.fetch = (url, opts) => {
       if (duelSubmitCalls === 1) return Promise.resolve(jsonResp({ status: 'waiting', played_side: 'p1', score: 5200 }, 200));
       return Promise.resolve(jsonResp({ status: 'finished', won: true, reward: 20, bonus: 0, pts: 20, my: 5200, op: 4000, streak: 1 }, 200));
     }
+    if (/\/rest\/v1\/rpc\/live_join/.test(u)) return Promise.resolve(jsonResp(Object.assign({}, ROOM_ROW, { status: 'ready' }), 200));
+    if (/\/rest\/v1\/rpc\/live_submit/.test(u)) {
+      liveSubmitCalls++;
+      return Promise.resolve(jsonResp({ status: 'finished', won: true, reward: 15, pts: 15, my: 2500, op: 1800, winner: 'u-google-1' }, 200));
+    }
+    if (/\/rest\/v1\/rpc\/is_admin/.test(u)) return Promise.resolve(jsonResp({ admin: true }, 200));
+    if (/\/rest\/v1\/rpc\/admin_stats/.test(u)) return Promise.resolve(jsonResp({ users: 3, duels: 5, rooms: 2 }, 200));
+    if (/\/rest\/v1\/rpc\/admin_grant/.test(u)) return Promise.resolve(jsonResp({ ok: true, coins: 500 }, 200));
+    if (/\/rest\/v1\/rpc\/admin_notice/.test(u)) return Promise.resolve(jsonResp({ ok: true }, 200));
+    if (/\/rest\/v1\/rpc\/notice/.test(u)) return Promise.resolve(jsonResp({ text: 'Mantenimiento', active: 1, updated: '2026-01-01' }, 200));
     if (/\/rest\/v1\/duels/.test(u)) return Promise.resolve(jsonResp([], 200));
+    if (/\/rest\/v1\/live_rooms/.test(u)) return Promise.resolve(jsonResp([Object.assign({}, ROOM_ROW, { status: 'playing', h_score: 1200, g_score: 800, g_done: 1 })], 200));
     return Promise.resolve(jsonResp([], 200));
   }
   network.gets.push(u);
   if (/\/rest\/v1\/users/.test(u)) return Promise.resolve(jsonResp([{ uid: 'u-google-1', profile: { name: 'Cloud', coins: 999, _saved: Date.now() + 100000 } }], 200));
   if (/\/rest\/v1\/daily/.test(u)) return Promise.resolve(jsonResp([{ uid: 'x1', name: 'A', score: 10 }], 200));
   if (/\/rest\/v1\/duels/.test(u)) return Promise.resolve(jsonResp([], 200));
+  if (/\/rest\/v1\/live_rooms/.test(u)) return Promise.resolve(jsonResp([Object.assign({}, ROOM_ROW, { status: 'playing', h_score: 1500, g_score: 900, g_done: 0 })], 200));
   return Promise.resolve(jsonResp([], 200));
 };
 
@@ -93,6 +111,35 @@ gload('js/core/economy.js');
 global.session = { activeNow: [], duel: null };
 gload('js/arena/duels.js');
 global.SUPABASE_ANON_KEY = '';
+gload('js/arena/realtime.js');
+gload('js/arena/live.js');
+
+// ---- WebSocket falso (servidor Phoenix v2) para probar Realtime ----
+class FakeWS {
+  constructor(url) {
+    this.url = url; this.readyState = 0; FakeWS.instances.push(this); this.sent = [];
+    setTimeout(() => { this.readyState = 1; if (this.onopen) this.onopen(); }, 0);
+  }
+  send(data) {
+    const m = JSON.parse(data);
+    this.sent.push(m);
+    if (FakeWS.handle) FakeWS.handle(this, m);
+  }
+  close() { this.readyState = 3; if (this.onclose) this.onclose(); }
+}
+FakeWS.instances = [];
+// responde phx_join/phx_leave/heartbeat como el server real
+FakeWS.handle = (sock, m) => {
+  const topic = m[2], event = m[3];
+  if (event === 'phx_join') FakeWS.emit(sock, topic, 'phx_reply', { status: 'ok', response: {} });
+  else if (event === 'heartbeat') FakeWS.emit(sock, 'phoenix', 'phx_reply', { status: 'ok', response: {} });
+  else if (event === 'phx_leave') FakeWS.emit(sock, topic, 'phx_reply', { status: 'ok', response: {} });
+};
+FakeWS.emit = (sock, topic, event, payload) => { sock.onmessage({ data: JSON.stringify([topic, 'srv-1', topic, event, payload]) }); };
+FakeWS.row = (sock, topic, row) => FakeWS.emit(sock, topic, 'postgres_changes', {
+  ids: [], type: 'UPDATE', schema: 'public', table: 'live_rooms', commit_timestamp: '2026-01-01T00:00:00Z', errors: null,
+  data: { columns: [], commit_timestamp: '', errors: null, ids: [], old_record: null, record: row, type: 'UPDATE' }
+});
 
 // en un segundo, montamos pruebas
 (async () => {
@@ -215,6 +262,74 @@ global.SUPABASE_ANON_KEY = '';
   session.duel = { id: 'd2' };
   res = await Duel.submitFromGame({ score: 5200, bestCombo: 14, hits: 40, catches: 5, fails: 2, startedAt: 0 });
   ok('submitFromGame resuelve con recompensa', res && res.status === 'finished' && res.won === true && res.reward === 20 && session.duel === null);
+
+  // 11) Realtime (Phoenix v2 mock) + salas 1v1 (Fase 3)
+  global.WebSocket = FakeWS;
+  const rtState = { connected: false, msgs: [] };
+  RT.status(c => { rtState.connected = c; });
+  RT.boot();
+  await new Promise(r => setTimeout(r, 10));
+  ok('RT.boot conecta el socket y entra en realtime:public', rtState.connected && FakeWS.instances.length > 0 &&
+    FakeWS.instances[0].sent.some(m => m[3] === 'phx_join' && m[2] === 'realtime:public'));
+  ok('RT.connected() reporta sesion abierta', RT.connected() === true);
+
+  // sub + broadcast -> aviso global
+  RT.sub('realtime:public', m => rtState.msgs.push(m));
+  const sock = FakeWS.instances[0];
+  FakeWS.emit(sock, 'realtime:public', 'broadcast', { event: 'notice', payload: { text: 'Hola a todos' } });
+  ok('broadcast de aviso llega al callback', rtState.msgs.some(m => m.event === 'notice' && m.payload && m.payload.text === 'Hola a todos'));
+
+  // canal de una sala con postgres_changes -> fila reactiva
+  let liveRow = null;
+  RT.sub('realtime:public:live_rooms', msg => { if (msg && msg.id) liveRow = msg; });
+  FakeWS.row(sock, 'realtime:public:live_rooms', { id: 'room1', status: 'playing', g_score: 500 });
+  ok('postgres_changes entrega la fila completa', !!liveRow && liveRow.id === 'room1' && liveRow.g_score === 500);
+  ok('el socket sigue abierto tras los ACKs del server', RT.connected() === true && sock.readyState === 1);
+
+  // 12) Live: salas 1v1
+  ok('Live.authed() con sesion', Live.authed() === true && Live.myUid() === 'u-google-1');
+  await Live.attach('room1');
+  await new Promise(r => setTimeout(r, 10));
+  ok('attach() descarga la sala y monta el panel RT', !!Live.current() && Live.mySide() === 'guest' &&
+    sock.sent.some(m => m[3] === 'phx_join' && m[2] === 'realtime:public:live_rooms' && JSON.stringify(m[4]).includes('id=eq.room1')));
+  ok('mySide() = guest (no host)', Live.mySide() === 'guest');
+  ok('opScore() lee el marcador del rival', Live.opScore() === 1500);
+
+  // sendScore: primer envio inmediato (PATCH al lado propio), throttle el resto
+  network.patches.length = 0;
+  await Live.sendScore(2500);
+  await new Promise(r => setTimeout(r, 10));
+  ok('sendScore envia PATCH g_score', network.patches.length === 1 && /\/rest\/v1\/live_rooms\?/.test(network.patches[0].url) &&
+    network.patches[0].body.g_score === 2500);
+  await Live.sendScore(2600);
+  await new Promise(r => setTimeout(r, 30));
+  ok('sendScore throttled (no revuelve en 30ms)', network.patches.length === 1);
+
+  // guards: solo el host empieza
+  let started = null; try { started = await Live.start(); } catch (e) { started = e; }
+  ok('start() rechaza a un invitado', started instanceof Error);
+
+  // finishFromGame: RPC live_submit valida huella y resuelve
+  network.posts.length = 0;
+  const out = await Live.finishFromGame({ score: 2500, bestCombo: 9, hits: 30, catches: 3, fails: 1, startedAt: 0 });
+  const sub = network.posts.find(p => /rpc\/live_submit/.test(p.url));
+  ok('finishFromGame llama live_submit con la huella', !!sub && sub.body.p_room === 'room1' && sub.body.p_score === 2500 &&
+    sub.body.p_hits === 33 && sub.body.p_combo === 9 && sub.body.p_ms >= 0);
+  ok('finishFromGame resuelve evento con huella y cierra la sala', !!out && out.won === true && out.reward === 15 && !!Live.current() === false);
+  ok('lastOutcome guarda el resultado', Live.lastOutcome() && Live.lastOutcome().won === true);
+  const noRoom = await Live.sendScore(99);
+  ok('sendScore sin sala no emite', noRoom === undefined && network.patches.length === 1);
+
+  // 13) Admin (RPCs)
+  let s2 = await SupRemote.rpc('admin_stats', {});
+  ok('admin_stats devuelve el estado del server', s2 && s2.users === 3 && s2.duels === 5 && s2.rooms === 2);
+  network.posts.length = 0;
+  s2 = await SupRemote.rpc('admin_grant', { p_code: 'ABC1', p_amount: 500 });
+  ok('admin_grant envia p_code y p_amount', s2 && s2.ok && s2.coins === 500 && network.posts.some(p => /rpc\/admin_grant/.test(p.url) && p.body.p_code === 'ABC1' && p.body.p_amount === 500));
+  network.posts.length = 0;
+  s2 = await SupRemote.rpc('admin_notice', { p_text: 'Mantenimiento' });
+  ok('admin_notice publica el aviso', s2 && s2.ok && network.posts.some(p => /rpc\/admin_notice/.test(p.url) && p.body.p_text === 'Mantenimiento'));
+  RT.unjoin('realtime:public');
 
   console.log(fail ? ('FALLOS: ' + fail) : 'ONLINE OK');
   process.exit(fail ? 1 : 0);

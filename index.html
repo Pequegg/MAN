@@ -141,6 +141,9 @@
     <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArmario"><span class="ico">🪭</span><span class="grow"><div>Armario</div><div class="desc">Mascota, abanico, marco y título</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnDuel"><span class="ico">⚔️</span><span class="grow"><div>Duelos</div><div class="desc">Retos asíncronos contra amigos</div></span><span class="badge-chip" id="duelBadge" style="display:none;">0</span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnLive"><span class="ico">🔴</span><span class="grow"><div>En vivo</div><div class="desc">Salas 1v1 en tiempo real</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnNotix"><span class="ico">🔔</span><span class="grow"><div>Avisos</div><div class="desc">Retos, salas y novedades</div></span><span class="badge-chip" id="notixBadge" style="display:none;">0</span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnAdmin" style="display:none;"><span class="ico">🛠️</span><span class="grow"><div>Admin</div><div class="desc">Producción del proyecto</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -379,6 +382,71 @@
     <div class="panel" style="padding:6px;" id="duelList"></div>
   </section>
 
+  <!-- EN VIVO (Fase 3) -->
+  <section id="screen-live" class="screen">
+    <div class="topbar">
+      <button class="back" id="liveBack">←</button>
+      <h1 class="title grow" style="margin:0;">🔴 En vivo</h1>
+      <div class="coins-pill">🪙 <b id="liveCoins">0</b></div>
+    </div>
+    <div class="note-off" id="liveOffNote" style="display:none;"></div>
+    <div style="font-size:12px; color:var(--dim); margin-bottom:8px; display:flex; align-items:center; gap:6px;"><span class="chip" id="liveRtChip">realtime …</span><span>Salas 1v1: el marcador se ve en vivo</span></div>
+    <div id="liveRoomPanel"></div>
+    <div id="liveLobbyPanel">
+      <div class="panel">
+        <div class="row" style="align-items:center; margin-bottom:8px; gap:6px;">
+          <h2 class="sub" style="margin:0;">🎮 Crear sala</h2>
+        </div>
+        <div class="row" style="gap:6px;">
+          <select id="liveLevel" class="name-input" style="margin:0; text-align:left; font-size:14px;"></select>
+          <button class="btn small pink" id="liveCreate">Crear</button>
+        </div>
+      </div>
+      <h2 class="sub mt8">🕹️ Salas abiertas</h2>
+      <div class="panel" style="padding:6px;" id="liveRoomsList"></div>
+      <h2 class="sub mt8">⭐ Mis salas</h2>
+      <div class="panel" style="padding:6px;" id="liveMineList"></div>
+    </div>
+    <div id="liveResultLine" class="panel" style="font-size:13px; display:none; font-weight:800;"></div>
+  </section>
+
+  <!-- AVISOS (Fase 3) -->
+  <section id="screen-notix" class="screen">
+    <div class="topbar">
+      <button class="back" id="notixBack">←</button>
+      <h1 class="title grow" style="margin:0;">🔔 Avisos</h1>
+      <button class="btn small ghost" id="notixClear">Limpiar</button>
+    </div>
+    <div class="panel" style="padding:6px;" id="notixList"></div>
+  </section>
+
+  <!-- ADMIN (Fase 3) -->
+  <section id="screen-admin" class="screen">
+    <div class="topbar">
+      <button class="back" id="adminBack">←</button>
+      <h1 class="title grow" style="margin:0;">🛠️ Admin</h1>
+      <span class="chip" id="adminRt">-</span>
+    </div>
+    <div class="note-off" id="adminOffNote" style="display:none;"></div>
+    <div class="panel" id="adminStats"></div>
+    <div class="panel">
+      <div style="font-weight:800; margin-bottom:6px;">Otorgar monedas</div>
+      <div class="row" style="gap:6px;">
+        <input id="adminGrantCode" class="name-input" style="margin:0; flex:1; text-align:left; font-size:14px;" maxlength="6" placeholder="Código amigo (F1X47)">
+        <input id="adminGrantAmt" class="name-input" type="number" value="100" style="margin:0; width:78px;">
+        <button class="btn small gold" id="adminGrantBtn">Otorgar</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div style="font-weight:800; margin-bottom:6px;">Aviso global (lo ven todos)</div>
+      <textarea id="adminNoticeIn" class="name-input" style="width:100%; box-sizing:border-box; min-height:52px;" placeholder="Mensaje para todos los jugadores…"></textarea>
+      <div class="row" style="gap:6px; margin-top:8px;">
+        <button class="btn small cyan" id="adminNoticeBtn">Publicar</button>
+        <button class="btn small ghost" id="adminNoticeClear">Borrar</button>
+      </div>
+    </div>
+  </section>
+
   <!-- JUEGO -->
   <section id="screen-game" class="screen">
     <div id="gameWrap">
@@ -391,6 +459,7 @@
         </div>
         <div id="timeBar"><div id="timeFill"></div></div>
       </div>
+      <div id="liveChip" style="display:none;"></div>
       <div id="comboBadge"></div>
       <div id="badgesRow"></div>
       <div id="detectorHint"></div>
@@ -462,6 +531,8 @@
 <script src="js/arena/arena.js"></script>
   <script src="js/arena/minigames.js"></script>
   <script src="js/arena/duels.js"></script>
+  <script src="js/arena/realtime.js"></script>
+  <script src="js/arena/live.js"></script>
   <script src="js/core/game.js"></script>
   <script src="js/ui/settings.js"></script>
   <script src="js/ui/menu.js"></script>
@@ -477,6 +548,9 @@
 <script src="js/loader/assets.js"></script>
   <script src="js/ui/armario.js"></script>
   <script src="js/ui/duel.js"></script>
+  <script src="js/ui/live.js"></script>
+  <script src="js/ui/notix.js"></script>
+  <script src="js/ui/admin.js"></script>
   <script src="js/ui/nav.js"></script>
   <script>
   try{ if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(function(){}); } }catch(e){}

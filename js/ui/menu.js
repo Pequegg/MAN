@@ -11,6 +11,7 @@ function refreshMenu(){
   $("menuTitle").textContent=titleById(activeTitle).name;
   var mm=$("menuMascot"); if(mm){ mm.style.display=activeMascot?"inline-flex":"none"; mm.textContent=(mascotById(activeMascot)||{}).icon||""; }
   $("menuCoins").textContent=num(coins); paintToggle(); renderMenuStatus(); showAuthChip();
+  if(typeof adminCheck==="function"){ try{ adminCheck(); }catch(e){} }
 }
 $("menuMascot").addEventListener("click", function(){ ensureAudio(); sfxClick(); var f=mascotPhrase(activeMascot); if(f) toast(f, mascotById(activeMascot).icon); });
 function showAuthChip(){
@@ -22,7 +23,7 @@ function renderMenuStatus(){
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
   if(stEl){ try{ var s=dayStreak(); if(s>0){ stEl.style.display="inline-flex"; stEl.innerHTML="\u{1F525} <b>"+s+"</b> "+(s===1?"día":"días"); } else { stEl.style.display="none"; } }catch(e){} }
 }
-function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); }
+function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); var lc=$("liveCoins"); if(lc) lc.textContent=num(coins); }
 $("btnPlay").addEventListener("click", function(){ sfxClick(); renderLevels(); refreshMenuCoins(); show("levels"); });
 $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); unlock("diario"); generateDaily(); renderDaily(); show("daily"); });
 $("btnShop").addEventListener("click", function(){ sfxClick(); renderShop(); show("shop"); });
@@ -30,6 +31,9 @@ $("btnAch").addEventListener("click", function(){ sfxClick(); renderAch(); show(
 $("btnRank").addEventListener("click", function(){ sfxClick(); openRanking(); show("rank"); });
 $("btnArmario").addEventListener("click", function(){ sfxClick(); renderArmario(); refreshMenuCoins(); show("armario"); });
 $("btnDuel").addEventListener("click", function(){ sfxClick(); renderDuel(); show("duel"); });
+$("btnLive").addEventListener("click", function(){ sfxClick(); renderLive(); show("live"); });
+$("btnNotix").addEventListener("click", function(){ sfxClick(); renderNotix(); show("notix"); });
+$("btnAdmin").addEventListener("click", function(){ sfxClick(); renderAdmin(); show("admin"); });
 $("btnCredits").addEventListener("click", function(){ sfxClick(); show("end"); });
 $("levelsBack").onclick = $("shopBack").onclick = $("achBack").onclick = $("rankBack").onclick = $("dailyBack").onclick = function(){ sfxClick(); goMenu(); };
 
