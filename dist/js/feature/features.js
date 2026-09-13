@@ -22,14 +22,30 @@
       ls("ft", s);
       if(res && res.won && res.bestCombo>=15 && window.Poems){ try{ Poems.sRank(); }catch(e){} }
     }catch(e){}
-    return _show.apply(null, arguments);
+    var r = _show.apply(null, arguments);
+    try{
+      if(res && res.won && window.Wk) Wk.addWinCount(1);
+      if(res && res.levelObj && res.levelObj.id==="zen"){
+        var l = document.getElementById("resLevelLine");
+        if(l && window.Zen){ var zt = Zen.line(res); if(zt) l.textContent = zt; }
+      }
+    }catch(e){}
+    return r;
   };
+
+  /* pushScore: el modo Zen no debe contaminar el ranking (local ni remoto) */
+  function featWrapPush(){
+    if(window._featPsWrapped || !window.pushScore) return;
+    var _ps = window.pushScore;
+    window.pushScore = function(entry){ if(window._featMode==="zen") return; return _ps.apply(null, arguments); };
+    window._featPsWrapped = true;
+  }
 
   /* ---------- inicio de partida (para medir tiempo) ---------- */
   var _lastFam = null;
   var _sg = window.startGame;
   window.startGame = function(id){
-    try{ window._featRunStart = Date.now(); }catch(e){}
+    try{ featWrapPush(); window._featMode = (String(id)==="zen") ? "zen" : null; window._featRunStart = Date.now(); }catch(e){}
     var r = _sg.apply(null, arguments);
     try{
       var lv = window.GS && GS.lv;
@@ -74,6 +90,9 @@
       '</div>'+
       '<div id="perfPales" class="panel" style="padding:12px;"></div>'+
       '<div id="perfPoemsWrap"><div id="perfPoems" class="panel" style="padding:12px;"></div></div>'+
+      '<div id="perfTalis" class="panel" style="padding:12px; display:none;"></div>'+
+      '<div id="perfRetos" class="panel" style="padding:12px; display:none;"></div>'+
+      '<div id="perfFortune" class="panel" style="padding:12px; display:none;"></div>'+
       '<div class="panel">'+
         '<div style="font-weight:900; font-size:15px; margin-bottom:8px;">Editar jugador</div>'+
         '<input id="perfNick" class="name-input" type="text" maxlength="16" placeholder="Cambiar nombre">'+
@@ -119,7 +138,17 @@
     featLoadPerfil(function(){
       try{ renderPerfil(); }catch(e){ toast("Perfil listo","\u{1F464}"); }
       try{ if(window.Pale) Pale.into($("perfPales")); }catch(e){}
+      try{
+        if(window.Tal) Tal.into($("perfTalis"));
+        if(window.Wk){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+      }catch(e){}
       show("perfil");
+      setTimeout(function(){ /* repintar si los modulos tardaron en cargar */
+        try{
+          if(window.Tal && $("perfTalis")) Tal.into($("perfTalis"));
+          if(window.Wk){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+        }catch(e){}
+      }, 450);
     });
   }
 
@@ -137,16 +166,22 @@
     }catch(e){}
   }
 
-  /* ---------- narrativa + paletas (modulos externos: no tocan budget) ---------- */
+  /* ---------- narrativa + paletas + zen + coleccionables (modulos lazy) ---------- */
   function featExtras(){
-    ["spirit","poems","palettes"].forEach(function(n){
-      var cls = n.charAt(0).toUpperCase()+n.slice(1);
-      if(!window[cls] && !document.querySelector('script[src="js/feature/'+n+'.js"]')){
-        var s = document.createElement("script");
-        s.src = "js/feature/"+n+".js";
-        s.async = true;
-        document.body.appendChild(s);
-      }
+    var W = {spirit:"Spirit", poems:"Poems", palettes:"Pale", zen:"Zen", talismans:"Tal", events:"Wk"};
+    ["spirit","poems","palettes","zen","talismans","events"].forEach(function(n){
+      if(window[W[n]] || document.querySelector('script[src="js/feature/'+n+'.js"]')) return;
+      var s = document.createElement("script");
+      s.src = "js/feature/"+n+".js";
+      s.async = true;
+      s.onload = function(){
+        try{
+          if(n==="zen" && window.Zen && $("btnPerfil")) Zen.btn($("btnPerfil"));
+          if(n==="talismans" && window.Tal && $("perfTalis")) Tal.into($("perfTalis"));
+          if(n==="events" && window.Wk && $("perfRetos")){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+        }catch(e){}
+      };
+      document.body.appendChild(s);
     });
   }
 

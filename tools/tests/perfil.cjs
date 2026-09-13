@@ -17,7 +17,10 @@ const perfil = fs.readFileSync(ROOT + 'js/feature/perfil.js', 'utf8');
 const spirit = fs.readFileSync(ROOT + 'js/feature/spirit.js', 'utf8');
 const poems = fs.readFileSync(ROOT + 'js/feature/poems.js', 'utf8');
 const palettes = fs.readFileSync(ROOT + 'js/feature/palettes.js', 'utf8');
-html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt></body>');
+const zen = fs.readFileSync(ROOT + 'js/feature/zen.js', 'utf8');
+const talismans = fs.readFileSync(ROOT + 'js/feature/talismans.js', 'utf8');
+const events = fs.readFileSync(ROOT + 'js/feature/events.js', 'utf8');
+html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt><scr' + 'ipt>' + zen + '</scr' + 'ipt><scr' + 'ipt>' + talismans + '</scr' + 'ipt><scr' + 'ipt>' + events + '</scr' + 'ipt></body>');
 
 const vc = new VirtualConsole();
 const jsdomErrs = [];
@@ -130,6 +133,37 @@ function click(sel) {
   w.Pale.apply('tinta'); 
   ok('paleta aplicada y persistida', w.Pale.current() === 'tinta' && w.ls('palette') === 'tinta');
   w.Pale.apply('laca');
+
+  /* Bloque 4: Zen, talismanes y eventos */
+  ok('bloque zen presente', typeof w.Zen !== 'undefined' && typeof w.Zen.start === 'function');
+  ok('boton zen en menu', !!cs('#btnZen'));
+  ok('nivel zen fabricado', !!w.Zen.level() && typeof w.Zen.level().goal === 'number');
+  ok('talismanes: 9 sellos', w.Tal.list().length === 9);
+  const t9 = w.Tal.list().filter(function (t) { return t.id === 't9'; })[0];
+  ok('sello oculto bloqueado', t9 && !t9.got);
+  click('#btnPerfil');
+  await raf(120);
+  click('#perfName');
+  await raf(20);
+  click('#perfName');
+  await raf(20);
+  click('#perfName');
+  await raf(20);
+  click('#perfName');
+  await raf(20);
+  click('#perfName');
+  await raf(30);
+  ok('sello oculto desbloqueado por huevo (5 toques)', w.Tal.list().filter(function (t) { return t.id === 't9'; })[0].got);
+  const beforeZen = (w.ls('localScores') || []).length;
+  w.Zen.start();
+  await raf(90);
+  ok('zen activo como modo (partida real)', !!w.GS && w.GS.mode === 'fan' && w.GS.lv && w.GS.lv.id === 'zen' && w.GS.lv.trap === 0);
+  if (w.GS) { w.GS.time = 30; w.GS.score = w.GS.goal + 100; }
+  await raf(70);
+  ok('resultado zen visible', !!cs('#screen-result.on'));
+  ok('linea zen personalizada', (text('#resLevelLine') || '').indexOf('Zen') !== -1);
+  ok('zen no contamina ranking', (w.ls('localScores') || []).length === beforeZen);
+
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
   process.exit(failed ? 1 : 0);
