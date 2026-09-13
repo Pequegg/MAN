@@ -33,10 +33,11 @@ js/
     cosmetics.js        Cosmética (Fase 1): abanicos, marcos, títulos, mascotas, tienda rotativa
   arena/
     arena.js            Entrada/salida de arena, grupos, temporadas, armario
+    duels.js            Duelos (Fase 2): retos por código, huella de partida, submit, badge
     minigames.js        4 mini-juegos de arena (caligrafía, faroles, rueda, tambor)
   ui/                   Render y eventos de cada pantalla (settings, menu,
                         tutorial, register, levels, shop, armario, ach, rank,
-                        daily, results, end, nav)
+                        daily, duel, results, end, nav)
   loader/
     assets.js           Mapa de assets + carga inteligente + música + fallbacks
 assets/
@@ -45,11 +46,13 @@ assets/
                         compra, logro, jefe)
   audio/music/          3 pistas ambientales en loop (calma, fiesta, épica)
 supabase/
-  arena.sql             Esquema SQL (tablas + RLS) para ejecutar en Supabase
+  arena.sql             Esquema SQL (tablas + RLS + RPCs de economía/duelos)
+                        para ejecutar en Supabase
 tools/
   gen-assets.cjs        Regenera PNG + WAV (requiere node-canvas)
   split.cjs / build.cjs Regeneran el split y la estructura a partir del monolito
   supabase-setup.ps1    Guía para conectar el proyecto Supabase
+  e2e-duel.cjs          E2E real de duelos/amigos contra Supabase (26 checkpoints)
   tests/                Suite de validación (jsdom + node-canvas + red simulada)
 ```
 
@@ -85,9 +88,9 @@ tools/
 Herramientas en `tools/tests/` (necesitan `jsdom` y `canvas` en `node_modules`):
 
 ```bash
-node tools/tests/smoke.cjs     # flujo completo: tutorial→registro→menú→nivel→resultado→tienda→logros→ranking→diario→arena
+node tools/tests/smoke.cjs     # flujo completo: tutorial→registro→menú→nivel→resultado→tienda→logros→ranking→diario→arena→duelos(offline)
 node tools/tests/mobile.cjs    # simulación móvil (viewport 375x667, puntero)
-node tools/tests/budget.cjs    # presupuesto de primera carga (<220 KB) y que todos los assets existen
+node tools/tests/budget.cjs    # presupuesto de primera carga (<230 KB) y que todos los assets existen
 node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 niveles (pixeles)
 ```
 
@@ -97,6 +100,9 @@ node tools/tests/bg.cjs        # valida fondo procedural + asset real en los 18 
 
 - El deploy es automático (GitHub Pages, rama `main`, carpeta raíz): cada `git push`
   a `main` se publica en 1-2 minutos.
+- **Duelos y amigos son 100 % online real** (Supabase): código de amigo, reto por
+  nivel, huella validada en servidor, recompensas y rachas. Funcionan con tu cuenta
+  Google (sesión) o con la cuenta de administrador de prueba.
 - Es una **PWA instalable**: en móvil abre la URL y usa *Añadir a pantalla de inicio*
   (Android) o *Agregar a pantalla de inicio* (iOS). Se abre a pantalla completa y
   sigue jugable **offline** gracias al service worker (`sw.js`), que precachea el
@@ -180,8 +186,18 @@ abierto, sin SDK) y el esquema/RLS vive en un solo archivo versionable.
   *Criterio cumplido*: dos dispositivos con la misma cuenta ven el mismo
   inventario y equipamiento (se sincroniza en `users.profile`).
   Módulos: `js/levels/cosmetics.js`, `js/core/economy.js`, `js/ui/armario.js`.
-- ⬜ **Fase 2 — Duelos asíncronos**: tabla `duels` ya creada en el SQL; falta el
-  flujo reto => huella validada => `resolve_duel` (RPC anti-trampas) => recompensas.
+- ✅ **Fase 2 — Duelos asíncronos**: reta a un amigo por **código** (RPC
+  `add_friend`), ambos juegan el **mismo nivel**, y cada lado envía una **huella**
+  (puntaje, combo, aciertos, fallos, duración) que el RPC `submit_duel_play`
+  valida **server-side** (límites físicos por nivel: aciertos/duracion/puntaje
+  imposibles se rechazan). Al completarse los dos lados se resuelve solo:
+  victoria +20 monedas (+20 pts temporada), derrota +5, y **bonus de racha** +10
+  con 3 victorias consecutivas (la racha la lleva el servidor y se resetea al
+  perder). Pantalla `#screen-duel`: badge de retos pendientes en el menú.
+  *Criterio cumplido*: los RPC de duelo y amistad probados en la base real
+  (`tools/e2e-duel.cjs`, 26 validaciones). El duelo usa el mismo nivel para ambos
+  (la semilla de disposición exacta queda como mejora futura).
+  Módulos: `js/arena/duels.js`, `js/ui/duel.js`.
 - ⬜ **Fase 3 — Tiempo real y producción**: salas 1v1 (realtime), push, admin.
 
 Criterios de aceptación de la Fase 0 (verificables): el juego funciona igual con y

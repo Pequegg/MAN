@@ -52,6 +52,7 @@ function uidLocal() { let u = global.ls('uid'); if (!u) { u = 'u' + Date.now().t
 
 // ---- fetch falso ----
 const network = { gets: [], posts: [] };
+let duelSubmitCalls = 0;
 function jsonResp(obj, status) { return { ok: status < 400, status: status || 200, json: () => Promise.resolve(obj) }; }
 global.fetch = (url, opts) => {
   opts = opts || {};
@@ -63,11 +64,20 @@ global.fetch = (url, opts) => {
     }
     if (/\/rest\/v1\/users/.test(u)) return Promise.resolve(jsonResp([], 200));
     if (/\/rest\/v1\/rpc\/redeem_item/.test(u)) return Promise.resolve(jsonResp({ coins: 999, ownedCosmetics: ['fan-lotus'], inventory: { time5: 1 } }, 200));
+    if (/\/rest\/v1\/rpc\/my_friend_code/.test(u)) return Promise.resolve(jsonResp({ code: 'F1A2B3' }, 200));
+    if (/\/rest\/v1\/rpc\/add_friend/.test(u)) return Promise.resolve(jsonResp({ ok: true, uid: 'u-friend-2', name: 'Bob' }, 200));
+    if (/\/rest\/v1\/rpc\/submit_duel_play/.test(u)) {
+      duelSubmitCalls++;
+      if (duelSubmitCalls === 1) return Promise.resolve(jsonResp({ status: 'waiting', played_side: 'p1', score: 5200 }, 200));
+      return Promise.resolve(jsonResp({ status: 'finished', won: true, reward: 20, bonus: 0, pts: 20, my: 5200, op: 4000, streak: 1 }, 200));
+    }
+    if (/\/rest\/v1\/duels/.test(u)) return Promise.resolve(jsonResp([], 200));
     return Promise.resolve(jsonResp([], 200));
   }
   network.gets.push(u);
   if (/\/rest\/v1\/users/.test(u)) return Promise.resolve(jsonResp([{ uid: 'u-google-1', profile: { name: 'Cloud', coins: 999, _saved: Date.now() + 100000 } }], 200));
   if (/\/rest\/v1\/daily/.test(u)) return Promise.resolve(jsonResp([{ uid: 'x1', name: 'A', score: 10 }], 200));
+  if (/\/rest\/v1\/duels/.test(u)) return Promise.resolve(jsonResp([], 200));
   return Promise.resolve(jsonResp([], 200));
 };
 
@@ -80,6 +90,8 @@ gload('js/core/auth.js');
 gload('js/levels/levels.js');
 gload('js/levels/cosmetics.js');
 gload('js/core/economy.js');
+global.session = { activeNow: [], duel: null };
+gload('js/arena/duels.js');
 global.SUPABASE_ANON_KEY = '';
 
 // en un segundo, montamos pruebas
@@ -154,6 +166,55 @@ global.SUPABASE_ANON_KEY = '';
   //    d) el catalogo de cosmeticas cumple el minimo de contenido de la spec
   ok('contenido Fase 1: 8 abanicos, 6 marcos, 5 titulos, 4 mascotas',
     FANSKINS.length === 9 && FRAMES.length === 7 && TITLES.length === 5 && MASCOTS.length === 4);
+
+  // 9) Duelos (Fase 2)
+  ok('Duel.authed() con llave+sesion', Duel.authed() === true && Duel.myUid() === 'u-google-1');
+  const gSample = { score: 5200, bestCombo: 14, hits: 40, catches: 5, fails: 2, startedAt: 0 };
+  const h = Duel.huella(gSample, 21000);
+  ok('huella mapea score/combo/aciertos/fallos/ms',
+    h.score === 5200 && h.combo === 14 && h.hits === 45 && h.fails === 2 && h.ms === 21000);
+  // limita combo a [1,20] y nunca negativos
+  const h2 = Duel.huella({ score: 100, bestCombo: 99, hits: 0, catches: 0, fails: 0, startedAt: 0 }, 300);
+  ok('huella clampa combo<=20 y ms>=0', h2.combo === 20 && h2.ms === 300);
+  // invariantes del server para el nivel 5 (plan_ms=34000):
+  const plan5 = 34000;
+  ok('huella nivel 5 dentro de los limites del server',
+    h.hits <= (plan5 / 1000) * 2.5 + 8 &&
+    h.ms >= h.hits * 400 && h.ms <= (plan5 + 12000) * 1.5 &&
+    h.score <= h.hits * 4800 + 50 &&
+    h.score >= h.hits * 10 - h.fails * 260 - 10000);
+  // estado de un duelo segun lado jugado
+  const dPending = { id: 'x', p1: 'u-google-1', p2: 'other', status: 'pending', scores: {}, done1: 0, done2: 0 };
+  ok('duelo pendiente: puedo jugar', Duel.canPlay(dPending) === true && Duel.waitingOther(dPending) === false);
+  const dWaiting = { id: 'x', p1: 'u-google-1', p2: 'other', status: 'p1_done', scores: { p1: 1200 }, done1: 123, done2: 0 };
+  ok('duelo con mi lado hecho: en espera', Duel.canPlay(dWaiting) === false && Duel.waitingOther(dWaiting) === true);
+  const dWin = { id: 'x', p1: 'u-google-1', p2: 'other', status: 'finished', winner: 'u-google-1', scores: { p1: 1200, p2: 900 }, done1: 1, done2: 2 };
+  ok('duelo ganado reporta iWon y puntajes', Duel.iWon(dWin) === true && Duel.myScore(dWin) === 1200 && Duel.opScore(dWin) === 900);
+
+  // 10) Flujo de red de duelos
+  network.posts.length = 0;
+  const code = await Duel.myCode();
+  ok('my_friend_code llama al RPC del server', code === 'F1A2B3' && network.posts.some(p => /rpc\/my_friend_code/.test(p.url)));
+  network.posts.length = 0;
+  const fr = await Duel.addFriend('F1A2B3');
+  ok('add_friend envia p_code', fr.ok && network.posts.some(p => /rpc\/add_friend/.test(p.url) && p.body.p_code === 'F1A2B3'));
+  network.posts.length = 0;
+  const did = await Duel.create({ uid: 'u-friend-2', name: 'Bob' }, 5);
+  ok('crear duelo inserta con p1=p2=uids y level', network.posts.some(p => /\/rest\/v1\/duels/.test(p.url) &&
+    p.body[0].p1 === 'u-google-1' && p.body[0].p2 === 'u-friend-2' && p.body[0].level_id === 5 && p.body[0].status === 'pending') && !!did);
+  network.gets.length = 0;
+  const dl = await Duel.list();
+  ok('list() consulta mis duelos (p1 o p2)', Array.isArray(dl) && network.gets.some(u => u.includes('/rest/v1/duels?or=')));
+  // submit: mi lado -> esperando
+  session.duel = { id: 'd1' };
+  let res = await Duel.submit({ score: 5200, combo: 14, hits: 45, fails: 2, ms: 21000 });
+  ok('submit envia submit_duel_play con parametros mapeados', res.status === 'waiting' &&
+    network.posts.some(p => /rpc\/submit_duel_play/.test(p.url) && p.body.p_duel === 'd1' && p.body.p_score === 5200 && p.body.p_hits === 45 && p.body.p_ms === 21000));
+  // submitFromGame: construye huella y limpia session.duel; al resolverse recompensa
+  network.posts.length = 0;
+  session.duel = { id: 'd2' };
+  res = await Duel.submitFromGame({ score: 5200, bestCombo: 14, hits: 40, catches: 5, fails: 2, startedAt: 0 });
+  ok('submitFromGame resuelve con recompensa', res && res.status === 'finished' && res.won === true && res.reward === 20 && session.duel === null);
 
   console.log(fail ? ('FALLOS: ' + fail) : 'ONLINE OK');
   process.exit(fail ? 1 : 0);

@@ -296,3 +296,14 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
   .btn{cursor:pointer;}
   .menu-btn{cursor:pointer;}
 }
+
+/* ---------- duelos (Fase 2) ---------- */
+.badge-chip{display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px;
+  padding:0 6px; border-radius:99px; background:var(--pink); border:1px solid rgba(255,255,255,.4);
+  color:#fff; font-size:11px; font-weight:900; margin:0 6px 0 auto;}
+.friend-row,.duel-row{display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid var(--line);}
+.friend-row:last-child,.duel-row:last-child{border-bottom:none;}
+.big-avatar.sm{width:34px; height:34px; font-size:19px; flex:none;}
+.chip.c-ok{background:rgba(60,210,140,.16); border-color:rgba(60,210,140,.5); color:#8fffc9;}
+.chip.c-go{background:var(--gold); border-color:rgba(255,255,255,.35); color:#221405; font-weight:900;}
+.chip.c-no{background:rgba(255,107,125,.16); border-color:rgba(255,107,125,.5); color:#ffc9cf;}

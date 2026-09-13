@@ -22,13 +22,14 @@ function renderMenuStatus(){
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
   if(stEl){ try{ var s=dayStreak(); if(s>0){ stEl.style.display="inline-flex"; stEl.innerHTML="\u{1F525} <b>"+s+"</b> "+(s===1?"día":"días"); } else { stEl.style.display="none"; } }catch(e){} }
 }
-function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); }
+function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); }
 $("btnPlay").addEventListener("click", function(){ sfxClick(); renderLevels(); refreshMenuCoins(); show("levels"); });
 $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); unlock("diario"); generateDaily(); renderDaily(); show("daily"); });
 $("btnShop").addEventListener("click", function(){ sfxClick(); renderShop(); show("shop"); });
 $("btnAch").addEventListener("click", function(){ sfxClick(); renderAch(); show("ach"); });
 $("btnRank").addEventListener("click", function(){ sfxClick(); openRanking(); show("rank"); });
 $("btnArmario").addEventListener("click", function(){ sfxClick(); renderArmario(); refreshMenuCoins(); show("armario"); });
+$("btnDuel").addEventListener("click", function(){ sfxClick(); renderDuel(); show("duel"); });
 $("btnCredits").addEventListener("click", function(){ sfxClick(); show("end"); });
 $("levelsBack").onclick = $("shopBack").onclick = $("achBack").onclick = $("rankBack").onclick = $("dailyBack").onclick = function(){ sfxClick(); goMenu(); };
 

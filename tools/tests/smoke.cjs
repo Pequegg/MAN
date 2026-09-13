@@ -110,6 +110,9 @@ function click(sel) {
   }
   await raf(200);
   ok('aresult visible', !!cs('#screen-aresult.on'));
+  click('#btnDuel'); await raf(120);
+  ok('duel visible (offline: aviso de cuenta)', !!cs('#screen-duel.on') && !!cs('#duelOffNote'));
+  ok('duelos sin sesion: sin listados', cs('#duelList') && cs('#duelList').children.length === 0);
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
   process.exit(failed ? 1 : 0);

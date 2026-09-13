@@ -89,6 +89,8 @@ create table if not exists public.duels(
   resolved  bigint
 );
 create index if not exists idx_duels_p on public.duels(p1, p2);
+alter table public.duels add column if not exists done1 bigint not null default 0;
+alter table public.duels add column if not exists done2 bigint not null default 0;
 
 -- ---------- Amigos ----------
 create table if not exists public.friends(
@@ -159,7 +161,7 @@ create policy ad_write      on public.arena_daily   for insert with check (true)
 create policy users_read    on public.users         for select using (true);
 create policy users_write   on public.users         for insert with check (uid = auth.uid()::text);
 create policy duels_read    on public.duels         for select using (p1 = auth.uid()::text or p2 = auth.uid()::text);
-create policy duels_write   on public.duels         for insert with check (p1 = auth.uid()::text or p2 = auth.uid()::text);
+create policy duels_write   on public.duels         for insert with check (p1 = auth.uid()::text);
 create policy friends_read  on public.friends       for select using (uid = auth.uid()::text or fid = auth.uid()::text);
 create policy friends_write on public.friends       for insert with check (uid = auth.uid()::text);
 create policy purch_read    on public.purchases     for select using (uid = auth.uid()::text);
@@ -259,3 +261,226 @@ end;
 $$;
 grant execute on function public.redeem_item(text, text, integer) to anon;
 create index if not exists idx_purchases_uid_ts on public.purchases(uid, ts desc);
+
+-- ============================================================
+-- Fase 2 (spec v2.1): duelos asincronos con huella validada
+--  - p1 crea el duelo y juega su lado ya; p2 recibe el reto y
+--    juega el MISMO nivel; cuando ambos lados estan, se resuelve.
+--  - La huella {puntuacion, comboMax, aciertos, fallos, duracion}
+--    se valida SERVER-SIDE contra los limites del nivel; nadie
+--    puede mandar un puntaje imposible (anti-trampas).
+--  - Recompensas: victoria +20 monedas +20 pts temporada, derrota
+--    +5 monedas, racha de 3+ victorias consecutivas +10 bonus.
+-- ============================================================
+
+-- Tiempo planificado (ms) por nivel 1..16 (autoridad del server).
+create table if not exists public.duel_levels(
+  level_id integer primary key,
+  plan_ms  integer not null
+);
+insert into public.duel_levels(level_id, plan_ms) values
+  (1,25000),(2,28000),(3,30000),(4,32000),(5,34000),
+  (6,36000),(7,38000),(8,40000),(9,42000),(10,44000),
+  (11,46000),(12,48000),(13,52000),(14,56000),(15,60000),(16,60000)
+on conflict (level_id) do update set plan_ms = excluded.plan_ms;
+
+-- Registrar un lado ya jugado con su huella. Devuelve el estado
+-- del duelo; si era el segundo lado, lo resuelve y credita premios.
+-- Nucleo interno (p_uid explicito) reutilizable por test directos.
+create or replace function public._x_duel_submit(
+  p_uid   text,
+  p_duel  text,
+  p_score integer,
+  p_combo integer,
+  p_hits  integer,
+  p_fails integer,
+  p_ms    integer
+) returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  d      public.duels%rowtype;
+  side   text;
+  plan   integer;
+  my_score integer;
+  op_score integer;
+  w      boolean;
+  win_uid text;
+  lose_uid text;
+  streak integer;
+  bonus  integer := 0;
+  reward_win integer := 0;
+  pts_   integer;
+  prof   jsonb;
+  coins_ integer;
+  ptrs_  integer;
+begin
+  if p_uid is null or p_uid = '' then
+    raise exception 'slv: se requiere sesion';
+  end if;
+  select * into d from public.duels where id = p_duel for update;
+  if d.id is null then return '{"error":"slv: duelo no encontrado"}'::jsonb; end if;
+  if d.status = 'finished' then return '{"error":"slv: duelo ya resuelto"}'::jsonb; end if;
+  if d.p1 <> p_uid and d.p2 <> p_uid then return '{"error":"slv: no participas"}'::jsonb; end if;
+  side := case when d.p1 = p_uid then 'p1' else 'p2' end;
+  if (case when side = 'p1' then d.done1 else d.done2 end) > 0 then
+    return '{"error":"slv: ya jugaste tu lado"}'::jsonb;
+  end if;
+  select plan_ms into plan from public.duel_levels where level_id = d.level_id;
+  if plan is null then return '{"error":"slv: nivel invalido"}'::jsonb; end if;
+  -- Validacion de huella (anti-trampas, limites generosos pero fisicos)
+  if p_score < 0 or p_combo < 1 or p_combo > 20 then
+    return '{"error":"slv: huella invalida (puntaje/combo)"}'::jsonb;
+  end if;
+  if p_hits < 0 or p_fails < 0 then
+    return '{"error":"slv: huella invalida (aciertos/fallos)"}'::jsonb;
+  end if;
+  if p_hits > (plan / 1000) * 2.5 + 8 then
+    return '{"error":"slv: huella rechazada (aciertos imposibles)"}'::jsonb;
+  end if;
+  if p_fails > p_hits * 4 + 8 then
+    return '{"error":"slv: huella rechazada (fallos excesivos)"}'::jsonb;
+  end if;
+  if p_score > p_hits * 4800 + 50 then
+    return '{"error":"slv: huella rechazada (puntaje imposible)"}'::jsonb;
+  end if;
+  if p_score < p_hits * 10 - p_fails * 260 - 10000 then
+    return '{"error":"slv: huella rechazada (puntaje inconsistente)"}'::jsonb;
+  end if;
+  if p_ms < 800 or p_ms > (plan + 12000) * 1.5 then
+    return '{"error":"slv: huella rechazada (duracion invalida)"}'::jsonb;
+  end if;
+  if p_ms < p_hits * 400 then
+    return '{"error":"slv: huella rechazada (demasiado rapido)"}'::jsonb;
+  end if;
+  -- Registrar lado
+  d.scores := coalesce(d.scores, '{}') || jsonb_build_object(side, p_score);
+  if side = 'p1' then d.done1 := (floor(extract(epoch from now())))::bigint;
+     else d.done2 := (floor(extract(epoch from now())))::bigint; end if;
+  update public.duels set scores = d.scores, done1 = d.done1, done2 = d.done2,
+    status = case when d.done1 > 0 and d.done2 > 0 then 'finished'
+                  else (case when side = 'p1' then 'p1_done' else 'p2_done' end) end
+  where id = d.id;
+  if d.done1 = 0 or d.done2 = 0 then
+    return jsonb_build_object('status','waiting','played_side',side,'score',p_score);
+  end if;
+  -- ----------------- Resolver -----------------
+  my_score := p_score;
+  op_score := (case when side = 'p1' then (d.scores->>'p2') else (d.scores->>'p1') end)::int;
+  w := my_score > op_score or (my_score = op_score and
+       (case when side = 'p1' then d.done1 <= d.done2 else d.done2 <= d.done1 end));
+  win_uid := case when w then p_uid else (case when side = 'p1' then d.p2 else d.p1 end) end;
+  lose_uid := case when win_uid = d.p1 then d.p2 else d.p1 end;
+  -- premios del ganador (racha la lleva el server; resetea al perder)
+  select profile into prof from public.users where uid = win_uid for update;
+  if not found then prof := '{"coins":0}'::jsonb; end if;
+  if jsonb_typeof(prof) <> 'object' then prof := '{"coins":0}'::jsonb; end if;
+  streak := coalesce((prof->>'duelStreak')::int, 0) + 1;
+  bonus := 0;
+  if streak >= 3 then bonus := 10; end if;
+  reward_win := 20 + bonus;
+  coins_ := coalesce((prof->>'coins')::int, 0) + reward_win;
+  ptrs_  := coalesce((prof->>'duelPts')::int, 0) + 20;
+  prof := jsonb_set(prof, '{coins}', to_jsonb(coins_));
+  prof := jsonb_set(prof, '{duelStreak}', to_jsonb(streak));
+  prof := jsonb_set(prof, '{duelPts}', to_jsonb(ptrs_));
+  update public.users set profile = prof, updated_at = now() where uid = win_uid;
+  -- premios del perdedor (+5, racha a 0)
+  select profile into prof from public.users where uid = lose_uid for update;
+  if not found then prof := '{"coins":0}'::jsonb; end if;
+  if jsonb_typeof(prof) <> 'object' then prof := '{"coins":0}'::jsonb; end if;
+  coins_ := coalesce((prof->>'coins')::int, 0) + 5;
+  ptrs_  := coalesce((prof->>'duelPts')::int, 0) + 5;
+  prof := jsonb_set(prof, '{coins}', to_jsonb(coins_));
+  prof := jsonb_set(prof, '{duelStreak}', to_jsonb(0));
+  prof := jsonb_set(prof, '{duelPts}', to_jsonb(ptrs_));
+  update public.users set profile = prof, updated_at = now() where uid = lose_uid;
+  update public.duels set
+    winner  = win_uid,
+    reward1 = case when p1 = win_uid then reward_win else 5 end,
+    reward2 = case when p2 = win_uid then reward_win else 5 end,
+    resolved = (floor(extract(epoch from now())))::bigint
+  where id = d.id;
+  return jsonb_build_object('status','finished','won',w,
+    'reward', (case when w then reward_win else 5 end),
+    'bonus', (case when w then bonus else 0 end),
+    'pts', (case when w then 20 else 5 end),
+    'my',my_score,'op',op_score,'streak', streak);
+end;
+$$;
+
+-- Wrapper publico con la sesion del JWT (REST /rpc/submit_duel_play)
+create or replace function public.submit_duel_play(
+  p_duel  text,
+  p_score integer,
+  p_combo integer,
+  p_hits  integer,
+  p_fails integer,
+  p_ms    integer
+) returns jsonb
+language sql stable security definer set search_path = public
+as $$
+  select public._x_duel_submit(auth.uid()::text, p_duel, p_score, p_combo, p_hits, p_fails, p_ms);
+$$;
+grant execute on function public.submit_duel_play(text, integer, integer, integer, integer, integer) to anon;
+
+-- Amigo por codigo: codigo de 5 chars base36 derivado del uid.
+create or replace function public.friend_code(uid_in text)
+returns text language sql immutable
+as $$
+  select 'F' || lpad(upper(to_hex(mod(abs(hashtext(uid_in)), 46656))), 5, '0');
+$$;
+grant execute on function public.friend_code(text) to anon;
+
+-- Tu propio codigo amigo (el hash vive en el server; el cliente no lo replica)
+create or replace function public.my_friend_code()
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  uid_ text := auth.uid()::text;
+begin
+  if uid_ is null or uid_ = '' then return '{"error":"logout"}'::jsonb; end if;
+  return jsonb_build_object('code', public.friend_code(uid_));
+end;
+$$;
+grant execute on function public.my_friend_code() to anon;
+
+create or replace function public._x_add_friend(p_uid text, p_code text)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  t      public.users%rowtype;
+  fr     public.friends%rowtype;
+begin
+  if p_uid is null or p_uid = '' then raise exception 'slv: se requiere sesion'; end if;
+  if p_code is null or length(p_code) < 5 then return '{"error":"slv: codigo invalido"}'::jsonb; end if;
+  select * into t from public.users where public.friend_code(uid) = upper(p_code) limit 1;
+  if t.uid is null then return '{"error":"slv: codigo no encontrado"}'::jsonb; end if;
+  if t.uid = p_uid then return '{"error":"slv: es tu propio codigo"}'::jsonb; end if;
+  select * into fr from public.friends where uid = p_uid and fid = t.uid;
+  if fr.uid is not null then return '{"error":"slv: ya son amigos"}'::jsonb; end if;
+  insert into public.friends(uid, fid, name, avatar, since)
+  values (p_uid, t.uid,
+          coalesce(t.profile->>'name',''),
+          coalesce(t.profile->>'avatar',''),
+          (floor(extract(epoch from now())))::bigint);
+  insert into public.friends(uid, fid, name, avatar, since)
+  values (t.uid, p_uid,
+          coalesce((select profile->>'name' from public.users where uid = p_uid),''),
+          coalesce((select profile->>'avatar' from public.users where uid = p_uid),''),
+          (floor(extract(epoch from now())))::bigint)
+  on conflict do nothing;
+  return jsonb_build_object('ok', true, 'uid', t.uid,
+    'name', coalesce(t.profile->>'name',''), 'avatar', coalesce(t.profile->>'avatar',''));
+end;
+$$;
+
+create or replace function public.add_friend(p_code text)
+returns jsonb
+language sql stable security definer set search_path = public
+as $$
+  select public._x_add_friend(auth.uid()::text, p_code);
+$$;
+grant execute on function public.add_friend(text) to anon;

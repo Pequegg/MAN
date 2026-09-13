@@ -17,6 +17,7 @@ function startGame(id){
   GS={
     mode:"fan", id:id, lv:lv, score:0, combo:0, bestCombo:0, fails:0, trapsHit:0, hits:0, catches:0, golds:0, missed:0,
     goal:lv.goal, time:lv.time+addT, timeMax:lv.time+addT, oscAmp:0.14+0.12*0, oscPhase:Math.random()*6, oscW:1.2,
+    startedAt:(typeof performance!=="undefined")?performance.now():Date.now(),
     wind:[], parts:[], targets:[], spirit:null, fx:[], decT:Math.random()*100, fogT:0,
     spawnAcc:lv.boss?999:1.2, ghost:null, windInt:0, diffT:0,
     usedRevive:false, forgiven:false, pbShown:false, pbStart:pb[id]||0, detNext:null
@@ -683,5 +684,8 @@ function finishGame(won){
     firstTime:firstTime, unlockedNext: !!(won && nextId && levelUnlocked(nextId)), nextId:nextId,
     isDaily:id==="daily", reviveUsed:g.usedRevive, catches:g.catches, name:lv.name
   });
+  if(session && session.duel && typeof Duel!=="undefined" && Duel && Duel.authed()){
+    try{ Duel.submitFromGame(g); }catch(e){}
+  }
   refreshMenuCoins();
 }

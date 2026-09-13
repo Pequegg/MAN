@@ -313,7 +313,18 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
   .screen{max-width:560px;}
   .btn{cursor:pointer;}
   .menu-btn{cursor:pointer;}
-}</style>
+}
+
+/* ---------- duelos (Fase 2) ---------- */
+.badge-chip{display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px;
+  padding:0 6px; border-radius:99px; background:var(--pink); border:1px solid rgba(255,255,255,.4);
+  color:#fff; font-size:11px; font-weight:900; margin:0 6px 0 auto;}
+.friend-row,.duel-row{display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid var(--line);}
+.friend-row:last-child,.duel-row:last-child{border-bottom:none;}
+.big-avatar.sm{width:34px; height:34px; font-size:19px; flex:none;}
+.chip.c-ok{background:rgba(60,210,140,.16); border-color:rgba(60,210,140,.5); color:#8fffc9;}
+.chip.c-go{background:var(--gold); border-color:rgba(255,255,255,.35); color:#221405; font-weight:900;}
+.chip.c-no{background:rgba(255,107,125,.16); border-color:rgba(255,107,125,.5); color:#ffc9cf;}</style>
 <noscript><p style="padding:20px;color:#fff;text-align:center;">Op-Art Fan necesita JavaScript. Activalo para jugar.</p></noscript>
 </head>
 <body>
@@ -437,6 +448,7 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <button class="menu-btn" id="btnRank"><span class="ico">🏆</span><span class="grow"><div>Ranking</div><div class="desc">Top global y local</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArmario"><span class="ico">🪭</span><span class="grow"><div>Armario</div><div class="desc">Mascota, abanico, marco y título</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnDuel"><span class="ico">⚔️</span><span class="grow"><div>Duelos</div><div class="desc">Retos asíncronos contra amigos</div></span><span class="badge-chip" id="duelBadge" style="display:none;">0</span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -641,6 +653,38 @@ h2.sub{font-size:13px; color:var(--dim); font-weight:500; margin-bottom:14px;}
     <div id="armListFanskin" class="list hidden"></div>
     <div id="armListFrame" class="list hidden"></div>
     <div id="armListTitle" class="list hidden"></div>
+  </section>
+
+  <!-- DUELOS (Fase 2) -->
+  <section id="screen-duel" class="screen">
+    <div class="topbar">
+      <button class="back" id="duelBack">←</button>
+      <h1 class="title grow" style="margin:0;">⚔️ Duelos</h1>
+      <div class="coins-pill">🪙 <b id="duelCoins">0</b></div>
+    </div>
+    <div class="note-off" id="duelOffNote" style="display:none;"></div>
+    <div class="panel" id="duelCodePanel">
+      <div style="font-size:12px; color:var(--dim);">Tu código amigo (compártelo para que te reten)</div>
+      <div class="row" style="gap:8px; align-items:center; margin-top:6px;">
+        <b id="duelMyCode" style="font-size:18px; letter-spacing:2px; color:var(--gold);">-</b>
+        <button class="btn small ghost" id="duelCodeCopy" style="margin-left:auto;">Copiar</button>
+      </div>
+      <div class="row" style="gap:6px; margin-top:10px; align-items:center;">
+        <input id="duelFriendIn" class="name-input" style="margin:0; flex:1; text-align:left; font-size:14px; text-transform:uppercase;" maxlength="6" placeholder="Código de tu amigo (ej. F1X47)">
+        <button class="btn small cyan" id="duelAddFriend">Agregar</button>
+      </div>
+    </div>
+    <div class="panel" id="duelFriendsPanel">
+      <div class="row" style="align-items:center; margin-bottom:6px;">
+        <h2 class="sub" style="margin:0;">👥 Tus amigos</h2>
+        <span class="chip" id="duelFriendsCount">0</span>
+      </div>
+      <div style="font-size:12px; color:var(--dim); margin-bottom:8px;">Elige nivel y pulsa ⚔️ sobre un amigo para retarle.</div>
+      <select id="duelLevel" class="name-input" style="margin:0 0 8px; text-align:left; font-size:14px;"></select>
+      <div class="list" id="duelFriendsList"></div>
+    </div>
+    <h2 class="sub mt8">⚡ Mis duelos</h2>
+    <div class="panel" style="padding:6px;" id="duelList"></div>
   </section>
 
   <!-- JUEGO -->
@@ -1675,7 +1719,7 @@ function daltCol(lv, col){
   var pal=["#ffd600","#ff3dff","#00e5ff","#76ff03","#ff9100","#ff1744","#00e676"];
   return pal[idx%pal.length];
 }</script>
-  <script>/* Op-Art Fan - modulo: js/arena/arena.js */
+<script>/* Op-Art Fan - modulo: js/arena/arena.js */
 
 "use strict";
 
@@ -2493,6 +2537,133 @@ function renderDrum(w,h){
   ctx.fillStyle="rgba(255,240,200,.8)"; ctx.font="700 13px 'ZCOOL XiaoWei',serif";
   ctx.fillText("Toca cuando el disco cruce la l\u00EDnea dorada", w*0.08, h*0.5);
 }</script>
+  <script>/* Op-Art Fan - modulo: js/arena/duels.js */
+
+"use strict";
+
+/* ---------- Duelos asincronicos (Fase 2) ----------
+   - p1 crea el duelo y juega su lado ya; p2 recibe el reto.
+   - Ambos juegan el MISMO nivel; la huella de la partida se valida
+     en el server (submit_duel_play) y, con los dos lados, se resuelve.
+   - Amigos por codigo (RPC add_friend) para poder retar a quien quieras. */
+var Duel = (function(){
+  function on(){
+    return typeof SupRemote !== "undefined" && SupRemote.on();
+  }
+  function authed(){
+    return on() && typeof Auth !== "undefined" && Auth.isAuthed && Auth.isAuthed() && !!Auth.uid();
+  }
+  function myUid(){ return (typeof Auth!=="undefined" && Auth.uid) ? Auth.uid() : null; }
+
+  function code(){
+    var s="";
+    var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    for(var i=0;i<6;i++) s+=chars[(Math.random()*chars.length)|0];
+    return s;
+  }
+
+  // Mis duelos (como p1 o p2), mas recientes primero
+  function list(){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    var or="or=(p1.eq."+SupRemote.enc(myUid())+",p2.eq."+SupRemote.enc(myUid())+")&order=created.desc&limit=50";
+    return SupRemote.get("duels", or);
+  }
+
+  // Crear reto contra un amigo en un nivel concreto
+  function create(opp, level){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    var row={
+      id:"d"+Date.now()+"-"+Math.floor(Math.random()*1e6),
+      p1:myUid(), p2:(opp&&opp.uid)||opp,
+      level_id:level, seed:code(), status:"pending", scores:{}, created:Date.now()
+    };
+    return SupRemote.upsert("duels",[row],false).then(function(){ return row.id; });
+  }
+
+  function friends(){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    return SupRemote.get("friends","uid=eq."+SupRemote.enc(myUid())+"&order=name").then(function(rows){ return rows||[]; });
+  }
+
+  function addFriend(codeIn){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    return SupRemote.rpc("add_friend",{p_code:codeIn});
+  }
+
+  function myCode(){
+    if(!authed()) return Promise.reject(new Error("slv: se requiere cuenta Google"));
+    return SupRemote.rpc("my_friend_code",{}).then(function(r){ return (r&&r.code)||""; });
+  }
+
+  // Huella de una partida terminada (GS + ms real)
+  function huella(g, ms){
+    return {
+      score: Math.max(0, Math.floor(g.score||0)),
+      combo: Math.max(1, Math.min(20, g.bestCombo||1)),
+      hits: (g.hits||0) + (g.catches||0),
+      fails: g.fails||0,
+      ms: Math.floor(ms||0)
+    };
+  }
+
+  // Al terminar mi lado: envia la huella al server y resuelve/espera.
+  // Devuelve una promesa con el resultado {status, won, reward, ...}.
+  function submit(h){
+    if(!authed() || !session.duel) return Promise.reject(new Error("no duel"));
+    var id=session.duel.id;
+    return SupRemote.rpc("submit_duel_play",{
+      p_duel:id, p_score:h.score, p_combo:h.combo, p_hits:h.hits, p_fails:h.fails, p_ms:h.ms
+    }).then(function(r){ return r; });
+  }
+
+  // Gancho desde finishGame(): toma la huella de la partida recien jugada.
+  function submitFromGame(g){
+    var startedAt=g&&g.startedAt?g.startedAt:0;
+    var h=huella(g, (typeof performance!=="undefined"?performance.now():Date.now())-startedAt);
+    return submit(h).then(function(r){
+      var el=(typeof $==="function")?$("resLevelLine"):null;
+      session.duel=null;
+      if(r && r.status==="finished"){
+        if(typeof refreshMenuCoins==="function") refreshMenuCoins();
+        if(typeof toast==="function"){
+          toast(r.won?"\u{1F3C6} ¡Ganaste el duelo! +"+r.reward+" monedas":"\u{1F614} Perdiste el duelo (+"+r.reward+" monedas)", r.won?"\u{1F947}":"\u{1F3AF}");
+          if(r.won && r.bonus) toast("¡Racha de "+r.streak+"! Bonus +"+r.bonus,"\u{1F525}");
+        }
+        if(el && el.textContent==="") el.textContent = r.won ? "\u{1F3C6} ¡Ganaste el duelo! \u0394+"+r.reward : "\u{1F614} Derrota en el duelo \u0394+"+r.reward;
+      } else if(r && r.status==="waiting"){
+        if(typeof toast==="function") toast("Duelo jugado: esperando a tu rival","\u2694\uFE0F");
+        if(el && el.textContent==="") el.textContent="\u2694\uFE0F Tu lado enviado. Esperando al rival\u2026";
+      }
+      return r;
+    }).catch(function(e){
+      session.duel=null;
+      if(typeof toast==="function") toast("Duelo: "+(e&&e.message?e.message:e),"","err",3000);
+      return null;
+    });
+  }
+
+  function opponent(d){ return d.p1===myUid() ? (d.p2||"") : (d.p1||""); }
+  function mySide(d){ return d.p1===myUid() ? "p1" : "p2"; }
+  function myScore(d){ return (d.scores&&d.scores[d.p1===myUid()?"p1":"p2"])||0; }
+  function opScore(d){ return (d.scores&&d.scores[d.p1===myUid()?"p2":"p1"])||0; }
+  function doneX(d,side){ return side==="p1" ? (d.done1||0) : (d.done2||0); }
+  function played(d){ return doneX(d,"p1")>0 && doneX(d,"p2")>0; }
+  function canPlay(d){
+    if(!d || d.status==="finished") return false;
+    var me=mySide(d);
+    return doneX(d,me)===0;
+  }
+  function waitingOther(d){ return !canPlay(d) && !played(d); }
+  function iWon(d){ return d.status==="finished" && d.winner && d.winner===myUid(); }
+
+  return {
+    on:on, authed:authed, myUid:myUid, list:list, create:create,
+    friends:friends, addFriend:addFriend, myCode:myCode,
+    huella:huella, submit:submit, submitFromGame:submitFromGame,
+    opponent:opponent, mySide:mySide, myScore:myScore, opScore:opScore,
+    played:played, canPlay:canPlay, waitingOther:waitingOther, iWon:iWon
+  };
+})();</script>
   <script>/* Op-Art Fan - modulo: js/core/game.js */
 
 "use strict";
@@ -2512,6 +2683,7 @@ function startGame(id){
   GS={
     mode:"fan", id:id, lv:lv, score:0, combo:0, bestCombo:0, fails:0, trapsHit:0, hits:0, catches:0, golds:0, missed:0,
     goal:lv.goal, time:lv.time+addT, timeMax:lv.time+addT, oscAmp:0.14+0.12*0, oscPhase:Math.random()*6, oscW:1.2,
+    startedAt:(typeof performance!=="undefined")?performance.now():Date.now(),
     wind:[], parts:[], targets:[], spirit:null, fx:[], decT:Math.random()*100, fogT:0,
     spawnAcc:lv.boss?999:1.2, ghost:null, windInt:0, diffT:0,
     usedRevive:false, forgiven:false, pbShown:false, pbStart:pb[id]||0, detNext:null
@@ -3178,6 +3350,9 @@ function finishGame(won){
     firstTime:firstTime, unlockedNext: !!(won && nextId && levelUnlocked(nextId)), nextId:nextId,
     isDaily:id==="daily", reviveUsed:g.usedRevive, catches:g.catches, name:lv.name
   });
+  if(session && session.duel && typeof Duel!=="undefined" && Duel && Duel.authed()){
+    try{ Duel.submitFromGame(g); }catch(e){}
+  }
   refreshMenuCoins();
 }</script>
   <script>/* Op-Art Fan - modulo: js/ui/settings.js */
@@ -3219,13 +3394,14 @@ function renderMenuStatus(){
   if(tierEl){ try{ var t=seasonTier(); tierEl.innerHTML=t.ico+" <b>"+esc(t.nm)+"</b> <span style='opacity:.7;font-weight:700;'>"+num(t.pts)+" pts</span>"; }catch(e){ tierEl.innerHTML="\u2728 Novato"; } }
   if(stEl){ try{ var s=dayStreak(); if(s>0){ stEl.style.display="inline-flex"; stEl.innerHTML="\u{1F525} <b>"+s+"</b> "+(s===1?"día":"días"); } else { stEl.style.display="none"; } }catch(e){} }
 }
-function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); }
+function refreshMenuCoins(){ $("menuCoins").textContent = num(coins); $("levelsCoins").textContent = num(coins); $("shopCoins").textContent = num(coins); var dc=$("duelCoins"); if(dc) dc.textContent=num(coins); var ac=$("armCoins"); if(ac) ac.textContent=num(coins); var rc=$("arenaCoins"); if(rc) rc.textContent=num(coins); }
 $("btnPlay").addEventListener("click", function(){ sfxClick(); renderLevels(); refreshMenuCoins(); show("levels"); });
 $("btnDaily").addEventListener("click", function(){ ensureAudio(); sfxClick(); unlock("diario"); generateDaily(); renderDaily(); show("daily"); });
 $("btnShop").addEventListener("click", function(){ sfxClick(); renderShop(); show("shop"); });
 $("btnAch").addEventListener("click", function(){ sfxClick(); renderAch(); show("ach"); });
 $("btnRank").addEventListener("click", function(){ sfxClick(); openRanking(); show("rank"); });
 $("btnArmario").addEventListener("click", function(){ sfxClick(); renderArmario(); refreshMenuCoins(); show("armario"); });
+$("btnDuel").addEventListener("click", function(){ sfxClick(); renderDuel(); show("duel"); });
 $("btnCredits").addEventListener("click", function(){ sfxClick(); show("end"); });
 $("levelsBack").onclick = $("shopBack").onclick = $("achBack").onclick = $("rankBack").onclick = $("dailyBack").onclick = function(){ sfxClick(); goMenu(); };
 
@@ -3964,14 +4140,196 @@ ARM_CATS.forEach(function(c){ /* listeners */
   setTimeout(function(){ var t=$("armTab"+c.k[0].toUpperCase()+c.k.slice(1)); if(t) t.onclick=function(){ sfxClick(); armTab=c.k; renderArmario(); }; }, 0);
 });
 $("armBack").addEventListener("click", function(){ sfxClick(); goMenu(); });</script>
+  <script>/* Op-Art Fan - modulo: js/ui/duel.js */
+
+"use strict";
+
+/* ---------- Pantalla de duelos ---------- */
+var _duels=null;
+
+function renderDuelLevels(){
+  var sel=$("duelLevel");
+  if(!sel) return;
+  var opts=LEVELS.filter(function(l){ return !l.boss; });
+  if(sel.options.length===opts.length) return;
+  sel.innerHTML="";
+  opts.forEach(function(l){
+    var o=document.createElement("option");
+    o.value=l.id; o.textContent="Nivel "+l.id+" – "+l.name;
+    sel.appendChild(o);
+  });
+}
+
+function renderDuel(){
+  renderDuelLevels();
+  refreshMenuCoins();
+  var off=$("duelOffNote");
+  if(!Duel.authed()){
+    off.style.display="block";
+    off.innerHTML="Para los duelos necesitas <b>cuenta Google</b> (botón del registro). Así tus amigos y retos viajan contigo."+
+      "<br><button class='btn small gold' id='duelGoGoogle' style='margin-top:8px;'>Iniciar sesión</button>";
+    var g=$("duelGoGoogle"); if(g){ g.onclick=function(){ if(window.Auth&&Auth.login) Auth.login(); }; }
+    $("duelCodePanel").style.display="none";
+    $("duelFriendsPanel").style.display="none";
+    $("duelList").innerHTML="";
+    $("duelBadge").style.display="none";
+    return;
+  }
+  off.style.display="none";
+  $("duelCodePanel").style.display="block";
+  $("duelFriendsPanel").style.display="block";
+  var codeEl=$("duelMyCode");
+  if(codeEl) codeEl.textContent="…";
+  Duel.myCode().then(function(c){ if(codeEl) codeEl.textContent=c; }).catch(function(){});
+  loadDuelFriends();
+  loadDuelList();
+}
+
+function loadDuelFriends(){
+  var listEl=$("duelFriendsList"); if(!listEl) return;
+  listEl.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  Duel.friends().then(function(fr){
+    var cnt=$("duelFriendsCount"); if(cnt) cnt.textContent=fr.length;
+    if(!fr.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">Aún no tienes amigos. Agrega su código arriba.</div>'; return; }
+    listEl.innerHTML="";
+    fr.forEach(function(f){
+      var btn=document.createElement("button");
+      btn.className="btn small pink";
+      btn.textContent="\u2694\uFE0F Retar";
+      btn.onclick=function(){ duelRetar(f); };
+      var row=document.createElement("div");
+      row.className="friend-row";
+      row.innerHTML='<span class="big-avatar sm">'+(f.avatar||"\u{1F464}")+'</span>'+
+        '<span class="grow" style="font-weight:800;">'+esc(f.name||"Amigo")+'</span>';
+      row.appendChild(btn);
+      listEl.appendChild(row);
+    });
+  }).catch(function(e){
+    listEl.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(e.message)+'</div>';
+  });
+}
+
+function duelRetar(f){
+  var sel=$("duelLevel"); var lv=parseInt(sel?sel.value:"1",10)||1;
+  Duel.create(f, lv).then(function(id){
+    toast("Reto creado. ¡Juega tu lado!","\u2694\uFE0F");
+    loadDuelList();
+    setTimeout(function(){ session.duel={id:id, at:Date.now()}; startGame(lv); }, 350);
+  }).catch(function(e){ toast(e.message,"","err"); });
+}
+
+function duelPlay(id){
+  var d=(_duels||[]).find(function(x){ return x.id===id; });
+  if(!d) return;
+  session.duel={id:id, at:Date.now()};
+  startGame(d.level_id);
+}
+
+function loadDuelList(){
+  var listEl=$("duelList"); if(!listEl) return;
+  listEl.innerHTML='<div class="sub" style="padding:6px;">Cargando…</div>';
+  Duel.list().then(function(ds){
+    _duels=ds||[];
+    var badge=$("duelBadge");
+    var pending=(ds||[]).filter(function(d){ return Duel.canPlay(d); }).length;
+    if(badge){ badge.textContent=pending||0; badge.style.display = pending>0?"inline-flex":"none"; }
+    listEl.innerHTML="";
+    if(!ds||!ds.length){ listEl.innerHTML='<div class="sub" style="padding:6px;">Sin duelos todavía. Reta a un amigo \u2191</div>'; return; }
+    var oppUids=[];
+    ds.forEach(function(d){ var o=Duel.opponent(d); if(o) oppUids.push(o); });
+    oppUids=oppUids.filter(function(x,i){ return oppUids.indexOf(x)===i; });
+    var names={};
+    if(oppUids.length){
+      SupRemote.get("users","uid=in.("+oppUids.map(SupRemote.enc).join(",")+")&select=uid,profile").then(function(rows){
+        (rows||[]).forEach(function(r){ if(r&&r.profile) names[r.uid]={name:r.profile.name||"", avatar:r.profile.avatar||""}; });
+        ds.forEach(function(d){ renderDuelRow(d,names); });
+      }).catch(function(){ ds.forEach(function(d){ renderDuelRow(d,names); }); });
+    } else {
+      ds.forEach(function(d){ renderDuelRow(d,names); });
+    }
+  }).catch(function(e){
+    listEl.innerHTML='<div class="sub" style="padding:6px; color:#ff8a7b;">'+esc(e.message)+'</div>';
+  });
+}
+
+function renderDuelRow(d,names){
+  var listEl=$("duelList"); if(!listEl) return;
+  var opp=Duel.opponent(d);
+  var info=names[opp]||{name:"…", avatar:""};
+  var lv=levelDef(d.level_id);
+  var row=document.createElement("div");
+  row.className="duel-row";
+  var stateTxt, stateCls="", action="";
+  if(d.status==="finished"){
+    var on=Duel.iWon(d);
+    stateCls=on?"ok":"no";
+    stateTxt=on?"Ganaste":"Perdiste";
+  } else if(Duel.canPlay(d)){
+    stateCls="go";
+    stateTxt="Tu turno";
+    action='<button class="btn small gold" data-retry="1">Jugar \u25B6</button>';
+  } else if(Duel.waitingOther(d)){
+    stateTxt="Esperando a "+esc(info.name||(expWithUid(opp)))+"\u2026";
+  } else {
+    stateTxt="…";
+  }
+  var mine=Duel.myScore(d), opos=Duel.opScore(d);
+  var scoreTxt = (d.scores&&Object.keys(d.scores).length>=1) ? ("<b>"+mine+"</b> vs <b>"+opos+"</b>") : "";
+  row.innerHTML=
+    '<div class="row" style="gap:10px; align-items:center; padding:8px 6px;">'+
+      '<span class="big-avatar sm">'+(info.avatar||"\u{1F464}")+'</span>'+
+      '<div class="grow">'+
+        '<div style="font-weight:800;">'+esc(info.name||"jugador")+'</div>'+
+        '<div class="sd" style="font-size:11px; color:var(--dim);">Nivel '+d.level_id+' · '+(lv?esc(lv.name):"")+(scoreTxt?" · "+scoreTxt:"")+'</div>'+
+      '</div>'+
+      '<div><span class="chip '+(stateCls?"c-"+stateCls:"")+'" style="white-space:nowrap;">'+stateTxt+'</span></div>'+
+    '</div>'+action;
+  row.querySelectorAll("[data-retry]").forEach(function(b){
+    b.onclick=function(){ duelPlay(d.id); };
+  });
+  listEl.appendChild(row);
+}
+function expWithUid(u){ return u?String(u).slice(0,6):""; }
+
+$("duelBack").addEventListener("click", function(){ sfxClick(); goMenu(); });
+$("duelAddFriend").addEventListener("click", function(){
+  ensureAudio(); sfxClick();
+  var v=($("duelFriendIn").value||"").trim();
+  if(!v){ toast("Escribe un código","\u{1F4AC}"); return; }
+  Duel.addFriend(v).then(function(r){
+    if(r&&r.ok){
+      toast("¡Ahora son amigos con "+r.name+"!","\u{1F91D}");
+      $("duelFriendIn").value="";
+      loadDuelFriends();
+    } else {
+      toast(r&&r.error?r.error:"No se pudo agregar","","err");
+    }
+  }).catch(function(e){ toast(e.message,"","err"); });
+});
+$("duelCodeCopy").addEventListener("click", function(){
+  ensureAudio();
+  var c=$("duelMyCode").textContent;
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(c).then(function(){ toast("Código copiado: "+c,"\u{1F4CB}"); });
+  else toast("Tu código: "+c,"\u{1F4CB}");
+});</script>
   <script>/* Op-Art Fan - modulo: js/ui/nav.js */
 
 "use strict";
 
 /* ---------- Navegación / pantallas ---------- */
-var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","game","result","end"];
+var screens = ["tutorial","register","menu","levels","shop","ach","rank","daily","arena","aresult","duel","game","result","end"];
 function show(name){ screens.forEach(function(s){ $("screen-"+s).classList.toggle("on", s===name); }); var el=$("screen-"+name); if(el) el.scrollTop=0; }
-function goMenu(){ show("menu"); refreshMenuCoins(); }
+function goMenu(){ show("menu"); refreshMenuCoins(); refreshDuelBadge(); }
+function refreshDuelBadge(){
+  var badge=$("duelBadge");
+  if(!badge) return;
+  if(typeof Duel==="undefined" || !Duel.authed()){ badge.style.display="none"; return; }
+  Duel.list().then(function(ds){
+    var pending=(ds||[]).filter(function(d){ return Duel.canPlay(d); }).length;
+    badge.textContent=pending||0;
+    badge.style.display=pending>0?"inline-flex":"none";
+  }).catch(function(){ badge.style.display="none"; });
+}
 
 function finishBoot(){
   if(!introDone){ tutSlide=0; showTut(); show("tutorial"); }

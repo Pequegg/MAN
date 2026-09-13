@@ -140,6 +140,7 @@
     <button class="menu-btn" id="btnRank"><span class="ico">🏆</span><span class="grow"><div>Ranking</div><div class="desc">Top global y local</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArena"><span class="ico">🏮</span><span class="grow"><div>Arena</div><div class="desc">Reto diario, grupos y temporadas</div></span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnArmario"><span class="ico">🪭</span><span class="grow"><div>Armario</div><div class="desc">Mascota, abanico, marco y título</div></span><span class="sub">▶</span></button>
+    <button class="menu-btn" id="btnDuel"><span class="ico">⚔️</span><span class="grow"><div>Duelos</div><div class="desc">Retos asíncronos contra amigos</div></span><span class="badge-chip" id="duelBadge" style="display:none;">0</span><span class="sub">▶</span></button>
     <button class="menu-btn" id="btnCredits"><span class="ico">🎓</span><span class="grow"><div>Créditos</div><div class="desc">El proyecto</div></span><span class="sub">▶</span></button>
 
     <div class="panel">
@@ -346,6 +347,38 @@
     <div id="armListTitle" class="list hidden"></div>
   </section>
 
+  <!-- DUELOS (Fase 2) -->
+  <section id="screen-duel" class="screen">
+    <div class="topbar">
+      <button class="back" id="duelBack">←</button>
+      <h1 class="title grow" style="margin:0;">⚔️ Duelos</h1>
+      <div class="coins-pill">🪙 <b id="duelCoins">0</b></div>
+    </div>
+    <div class="note-off" id="duelOffNote" style="display:none;"></div>
+    <div class="panel" id="duelCodePanel">
+      <div style="font-size:12px; color:var(--dim);">Tu código amigo (compártelo para que te reten)</div>
+      <div class="row" style="gap:8px; align-items:center; margin-top:6px;">
+        <b id="duelMyCode" style="font-size:18px; letter-spacing:2px; color:var(--gold);">-</b>
+        <button class="btn small ghost" id="duelCodeCopy" style="margin-left:auto;">Copiar</button>
+      </div>
+      <div class="row" style="gap:6px; margin-top:10px; align-items:center;">
+        <input id="duelFriendIn" class="name-input" style="margin:0; flex:1; text-align:left; font-size:14px; text-transform:uppercase;" maxlength="6" placeholder="Código de tu amigo (ej. F1X47)">
+        <button class="btn small cyan" id="duelAddFriend">Agregar</button>
+      </div>
+    </div>
+    <div class="panel" id="duelFriendsPanel">
+      <div class="row" style="align-items:center; margin-bottom:6px;">
+        <h2 class="sub" style="margin:0;">👥 Tus amigos</h2>
+        <span class="chip" id="duelFriendsCount">0</span>
+      </div>
+      <div style="font-size:12px; color:var(--dim); margin-bottom:8px;">Elige nivel y pulsa ⚔️ sobre un amigo para retarle.</div>
+      <select id="duelLevel" class="name-input" style="margin:0 0 8px; text-align:left; font-size:14px;"></select>
+      <div class="list" id="duelFriendsList"></div>
+    </div>
+    <h2 class="sub mt8">⚡ Mis duelos</h2>
+    <div class="panel" style="padding:6px;" id="duelList"></div>
+  </section>
+
   <!-- JUEGO -->
   <section id="screen-game" class="screen">
     <div id="gameWrap">
@@ -426,8 +459,9 @@
   <script src="js/levels/cosmetics.js"></script>
   <script src="js/core/audio.js"></script>
   <script src="js/core/engine.js"></script>
-  <script src="js/arena/arena.js"></script>
+<script src="js/arena/arena.js"></script>
   <script src="js/arena/minigames.js"></script>
+  <script src="js/arena/duels.js"></script>
   <script src="js/core/game.js"></script>
   <script src="js/ui/settings.js"></script>
   <script src="js/ui/menu.js"></script>
@@ -442,6 +476,7 @@
   <script src="js/ui/end.js"></script>
 <script src="js/loader/assets.js"></script>
   <script src="js/ui/armario.js"></script>
+  <script src="js/ui/duel.js"></script>
   <script src="js/ui/nav.js"></script>
   <script>
   try{ if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(function(){}); } }catch(e){}
