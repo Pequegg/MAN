@@ -165,14 +165,17 @@ function prerenderBg(){
     o.beginPath(); o.moveTo(W*0.32,H*0.3); o.quadraticCurveTo(W*0.5,H*0.1,W*0.8,H*0.24); o.stroke();
     o.beginPath(); o.moveTo(W*0.42,H*0.26); o.quadraticCurveTo(W*0.55,H*0.14,W*0.72,H*0.2); o.stroke();
   } else if(bd==="wall"){
-    o.fillStyle="rgba(190,196,205,.10)";
-    var by=H*0.12, bh=H*0.05;
-    o.fillRect(0,by-bh, W, bh);
-    for(var i=0;i<Math.ceil(W/26);i++){
-      o.fillRect(i*26, by-bh-8, 12, 8);
-      o.fillRect(i*26+14, by, 12, 6);
-    }
-    o.fillRect(W*0.72, by-bh-10, W*0.1, 10);
+    var wy=H*0.16, wh=H*0.05, n=Math.ceil(W/24);
+    o.fillStyle="rgba(203,208,214,.55)";
+    o.fillRect(0,wy-wh,W,wh);
+    o.fillStyle="rgba(167,171,180,.65)";
+    for(var i=0;i<n;i++) o.fillRect(i*24,wy-wh-9,11,9);
+    o.fillStyle="rgba(223,228,236,.45)";
+    for(var i=0;i<n;i++) o.fillRect(i*24+15,wy-wh+wh*0.35,10,7);
+    o.fillStyle="rgba(203,208,214,.9)";
+    o.fillRect(W*0.7,wy-wh-16,W*0.06,wh+16);
+    o.fillStyle="rgba(255,207,138,.85)";
+    o.fillRect(W*0.715,wy-wh-11,W*0.03,5);
   } else if(bd==="terracotta"){
     for(var row=0;row<2;row++){
       var by=H*0.06+row*H*0.13;

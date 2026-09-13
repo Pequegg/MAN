@@ -115,14 +115,60 @@ function drawBg(lv) {
       glow(o, W * 0.5, H * 0.12, W * 0.6, '#ffd98c', 0.30);
     }
   } else if (bd === 'wall') {
-    o.fillStyle = hexa(cols[2], 0.28); o.fillRect(0, H * 0.10, W, H * 0.055);
-    o.strokeStyle = hexa(cols[1], 0.5); o.lineWidth = 2;
-    for (let i = 0; i <= W / 30; i++) { o.strokeRect(i * 30, H * 0.10, 30, H * 0.055); }
-    o.fillStyle = hexa(cols[2], 0.34);
-    for (let i = 0; i < W / 30; i++) { o.fillRect(i * 30 + 4, H * 0.10 - 9, 11, 9); o.fillRect(i * 30 + 18, H * 0.155, 11, 7); }
-    o.fillStyle = hexa(cols[3], 0.55); o.fillRect(W * 0.68, H * 0.10 - 12, W * 0.09, 12);
-    mistBands(o, H * 0.66);
-    glow(o, W * 0.5, H * 0.2, W * 0.8, cols[3], 0.24);
+    // cielo nocturno con resplandor frio + montanas en silueta
+    glow(o, W * 0.28, H * 0.10, W * 0.7, '#9db2cc', 0.25);
+    glow(o, W * 0.82, H * 0.14, W * 0.45, cols[1], 0.18);
+    ['#1d232c', '#161b22', '#10141a'].forEach((cc, zi) => {
+      o.fillStyle = hexa(cc, 0.95);
+      o.beginPath(); o.moveTo(0, H);
+      for (let x = 0; x <= W; x += W / 14) {
+        o.lineTo(x, H * (0.44 + zi * 0.08) - Math.abs(Math.sin(x * 0.006 + zi * 2.3)) * H * (0.20 - zi * 0.05));
+      }
+      o.lineTo(W, H); o.closePath(); o.fill();
+    });
+    // trazado serpenteante de la muralla (dos pasadas: base oscura + cara clara iluminada)
+    const wallY = t => H * (0.36 + 0.10 * t + 0.045 * Math.sin(t * 4.5 + 1.1) + 0.02 * Math.sin(t * 9));
+    const band = H * 0.10;
+    const tOf = x => (x + 20) / (W + 40);
+    const trace = (off) => {
+      o.beginPath();
+      for (let x = -20; x <= W + 24; x += 12) {
+        const y = wallY(tOf(x)) + off;
+        x === -20 ? o.moveTo(x, y) : o.lineTo(x, y);
+      }
+      o.stroke();
+    };
+    o.lineCap = 'round'; o.lineJoin = 'round';
+    o.strokeStyle = hexa(cols[4], 0.95); o.lineWidth = band; trace(0);
+    o.strokeStyle = hexa(cols[0], 0.95); o.lineWidth = band * 0.62; trace(-band * 0.2);
+    // textura de bloques de piedra
+    o.strokeStyle = 'rgba(20,24,30,0.35)'; o.lineWidth = 2;
+    for (let x = 4; x <= W; x += 26) {
+      const y = wallY(tOf(x));
+      o.beginPath(); o.moveTo(x, y - band * 0.42); o.lineTo(x, y - band * 0.2); o.stroke();
+      o.beginPath(); o.moveTo(x - 13, y - band * 0.31); o.lineTo(x + 13, y - band * 0.31); o.stroke();
+    }
+    // almenas
+    o.fillStyle = hexa(cols[0], 0.95);
+    for (let x = 2; x <= W + 14; x += 30) {
+      o.fillRect(x - 8, wallY(tOf(x)) - band * 0.42 - 11, 16, 11);
+    }
+    // torres vigia con saeteras y luz calida
+    for (const tt of [0.18, 0.52, 0.85]) {
+      const x = tt * W, y = wallY(tt), tw = W * 0.085, th = H * 0.13;
+      o.fillStyle = hexa(cols[0], 0.95);
+      o.fillRect(x - tw / 2, y - th - band * 0.3, tw, th + band * 0.3);
+      o.strokeStyle = 'rgba(20,24,30,0.5)'; o.lineWidth = 2.5;
+      o.strokeRect(x - tw / 2, y - th - band * 0.3, tw, th + band * 0.3);
+      o.fillStyle = hexa(cols[3], 0.95);
+      o.fillRect(x - tw * 0.34, y - th * 0.72, tw * 0.10, th * 0.3);
+      o.fillRect(x + tw * 0.24, y - th * 0.72, tw * 0.10, th * 0.3);
+      o.fillStyle = hexa(cols[1], 0.95);
+      for (let a = 0; a < 3; a++) o.fillRect(x - tw / 2 + a * tw / 3 + 3, y - th - band * 0.3 - 12, tw / 3 - 6, 12);
+      glow(o, x, y - th + band * 0.3, tw * 0.9, '#ffce7a', 0.55);
+    }
+    mistBands(o, H * 0.72);
+    glow(o, W * 0.5, H * 0.24, W * 0.9, cols[3], 0.2);
   } else if (bd === 'terracotta') {
     for (let row = 0; row < 3; row++) {
       const by = H * 0.03 + row * H * 0.115;
@@ -354,16 +400,19 @@ function genMusic() {
 }
 
 // ---------- main ----------
+const ONLY = process.argv[2] ? process.argv[2].toLowerCase() : null;
 fs.mkdirSync(path.join(OUT, 'images'), { recursive: true });
 fs.mkdirSync(path.join(OUT, 'audio', 'sfx'), { recursive: true });
 fs.mkdirSync(path.join(OUT, 'audio', 'music'), { recursive: true });
 
 for (const lv of LEVELS) {
   if (firstOf[lv.bd] !== lv) continue;
+  if (ONLY && lv.bd !== ONLY) continue;
   const buf = drawBg(lv);
   fs.writeFileSync(path.join(OUT, 'images', 'bg-' + lv.bd + '.png'), buf);
   console.log('bg-' + lv.bd + '.png', Math.round(buf.length / 1024) + ' KB');
 }
+if (ONLY) { console.log('DONE assets (solo ' + ONLY + ')'); process.exit(0); }
 const sfx = genSfx();
 for (const k of Object.keys(sfx)) {
   fs.writeFileSync(path.join(OUT, 'audio', 'sfx', k + '.wav'), sfx[k]);
