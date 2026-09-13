@@ -31,5 +31,7 @@ for (const rel of ['sw.js', 'manifest.webmanifest']) {
 }
 fs.cpSync(path.join(ROOT, 'assets'), path.join(OUT, 'assets'), { recursive: true });
 console.log('dist/assets/ copiado');
+fs.cpSync(path.join(ROOT, 'js'), path.join(OUT, 'js'), { recursive: true });
+console.log('dist/js/ copiado (modulos lazy incl.)');
 
 console.log('BUILD OK -> dist/');

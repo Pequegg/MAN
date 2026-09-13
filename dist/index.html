@@ -5191,6 +5191,7 @@ function boot(){
 window.addEventListener("load", boot);</script>
 <script>
   try{ if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(function(){}); } }catch(e){}
+  (function(){var s=document.createElement('script');s.src='js/feature/features.js';s.defer=false;document.body.appendChild(s);})();
 </script>
 </body>
 </html>

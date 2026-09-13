@@ -13,10 +13,12 @@ const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m =>
 
 // Ficheros que se precachean (CORE): el índice, el css, el manifest y los
 // scripts split. Los assets de música/fondos siguen bajo demanda en runtime.
+const FEAT = ['./js/feature/features.js', './js/feature/perfil.js'];
 const CORE = ['./', './index.html', './css/style.css', './manifest.webmanifest',
   './assets/images/icon-192.png', './assets/images/icon-512.png',
   './assets/images/icon-maskable-512.png', './assets/images/apple-touch-icon.png']
-  .concat(scripts.map(s => './' + s));
+  .concat(scripts.map(s => './' + s))
+  .concat(FEAT);
 
 // Version: hash corto (djb2, 8 hex) del contenido en orden. Cualquier cambio
 // en un script css o html cambia la version -> el SW se actualiza solo.
@@ -28,6 +30,9 @@ function hash8(str) {
 let blob = html;
 for (const s of scripts) {
   try { blob += s + fs.readFileSync(path.join(ROOT, s), 'utf8'); } catch (e) { blob += s; }
+}
+for (const f of FEAT) {
+  try { blob += f + fs.readFileSync(path.join(ROOT, f), 'utf8'); } catch (e) { blob += f; }
 }
 blob += fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
 const VERSION = 'opartfan-v2-' + hash8(blob);
