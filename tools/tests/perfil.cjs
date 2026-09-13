@@ -20,7 +20,8 @@ const palettes = fs.readFileSync(ROOT + 'js/feature/palettes.js', 'utf8');
 const zen = fs.readFileSync(ROOT + 'js/feature/zen.js', 'utf8');
 const talismans = fs.readFileSync(ROOT + 'js/feature/talismans.js', 'utf8');
 const events = fs.readFileSync(ROOT + 'js/feature/events.js', 'utf8');
-html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt><scr' + 'ipt>' + zen + '</scr' + 'ipt><scr' + 'ipt>' + talismans + '</scr' + 'ipt><scr' + 'ipt>' + events + '</scr' + 'ipt></body>');
+const minigames = fs.readFileSync(ROOT + 'js/feature/minigames.js', 'utf8');
+html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt><scr' + 'ipt>' + zen + '</scr' + 'ipt><scr' + 'ipt>' + talismans + '</scr' + 'ipt><scr' + 'ipt>' + events + '</scr' + 'ipt><scr' + 'ipt>' + minigames + '</scr' + 'ipt></body>');
 
 const vc = new VirtualConsole();
 const jsdomErrs = [];
@@ -163,6 +164,27 @@ function click(sel) {
   ok('resultado zen visible', !!cs('#screen-result.on'));
   ok('linea zen personalizada', (text('#resLevelLine') || '').indexOf('Zen') !== -1);
   ok('zen no contamina ranking', (w.ls('localScores') || []).length === beforeZen);
+
+  /* Bloque 5: catalogo de minijuegos (MG, lazy) */
+  ok('bloque minijuegos presente', typeof w.MG !== 'undefined' && typeof w.MG.start === 'function');
+  ok('8 juegos en el catalogo', Array.isArray(w.MG.games()) && w.MG.games().length === 8);
+  ok('semilla de dia estable', Number.isInteger(w.MG.seedInt()) && w.MG.seedInt() >= 0);
+  var bMG = cs('#btnMG');
+  ok('boton en menu', !!bMG);
+  var mgName = bMG ? text('#btnMG .tn') : null;
+  ok('boton muestra juego del dia', !!mgName && mgName.length > 2);
+  click('#btnPerfil');
+  await raf(120);
+  ok('panel MG en perfil', !!cs('#perfMG') && (text('#perfMG') || '').indexOf('Minijuego del d') !== -1);
+  ok('regitro MG inicializado', typeof w.MG.record() === 'object' && w.MG.record().plays >= 0);
+  var beforeMG = (w.ls('localScores') || []).length;
+  click('#btnMG');
+  await raf(120);
+  ok('hud MG en juego', !!cs('#mgHud') && (text('#mgHud') || '').length > 12);
+  var antesScore = w.MG.record().plays;
+  w.MG.start();
+  await raf(90);
+  ok('MG no ensucia ranking', (w.ls('localScores') || []).length === beforeMG);
 
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));

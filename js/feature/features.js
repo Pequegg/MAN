@@ -93,6 +93,7 @@
       '<div id="perfTalis" class="panel" style="padding:12px; display:none;"></div>'+
       '<div id="perfRetos" class="panel" style="padding:12px; display:none;"></div>'+
       '<div id="perfFortune" class="panel" style="padding:12px; display:none;"></div>'+
+      '<div id="perfMG" class="panel" style="padding:12px; display:none;"></div>'+
       '<div class="panel">'+
         '<div style="font-weight:900; font-size:15px; margin-bottom:8px;">Editar jugador</div>'+
         '<input id="perfNick" class="name-input" type="text" maxlength="16" placeholder="Cambiar nombre">'+
@@ -147,6 +148,7 @@
         try{
           if(window.Tal && $("perfTalis")) Tal.into($("perfTalis"));
           if(window.Wk){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+          if(window.MG && $("perfMG")){ MG.intoPerfil($("perfMG")); MG.menuBtn($("btnPerfil")); }
         }catch(e){}
       }, 450);
     });
@@ -168,8 +170,8 @@
 
   /* ---------- narrativa + paletas + zen + coleccionables (modulos lazy) ---------- */
   function featExtras(){
-    var W = {spirit:"Spirit", poems:"Poems", palettes:"Pale", zen:"Zen", talismans:"Tal", events:"Wk"};
-    ["spirit","poems","palettes","zen","talismans","events"].forEach(function(n){
+    var W = {spirit:"Spirit", poems:"Poems", palettes:"Pale", zen:"Zen", talismans:"Tal", events:"Wk", minigames:"MG"};
+    ["spirit","poems","palettes","zen","talismans","events","minigames"].forEach(function(n){
       if(window[W[n]] || document.querySelector('script[src="js/feature/'+n+'.js"]')) return;
       var s = document.createElement("script");
       s.src = "js/feature/"+n+".js";
@@ -178,7 +180,8 @@
         try{
           if(n==="zen" && window.Zen && $("btnPerfil")) Zen.btn($("btnPerfil"));
           if(n==="talismans" && window.Tal && $("perfTalis")) Tal.into($("perfTalis"));
-          if(n==="events" && window.Wk && $("perfRetos")){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+          if(n==="events" && window.Wk){ Wk.intoRetos($("perfRetos")); Wk.intoFortune($("perfFortune")); }
+          if(n==="minigames" && window.MG){ MG.intoPerfil($("perfMG")); MG.menuBtn($("btnPerfil")); }
         }catch(e){}
       };
       document.body.appendChild(s);
