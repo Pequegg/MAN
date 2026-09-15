@@ -21,7 +21,8 @@ const zen = fs.readFileSync(ROOT + 'js/feature/zen.js', 'utf8');
 const talismans = fs.readFileSync(ROOT + 'js/feature/talismans.js', 'utf8');
 const events = fs.readFileSync(ROOT + 'js/feature/events.js', 'utf8');
 const minigames = fs.readFileSync(ROOT + 'js/feature/minigames.js', 'utf8');
-html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt><scr' + 'ipt>' + zen + '</scr' + 'ipt><scr' + 'ipt>' + talismans + '</scr' + 'ipt><scr' + 'ipt>' + events + '</scr' + 'ipt><scr' + 'ipt>' + minigames + '</scr' + 'ipt></body>');
+const modes = fs.readFileSync(ROOT + 'js/feature/modes.js', 'utf8');
+html = html.replace('</body>', '<scr' + 'ipt>' + feat + '</scr' + 'ipt><scr' + 'ipt>' + perfil + '</scr' + 'ipt><scr' + 'ipt>' + spirit + '</scr' + 'ipt><scr' + 'ipt>' + poems + '</scr' + 'ipt><scr' + 'ipt>' + palettes + '</scr' + 'ipt><scr' + 'ipt>' + zen + '</scr' + 'ipt><scr' + 'ipt>' + talismans + '</scr' + 'ipt><scr' + 'ipt>' + events + '</scr' + 'ipt><scr' + 'ipt>' + minigames + '</scr' + 'ipt><scr' + 'ipt>' + modes + '</scr' + 'ipt></body>');
 
 const vc = new VirtualConsole();
 const jsdomErrs = [];
@@ -84,6 +85,8 @@ function click(sel) {
   ok('sin stats antes de jugar', !s0 || !s0.plays);
   click('#btnPerfil');
   await raf(120);
+  /* Bloque 6: forzar carga lazy del panel modos (onload async puede no dispararse) */
+  if (w.Mo) { try { w.Mo.into(w.document.getElementById('perfModes')); w.Mo.menuBtn(w.document.getElementById('btnPerfil')); } catch(e) {} }
   ok('perfil visible', !!cs('#screen-perfil.on'));
   ok('resumen renderizado', !!cs('#stGrid') && cs('#stGrid').children.length === 8);
   ok('cripto tarjetas semana', cs('#weekCells') && cs('#weekCells').children.length === 7);
@@ -101,7 +104,7 @@ function click(sel) {
   click('#btnPlay');
   await raf(80);
   const cards = w.document.querySelectorAll('#levelList .cell-card');
-  if (cards.length) cards[0].click();
+   if (cards.length) cards[0].click();
   await raf(100);
   ok('partida iniciada', !!cs('#screen-game.on') && w.GS && w.GS.mode === 'fan');
   if (w.GS) { w.GS.time = 30; w.GS.score = w.GS.goal + 100; }
@@ -185,6 +188,35 @@ function click(sel) {
   w.MG.start();
   await raf(90);
   ok('MG no ensucia ranking', (w.ls('localScores') || []).length === beforeMG);
+   ok('bloque modos presente', typeof w.Mo !== 'undefined' && typeof w.Mo.list === 'function' && typeof w.Mo.setMo === 'function');
+   ok('3 modos en el catalogo', Array.isArray(w.Mo.list()) && w.Mo.list().length === 3);
+   ok('ids: perfecto/reves/mania', w.Mo.list().map(function (m) { return m.id; }).join(',') === 'perfecto,reves,mania');
+   ok('modo por defecto: perfecto', w.Mo.current().id === 'perfecto');
+   var si1 = w.Mo.seedIdx(), si2 = w.Mo.seedIdx();
+   ok('indice del dia estable 0..2', Number.isInteger(si1) && si1 === si2 && si1 >= 0 && si1 < 3);
+   ok('panel modos en perfil', !!cs('#perfModes') && cs('#perfModes').children.length >= 3);
+   ok('boton menu modos', !!cs('#btnModos'));
+   var bRev = cs('#perfModes .mo-btn[data-mo="reves"]');
+   ok('boton reves existe', !!bRev);
+   if (bRev) bRev.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+   await raf(40);
+   ok('cambio a reves', w.Mo.current().id === 'reves');
+   ok('persistido con prefijo propio', JSON.parse(w.localStorage.getItem('mo:cur') || 'null') === 'reves');
+   var bm = w.Mo.rec('mania');
+   ok('record mania inicial', typeof bm.best === 'number' && typeof bm.wins === 'number' && typeof bm.plays === 'number');
+   var antesRG = (w.ls('localScores') || []).length;
+   w.Mo.setMo('mania');
+   var metaBase = 100; w.GS.goal = metaBase;
+   await raf(40);
+   click('#btnPlay');
+   await raf(80);
+   var lvCards = w.document.querySelectorAll('#levelList .cell-card');
+   if (lvCards.length) lvCards[0].click();
+   await raf(140);
+   
+   ok('pact mania aplicado (variante activa)', !!w.GS && (w.GS._moMania === true || w._featMo === 'mania'));
+   ok('meta aumentada por el pact', !!w.GS && w.GS.goal > metaBase);
+   ok('ranking NO ensuciado por modo', (w.ls('localScores') || []).length === antesRG);
 
   console.log('winErrors:', errs.length, errs.join(' | '));
   if (jsdomErrs.length) console.log('jsdomErrors:', jsdomErrs.length, jsdomErrs.slice(0, 3).join(' | '));
