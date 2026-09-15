@@ -25,10 +25,13 @@
 - **Bloque 1 — Perfil + estadísticas lazy** (commit `285c557`): arquitectura de módulos lazy estrenada; botón Perfil en menú; captura end-to-end de stats; pantalla con gráficos canvas; edición nick/estado; compartir.
 - **Bloque 2 — Narrativa china** (commit `0f92ee61`): `spirit.js` (frases por familia calm/party/epic + anuncios antes del Dragón 17 y Nian 18, vía wrapper de startGame) y `poems.js` (S-rank combo x15 descubre fragmentos clásicos; Biblioteca en el Perfil).
 - **Bloque 3 — Paletas de menú** (commit `2a1e6c1` aprox, ver `git log`): `palettes.js` con 6 temas desbloqueables por hitos de progreso (sin monedas → sin riesgo económico/server), aplicadas por CSS vars runtime en `#paleStyle`, selector dentro del Perfil (`#perfPales`).
-- Todos con dist+sw regenerados (CORE 50 ficheros, VERSION `opartfan-v2-5566b3b8`), 6 suites verdes (perfil.cjs pasó de 16 → 27 checks), desplegados en vivo.
+- **Bloque 4 — Zen, 9 talismanes, retos semanales y omikuji diario** (commit `4a68d7b`): `zen.js`, `talismans.js`, `events.js`.
+- **Bloque 5 — Catalogo de 8 minijuegos diarios lazy (MG)** (commit `2aa82f9`): `minigames.js` con runner propio `#cv`+`#mgHud`, `#btnMG` en menú, `#perfMG` en perfil; records propios sin tocar ranking; seed diaria estable.
+- **Bloque 6 — Modos de juego nuevos lazy (Mo)** (commit `ebf472e`): `modes.js` con 3 variantes (`perfecto`=victoria solo sin fallos, `reves`=tablero espejado, `mania`=meta x3). `window.Mo = {into,list,current,nameOf,setMo,rec,seedIdx,menuBtn}`; records propios prefijo `mo:`/`mo:rec:*` sin ensuciar `localScores`; pact aplicado por wrapper de `startGame`/`showResult`. Suite `perfil.cjs` valida contrato completo (18 checks, winErrors: 0).
+- Todos con dist+sw regenerados (CORE 55 ficheros, VERSION `opartfan-v2-dcf3756c`), 6 suites verdes, desplegados en vivo.
 
 ### Active
-- **Siguiente en cola** (fase actual): modos de juego nuevos, coleccionables/eventos, minijuegos, easter eggs — todos como módulos lazy añadiendo módulos a `js/feature/` y actualizando `gen-sw.cjs` (FEAT) + `perfil.cjs` si aplica.
+- **Siguiente en cola** (fase actual): coleccionables/eventos, minijuegos, easter eggs — todos como módulos lazy añadiendo módulos a `js/feature/` y actualizando `gen-sw.cjs` (FEAT) + `perfil.cjs` si aplica.
 
 ### Blocked
 - Sin acceso al dashboard de Supabase (management `config/auth` 403). Limpieza de Site URL glob = opcional, la hace el usuario.
@@ -37,14 +40,14 @@
 
 ## Next Move
 1. **Confirmar con el usuario** los 3 bloques desplegados (Perfil+stats, narrativa china, paletas) — URL en vivo, recargar 2 veces por el SW.
-2. **Siguientes bloques** (todos lazy): modos de juego nuevos, coleccionables/eventos, minijuegos, easter eggs. Recordar: actualizar `FEAT` en gen-sw.cjs, copies `dist/js` ok, y correr las 6 suites + build + commit + push por bloque.
+2. **Siguientes bloques** (todos lazy): coleccionables/eventos, minijuegos, easter eggs. Recordar: actualizar `FEAT` en gen-sw.cjs, copies `dist/js` ok, y correr las 6 suites + build + commit + push por bloque.
 
 ## Relevant Files
 - `index.html`: bloque inline final con el inyector de `js/feature/features.js` (~134 B) junto al registro del SW.
-- `js/feature/*.js`: `features.js` (loader+wrappers+inyección Perfil+`Feat`), `perfil.js` (UI+gráficos), `spirit.js`, `poems.js`, `palettes.js`. Todos lazy, fuera del presupuesto.
-- `tools/gen-sw.cjs`: FEAT lista los 5 módulos feature para precache + hash VERSION.
-- `tools/tests/perfil.cjs`: suite del bloque (27 checks; inlinea features+perfil+spirit+poems+palettes).
-- `tools/build.cjs` / `tools/gen-sw.cjs`: copian `js/` al dist y precachean los 2 módulos feature.
+- `js/feature/*.js`: `features.js` (loader+wrappers+inyección Perfil+`Feat`), `perfil.js` (UI+gráficos), `spirit.js`, `poems.js`, `palettes.js`, `zen.js`, `talismans.js`, `events.js`, `minigames.js`, `modes.js`. Todos lazy, fuera del presupuesto.
+- `tools/gen-sw.cjs`: FEAT lista los 10 módulos feature para precache + hash VERSION.
+- `tools/tests/perfil.cjs`: suite del bloque (18 checks Bloque 6 inline; inlinea features+perfil+spirit+poems+palettes+zen+talismans+events+minigames+modes).
+- `tools/build.cjs` / `tools/gen-sw.cjs`: copian `js/` al dist y precachean los módulos feature.
 - `js/core/state.js`: `saveAll` (wrapper externo), `profile{name,avatar}`, `session{}` (extensible), `pb{}`, `completed[]`, `achievements[]`.
 - `js/core/game.js`: `startGame`, `finishGame(won)` construye `res` (won, score, bestCombo, fails, catches, coinsGained, newRecord, firstTime, isDaily...). `tick()`: win vía `g.score>=g.goal`; `g.time<=0` → derrota.
 - `js/ui/results.js`: `showResult(res)` (punto captura de stats + poemas S-rank).
